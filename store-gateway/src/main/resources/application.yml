@@ -1,0 +1,138 @@
+server:
+  port: 18080
+
+spring:
+  application:
+    name: store-gateway
+  config:
+    import: optional:nacos:store-gateway.yml
+  cloud:
+    loadbalancer:
+      enabled: true
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      metrics:
+        enabled: true
+      routes:
+        # 用户服务
+        - id: store-user
+          uri: http://127.0.0.1:9092
+          predicates:
+            - Path=/user/**
+        # 商品服务
+        - id: store-goods
+          uri: http://127.0.0.1:9093
+          predicates:
+            - Path=/goods/**
+        # 会员服务
+        - id: store-member
+          uri: lb://store-member
+          predicates:
+            - Path=/member/**
+        # 营销服务
+        - id: store-promotion
+          uri: lb://store-promotion
+          predicates:
+            - Path=/promotion/**
+        # 支付服务
+        - id: store-pay
+          uri: lb://store-pay
+          predicates:
+            - Path=/pay/**
+        # 交易服务
+        - id: store-trade
+          uri: lb://store-trade
+          predicates:
+            - Path=/trade/**
+        # 秒杀服务
+        - id: store-flashsale
+          uri: lb://store-flashsale
+          predicates:
+            - Path=/flashsale/**
+        # 搜索服务
+        - id: store-search
+          uri: lb://store-search
+          predicates:
+            - Path=/search/**
+        # 数据服务
+        - id: store-data
+          uri: lb://store-data
+          predicates:
+            - Path=/data/**
+        # 文件服务
+        - id: store-file
+          uri: lb://store-file
+          predicates:
+            - Path=/file/**
+        # 配送服务
+        - id: store-delivery
+          uri: lb://store-delivery
+          predicates:
+            - Path=/delivery/**
+        # 结算服务
+        - id: store-settlement
+          uri: lb://store-settlement
+          predicates:
+            - Path=/settlement/**
+
+        # ========== Swagger 路由 ==========
+        # 用户服务 API Docs
+        - id: store-user-docs
+          uri: http://localhost:9092
+          predicates:
+            - Path=/services/store-user/v3/api-docs
+        # 商品服务 API Docs
+        - id: store-goods-docs
+          uri: http://localhost:9093
+          predicates:
+            - Path=/services/store-goods/v3/api-docs
+        # 会员服务 API Docs
+        - id: store-member-docs
+          uri: http://localhost:9094
+          predicates:
+            - Path=/services/store-member/v3/api-docs
+  data:
+    redis:
+      mode: ${REDIS_MODE:standalone}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+
+# Sentinel 配置
+spring.cloud.sentinel:
+  eager: true
+  transport:
+    port: 8719
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-jwt-token-signing}
+  expiration: 86400000
+  header: Authorization
+  prefix: "Bearer "
+
+# Swagger 聚合配置
+swagger:
+  services: store-user,store-goods,store-member,store-promotion,store-pay,store-trade,store-flashsale,store-search,store-data,store-file,store-delivery,store-settlement
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
