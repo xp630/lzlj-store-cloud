@@ -1,0 +1,26 @@
+server:
+  port: 9100
+
+spring:
+  application:
+    name: store-search
+  config:
+    import: optional:nacos:store-search.yml
+  cloud:
+    nacos:
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+      config:
+        import-check:
+          enabled: false
+        namespace: ${NACOS_NAMESPACE:public}
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+      discovery:
+        namespace: ${NACOS_NAMESPACE:public}
+        group: DEFAULT_GROUP
