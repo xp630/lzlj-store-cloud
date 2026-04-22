@@ -1,58 +1,31 @@
+# ============================================
+# store-goods 启动配置 - 最小化版本
+# 所有业务配置统一在 Nacos 中管理
+# ============================================
+
 server:
-  port: 9093
+  port: 9091
 
 spring:
   application:
     name: store-goods
   config:
     import: optional:nacos:store-goods.yml
-  autoconfigure:
-    exclude:
-      - com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure
-  data:
-    redis:
-      # 单体模式（默认）
-      host: 127.0.0.1
-      port: 6379
-      database: 0
-      password:
-      # Sentinel 模式（注释掉上面，使用下面配置）
-      # sentinel:
-      #   master: mymaster
-      #   nodes: 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381
-      #   password: your-sentinel-password
-      # Cluster 模式（注释掉上面，使用下面配置）
-      # cluster:
-      #   nodes: 127.0.0.1:6379,127.0.0.1:6380,127.0.0.1:6381
-      timeout: 3000
-      lettuce:
-        pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 5
-          max-wait: 3000
-
-# Redisson 配置
-redisson:
-  # 单体模式（默认）
-  single-server-config:
-    address: redis://127.0.0.1:6379
-    password: null
-    database: 0
-    connection-minimum-idle-size: 5
-    connection-pool-size: 10
-  # Sentinel 模式（注释掉上面，使用下面配置）
-  # sentinel-servers-config:
-  #   master-name: mymaster
-  #   sentinels:
-  #     - 127.0.0.1:26379
-  #     - 127.0.0.1:26380
-  #     - 127.0.0.1:26381
-  #   password: your-sentinel-password
-  #   database: 0
-  # Cluster 模式（注释掉上面，使用下面配置）
-  # cluster-servers-config:
-  #   node-addresses:
-  #     - 127.0.0.1:6379
-  #     - 127.0.0.1:6380
-  #     - 127.0.0.1:6381
+  cloud:
+    nacos:
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+      config:
+        import-check:
+          enabled: false
+        namespace: ${spring.profiles.active:dev}
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+      discovery:
+        namespace: ${spring.profiles.active:dev}
+        group: DEFAULT_GROUP

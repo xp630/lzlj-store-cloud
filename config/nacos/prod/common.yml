@@ -1,0 +1,91 @@
+# ============================================
+# 公共配置 - prod 环境
+# 所有服务共享的配置
+# ============================================
+
+spring:
+  cloud:
+    openfeign:
+      loadbalancer:
+        enabled: false
+    loadbalancer:
+      enabled: false
+    sentinel:
+      eager: true
+      transport:
+        port: 8719
+
+  data:
+    redis:
+      mode: ${REDIS_MODE:standalone}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:mymaster}
+        nodes: ${REDIS_SENTINEL_NODES:127.0.0.1:26379,127.0.0.1:26389,127.0.0.1:26399}
+        password: ${REDIS_SENTINEL_PASSWORD:}
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:127.0.0.1:6379,127.0.0.1:6380,127.0.0.1:6381}
+        max-redirects: 3
+  rocketmq:
+    name-server: ${ROCKETMQ_NAMESRV:localhost:9876}
+    producer:
+      group: ${spring.application.name}-producer
+      send-message-timeout: 3000
+
+# Seata 配置
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  tx-service-group: ${NACOS_GROUP:LZLJ_GROUP}-tx-group
+  service:
+    vgroup-mapping:
+      ${NACOS_GROUP:LZLJ_GROUP}-tx-group: default
+    grouplist:
+      default: 127.0.0.1:8091
+  config:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+      namespace: ${NACOS_NAMESPACE:prod}
+      group: ${NACOS_GROUP:LZLJ_GROUP}
+      data-id: seata.yml
+  registry:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+      namespace: ${NACOS_NAMESPACE:prod}
+      group: ${NACOS_GROUP:LZLJ_GROUP}
+
+# Dubbo 配置
+dubbo:
+  application:
+    name: ${spring.application.name}
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    address: nacos://${NACOS_SERVER:127.0.0.1:8848}
+    parameters:
+      namespace: ${NACOS_NAMESPACE:prod}
+      group: ${NACOS_GROUP:LZLJ_GROUP}
+  provider:
+    timeout: 3000
+    retries: 1
+  consumer:
+    timeout: 5000
+    check: false
+
+logging:
+  level:
+    root: WARN
+    com.lzlj.store: INFO
