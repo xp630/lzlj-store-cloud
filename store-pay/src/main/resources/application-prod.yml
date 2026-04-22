@@ -8,3 +8,7 @@ spring:
       username: ${NACOS_USERNAME}
       password: ${NACOS_PASSWORD}
       server-addr: ${NACOS_SERVER}
+      config:
+        namespace: 69ccd4d5-5392-4b12-8d8b-bae0e5039e18
+      discovery:
+        namespace: 69ccd4d5-5392-4b12-8d8b-bae0e5039e18
