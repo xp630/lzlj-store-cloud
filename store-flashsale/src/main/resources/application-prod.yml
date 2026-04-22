@@ -1,0 +1,10 @@
+# ============================================
+# store-flashsale prod 环境配置
+# ============================================
+
+spring:
+  cloud:
+    nacos:
+      username: ${NACOS_USERNAME}
+      password: ${NACOS_PASSWORD}
+      server-addr: ${NACOS_SERVER}
