@@ -17,36 +17,26 @@ spring:
 
   data:
     redis:
-      mode: ${REDIS_MODE:standalone}
-      timeout: 3000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      mode: standalone
+      host: localhost
+      port: 6379
+      password:
       database: 0
-      sentinel:
-        master: ${REDIS_SENTINEL_MASTER:mymaster}
-        nodes: ${REDIS_SENTINEL_NODES:127.0.0.1:26379,127.0.0.1:26389,127.0.0.1:26399}
-        password: ${REDIS_SENTINEL_PASSWORD:}
-      cluster:
-        nodes: ${REDIS_CLUSTER_NODES:127.0.0.1:6379,127.0.0.1:6380,127.0.0.1:6381}
-        max-redirects: 3
+
   rocketmq:
-    name-server: ${ROCKETMQ_NAMESRV:localhost:9876}
+    name-server: localhost:9876
     producer:
       group: ${spring.application.name}-producer
       send-message-timeout: 3000
 
-# Seata 配置（暂时禁用）
+  autoconfigure:
+    exclude:
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+
 seata:
   enabled: false
 
-# Dubbo 配置
 dubbo:
   application:
     name: ${spring.application.name}
@@ -54,10 +44,10 @@ dubbo:
     name: dubbo
     port: -1
   registry:
-    address: nacos://${NACOS_SERVER:127.0.0.1:8848}
+    address: nacos://127.0.0.1:8848
     parameters:
-      namespace: ${NACOS_NAMESPACE:dev}
-      group: ${NACOS_GROUP:DEFAULT_GROUP}
+      namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+      group: DEFAULT_GROUP
   provider:
     timeout: 3000
     retries: 1

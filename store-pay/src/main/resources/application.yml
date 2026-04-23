@@ -13,12 +13,17 @@ spring:
     active: dev
   config:
     import: optional:nacos:store-pay.yml
+  autoconfigure:
+    exclude:
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
   cloud:
     nacos:
       config:
         import-check:
           enabled: false
-        namespace: ${spring.profiles.active}
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
         file-extension: yml
         shared-configs:
@@ -26,5 +31,5 @@ spring:
             group: DEFAULT_GROUP
             refresh: true
       discovery:
-        namespace: ${spring.profiles.active}
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
