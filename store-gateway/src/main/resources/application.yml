@@ -12,13 +12,16 @@ spring:
   profiles:
     active: dev
   config:
-    import: optional:nacos:store-gateway.yml
+    import: optional:nacos:store-gateway.yml?namespace=6fcc6887-5cdd-47d0-aece-6387e527b368
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration
   cloud:
     nacos:
       config:
         import-check:
           enabled: false
-        namespace: ${spring.profiles.active}
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
         file-extension: yml
         shared-configs:
@@ -26,10 +29,12 @@ spring:
             group: DEFAULT_GROUP
             refresh: true
       discovery:
-        namespace: ${spring.profiles.active}
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
-    loadbalancer:
-      enabled: true
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+        enabled: true
     gateway:
       discovery:
         locator:

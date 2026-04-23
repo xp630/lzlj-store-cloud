@@ -10,5 +10,9 @@ spring:
       server-addr: 127.0.0.1:8848
       config:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
