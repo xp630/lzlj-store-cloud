@@ -41,3 +41,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Nacos IDE metadata
+config/nacos/**/.metadata.yml
+META-INF/
