@@ -20,26 +20,6 @@
         <module>store-user</module>
         <!-- 商品服务 -->
         <module>store-goods</module>
-        <!-- 会员服务 -->
-        <module>store-member</module>
-        <!-- 营销服务 -->
-        <module>store-promotion</module>
-        <!-- 支付服务 -->
-        <module>store-pay</module>
-        <!-- 交易服务 -->
-        <module>store-trade</module>
-        <!-- 秒杀服务 -->
-        <module>store-flashsale</module>
-        <!-- 搜索服务 -->
-        <module>store-search</module>
-        <!-- 数据服务 -->
-        <module>store-data</module>
-        <!-- 文件服务 -->
-        <module>store-file</module>
-        <!-- 配送服务 -->
-        <module>store-delivery</module>
-        <!-- 结算服务 -->
-        <module>store-settlement</module>
     </modules>
 
     <properties>
@@ -67,6 +47,7 @@
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <elasticsearch.version>8.12.2</elasticsearch.version>
+        <shardingsphere.version>5.4.1</shardingsphere.version>
     </properties>
 
     <dependencyManagement>
@@ -225,6 +206,13 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
                 <version>${mapstruct.version}</version>
+            </dependency>
+
+            <!-- ShardingSphere -->
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-jdbc-core</artifactId>
+                <version>${shardingsphere.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
