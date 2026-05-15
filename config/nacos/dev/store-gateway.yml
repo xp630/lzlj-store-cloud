@@ -38,8 +38,22 @@ spring:
         url-pattern: /*
         exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
 
-# Gateway 路由配置（后续通过 Nacos 动态配置）
-spring.cloud.gateway.routes: []
+# Gateway 路由配置
+spring.cloud.gateway.routes:
+  # 用户服务 API 路由
+  - id: store-user-api
+    uri: lb://store-user
+    predicates:
+      - Path=/api/user/**
+    filters:
+      - StripPrefix=1
+  # 商品服务 API 路由
+  - id: store-goods-api
+    uri: lb://store-goods
+    predicates:
+      - Path=/api/goods/**
+    filters:
+      - StripPrefix=1
 
 management:
   endpoints:

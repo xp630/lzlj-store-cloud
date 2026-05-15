@@ -1,6 +1,5 @@
 # ============================================
-# store-gateway 启动配置 - 最小化版本
-# 所有业务配置统一在 Nacos 中管理
+# store-gateway 启动配置
 # ============================================
 
 server:
@@ -21,13 +20,6 @@ spring:
       config:
         import-check:
           enabled: false
-        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
-        group: DEFAULT_GROUP
-        file-extension: yml
-        shared-configs:
-          - data-id: common.yml
-            group: DEFAULT_GROUP
-            refresh: true
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
@@ -38,7 +30,19 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
       metrics:
         enabled: true
+      routes:
+        - id: store-user-api
+          uri: lb://store-user
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=1
+        - id: store-goods-api
+          uri: lb://store-goods
+          predicates:
+            - Path=/api/goods/**
+          filters:
+            - StripPrefix=1

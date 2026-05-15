@@ -9,6 +9,7 @@
 | 基础框架 | JDK 17, Spring Boot 3.2.4 |
 | 微服务框架 | Spring Cloud Alibaba 2023.0.1.2, Spring Cloud 2023.0.1 |
 | 服务注册/配置 | Alibaba Nacos 2.3.3 |
+| 服务治理 | Alibaba MSE (Microservice Engine) |
 | 服务调用 | Apache Dubbo 3.2.16, OpenFeign |
 | 流量控制 | Alibaba Sentinel 1.8.8 |
 | 分布式事务 | Seata 2.0.0 (AT模式) |
@@ -16,7 +17,9 @@
 | 缓存 | Redis Cluster, Redisson 3.27.2 |
 | 数据库 | MySQL 8.0, ShardingSphere |
 | 搜索引擎 | Elasticsearch 8.12.2 |
-| 容器编排 | Kubernetes, Docker |
+| 容器编排 | ACK (Alibaba Cloud Kubernetes) |
+| 日志采集 | SLS (Simple Log Service) |
+| 监控采集 | ARMS (Application Real-Time Monitoring Service) |
 | API文档 | SpringDoc OpenAPI 2.4.0 |
 
 ## 项目结构
@@ -24,23 +27,13 @@
 ```
 lzlj-cloud/
 ├── pom.xml                           # 父POM
-├── lzlj-common/                      # 公共模块
-│   ├── lzlj-common-core/             # 核心公共代码
-│   └── lzlj-common-api/               # Feign接口定义
-├── lzlj-gateway/                      # API网关 (18080)
-├── lzlj-user/                         # 用户服务 (9092)
-├── lzlj-goods/                        # 商品服务 (9093)
-├── lzlj-member/                       # 会员服务 (9094)
-├── lzlj-promotion/                   # 营销服务 (9095)
-├── lzlj-pay/                          # 支付服务 (9096)
-├── lzlj-trade/                        # 交易服务 (9097)
-├── lzlj-flashsale/                    # 秒杀服务 (9098)
-├── lzlj-search/                       # 搜索服务 (9100)
-├── lzlj-data/                         # 数据服务 (9101)
-├── lzlj-file/                         # 文件服务 (9102)
-├── lzlj-delivery/                     # 配送服务 (9103)
-├── lzlj-settlement/                   # 结算服务 (9104)
-└── sql/                               # SQL脚本
+├── store-common/                     # 公共模块
+│   ├── store-common-core/            # 核心公共代码
+│   └── store-common-api/             # Feign接口定义
+├── store-gateway/                    # API网关 (18080)
+├── store-user/                       # 用户服务 (9092)
+├── store-goods/                      # 商品服务 (9093)
+└── sql/                              # SQL脚本
 ```
 
 ## 服务端口
@@ -50,16 +43,6 @@ lzlj-cloud/
 | Gateway | 18080 | API网关统一入口 |
 | User | 9092 | 用户服务 |
 | Goods | 9093 | 商品服务 |
-| Member | 9094 | 会员服务 |
-| Promotion | 9095 | 营销服务 |
-| Pay | 9096 | 支付服务 |
-| Trade | 9097 | 交易服务 |
-| Flashsale | 9098 | 秒杀服务 |
-| Search | 9100 | 搜索服务 |
-| Data | 9101 | 数据服务 |
-| File | 9102 | 文件服务 |
-| Delivery | 9103 | 配送服务 |
-| Settlement | 9104 | 结算服务 |
 
 ## 快速开始
 
@@ -158,10 +141,9 @@ http://localhost:18080/swagger-ui.html
 
 ## 监控
 
-- Prometheus + Grafana 监控
-- SkyWalking 链路追踪
-- ELK 日志分析
 - ARMS 应用监控
+- SLS 日志分析
+- MSE 服务治理
 
 ## License
 
