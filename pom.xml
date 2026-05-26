@@ -8,7 +8,7 @@
     <artifactId>account-cloud</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>LZLJ Cloud</name>
+    <name>account-cloud</name>
     <description>泸州老窖云店系统 - Spring Cloud 微服务架构</description>
 
     <modules>

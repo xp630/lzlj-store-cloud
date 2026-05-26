@@ -12,7 +12,7 @@
 
     <artifactId>account-gateway</artifactId>
     <packaging>jar</packaging>
-    <name>LZLJ Gateway</name>
+    <name>account gateway</name>
     <description>API 网关服务</description>
 
     <dependencies>

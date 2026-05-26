@@ -12,7 +12,7 @@
 
     <artifactId>account-biz-saas</artifactId>
     <packaging>pom</packaging>
-    <name>Account-Biz-SAAS</name>
+    <name>account-biz-saas</name>
     <description>SAAS 业务服务模块聚合</description>
 
     <modules>

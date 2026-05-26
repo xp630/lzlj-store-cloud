@@ -12,7 +12,7 @@
 
     <artifactId>account-biz-lzlj</artifactId>
     <packaging>pom</packaging>
-    <name>Account-Biz-LZLJ</name>
+    <name>account-biz-lzlj</name>
     <description>老窖定制业务服务模块聚合</description>
 
     <modules>
