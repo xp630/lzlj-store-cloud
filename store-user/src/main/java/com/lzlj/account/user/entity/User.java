@@ -1,7 +1,7 @@
-package com.lzlj.store.user.entity;
+package com.lzlj.account.user.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lzlj.store.common.core.domain.TenantEntity;
+import com.lzlj.account.common.core.domain.TenantEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

@@ -88,4 +88,4 @@ dubbo:
 logging:
   level:
     root: WARN
-    com.lzlj.store: INFO
+    com.lzlj.account: INFO

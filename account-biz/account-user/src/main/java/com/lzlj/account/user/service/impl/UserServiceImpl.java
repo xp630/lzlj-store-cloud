@@ -1,17 +1,17 @@
-package com.lzlj.store.user.service.impl;
+package com.lzlj.account.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lzlj.store.common.core.domain.PageResult;
-import com.lzlj.store.common.core.exception.AuthException;
-import com.lzlj.store.common.core.exception.BusinessException;
-import com.lzlj.store.common.core.result.ResultCode;
-import com.lzlj.store.user.dao.UserDao;
-import com.lzlj.store.user.dto.UserLoginDTO;
-import com.lzlj.store.user.entity.User;
-import com.lzlj.store.user.service.UserService;
-import com.lzlj.store.user.vo.UserVO;
+import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.exception.AuthException;
+import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.user.dao.UserDao;
+import com.lzlj.account.user.dto.UserLoginDTO;
+import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.service.UserService;
+import com.lzlj.account.user.vo.UserVO;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -121,7 +122,7 @@ public class UserServiceImpl implements UserService {
         IPage<User> resultPage = userDao.selectPage(page, wrapper);
 
         return new PageResult<>(
-                resultPage.getRecords().stream().map(this::convertToVO).toList(),
+                resultPage.getRecords().stream().map(this::convertToVO).collect(Collectors.toList()),
                 resultPage.getTotal(),
                 resultPage.getCurrent(),
                 resultPage.getSize()
@@ -243,11 +244,11 @@ public class UserServiceImpl implements UserService {
         Date expiration = new Date(now.getTime() + JWT_EXPIRATION);
 
         String token = Jwts.builder()
-                .subject(String.valueOf(user.getId()))
+                .setSubject(String.valueOf(user.getId()))
                 .claim("username", user.getUsername())
                 .claim("tenantId", user.getTenantId())
-                .issuedAt(now)
-                .expiration(expiration)
+                .setIssuedAt(now)
+                .setExpiration(expiration)
                 .signWith(key)
                 .compact();
 

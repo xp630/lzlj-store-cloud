@@ -4,50 +4,50 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.lzlj.store</groupId>
-    <artifactId>store-cloud</artifactId>
+    <groupId>com.lzlj.account</groupId>
+    <artifactId>account-cloud</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Store Cloud</name>
-    <description>泸州老窖云店系统 - Spring Cloud Alibaba 微服务架构</description>
+    <name>LZLJ Cloud</name>
+    <description>泸州老窖云店系统 - Spring Cloud 微服务架构</description>
 
     <modules>
         <!-- 公共模块 -->
-        <module>store-common</module>
+        <module>account-common</module>
         <!-- 网关服务 -->
-        <module>store-gateway</module>
-        <!-- 用户服务 -->
-        <module>store-user</module>
-        <!-- 商品服务 -->
-        <module>store-goods</module>
+        <module>account-gateway</module>
+        <!-- 业务服务 -->
+        <module>account-biz</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>17</java.version>
+        <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <spring-boot.version>3.1.6</spring-boot.version>
-        <spring-cloud.version>2022.0.5</spring-cloud.version>
-        <spring-cloud-alibaba.version>2022.0.0.2</spring-cloud-alibaba.version>
-        <mybatis-plus.version>3.5.6</mybatis-plus.version>
+        <spring-boot.version>2.7.18</spring-boot.version>
+        <spring-cloud.version>2021.0.9</spring-cloud.version>
+        <spring-cloud-alibaba.version>2021.0.5.0</spring-cloud-alibaba.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <druid.version>1.2.21</druid.version>
         <mysql.version>8.0.33</mysql.version>
         <dubbo.version>3.2.8</dubbo.version>
-        <nacos.version>3.2.0</nacos.version>
+        <nacos.version>2.3.3</nacos.version>
         <sentinel.version>1.8.8</sentinel.version>
-        <seata.version>2.0.0</seata.version>
+        <seata.version>1.7.1</seata.version>
         <rocketmq.version>2.2.3</rocketmq.version>
-        <redisson.version>3.27.2</redisson.version>
+        <redisson.version>3.26.0</redisson.version>
         <hutool.version>5.8.26</hutool.version>
-        <micrometer.version>1.12.4</micrometer.version>
+        <micrometer.version>1.11.6</micrometer.version>
         <fastjson2.version>2.0.47</fastjson2.version>
-        <jwt.version>0.12.5</jwt.version>
+        <jwt.version>0.11.5</jwt.version>
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <elasticsearch.version>8.12.2</elasticsearch.version>
         <shardingsphere.version>5.4.1</shardingsphere.version>
+        <xxl-job.version>2.4.0</xxl-job.version>
+        <oss.version>3.17.4</oss.version>
     </properties>
 
     <dependencyManagement>
@@ -94,7 +94,7 @@
             <!-- Druid 连接池 -->
             <dependency>
                 <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <artifactId>druid-spring-boot-starter</artifactId>
                 <version>${druid.version}</version>
             </dependency>
 
@@ -232,7 +232,14 @@
             <dependency>
                 <groupId>com.aliyun.oss</groupId>
                 <artifactId>aliyun-sdk-oss</artifactId>
-                <version>3.17.4</version>
+                <version>${oss.version}</version>
+            </dependency>
+
+            <!-- XXL-Job -->
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job.version}</version>
             </dependency>
 
             <!-- Swagger / OpenAPI -->
@@ -251,13 +258,13 @@
 
             <!-- 本项目公共模块 -->
             <dependency>
-                <groupId>com.lzlj.store</groupId>
-                <artifactId>store-common-core</artifactId>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>account-common-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.lzlj.store</groupId>
-                <artifactId>store-common-api</artifactId>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>account-common-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

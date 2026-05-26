@@ -45,7 +45,7 @@ jwt:
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
-  type-aliases-package: com.lzlj.store.trade.entity
+  type-aliases-package: com.lzlj.account.trade.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

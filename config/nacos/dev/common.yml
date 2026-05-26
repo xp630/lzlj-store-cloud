@@ -58,4 +58,4 @@ dubbo:
 logging:
   level:
     root: INFO
-    com.lzlj.store: DEBUG
+    com.lzlj.account: DEBUG
