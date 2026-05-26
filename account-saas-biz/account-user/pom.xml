@@ -8,6 +8,7 @@
         <groupId>com.lzlj.account</groupId>
         <artifactId>account-cloud</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>account-user</artifactId>
@@ -172,13 +173,7 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <!-- ShardingSphere -->
-        <dependency>
-            <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-jdbc-core</artifactId>
-        </dependency>
-
-        <!-- HikariCP (ShardingSphere推荐) -->
+        <!-- HikariCP -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>

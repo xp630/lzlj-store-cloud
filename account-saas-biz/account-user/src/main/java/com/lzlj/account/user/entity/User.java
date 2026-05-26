@@ -82,4 +82,6 @@ public class User extends TenantEntity {
      * 微信小程序OpenID
      */
     private String wxMaOpenid;
+
+    private Long id;
 }

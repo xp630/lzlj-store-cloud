@@ -17,15 +17,18 @@ spring:
       - org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration
   cloud:
     nacos:
+      username: nacos
+      password: nacos
+      server-addr: 127.0.0.1:8848
       config:
         import-check:
           enabled: false
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
+        file-extension: yml
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
-        server-addr: 127.0.0.1:8848
-        username: nacos
-        password: nacos
         enabled: true
     gateway:
       discovery:
@@ -33,16 +36,14 @@ spring:
           enabled: false
       metrics:
         enabled: true
-      routes:
-        - id: store-user-api
-          uri: lb://store-user
-          predicates:
-            - Path=/api/user/**
-          filters:
-            - StripPrefix=1
-        - id: store-goods-api
-          uri: lb://store-goods
-          predicates:
-            - Path=/api/goods/**
-          filters:
-            - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,gateway,info,metrics
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true

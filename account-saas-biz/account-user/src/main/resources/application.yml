@@ -19,13 +19,14 @@ spring:
     throw-exception-if-no-handler-found: true
   autoconfigure:
     exclude:
-      - com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure
       - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
       - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
       - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
-      - org.apache.shardingsphere.shardingsphere-jdbc-core.SpringBootConfigurationAutoConfiguration
   cloud:
     nacos:
+      username: nacos
+      password: nacos
+      server-addr: 127.0.0.1:8848
       config:
         import-check:
           enabled: false

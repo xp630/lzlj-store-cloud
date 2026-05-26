@@ -16,8 +16,10 @@
         <module>account-common</module>
         <!-- 网关服务 -->
         <module>account-gateway</module>
-        <!-- 业务服务 -->
-        <module>account-biz</module>
+        <!-- SAAS 业务服务 -->
+        <module>account-saas-biz</module>
+        <!-- 老窖定制业务服务 -->
+        <module>account-lj-biz</module>
     </modules>
 
     <properties>

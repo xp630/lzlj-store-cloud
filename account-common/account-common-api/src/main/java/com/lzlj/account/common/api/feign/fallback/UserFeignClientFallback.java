@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class UserFeignClientFallback implements UserFeignClient {
+public class    UserFeignClientFallback implements UserFeignClient {
 
     @Override
     public Result<UserFeignClient.UserInfo> getById(Long id) {

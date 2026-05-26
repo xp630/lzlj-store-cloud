@@ -2,7 +2,6 @@ package com.lzlj.account.gateway.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +24,7 @@ public class SwaggerAggregatorConfig {
     @Value("${spring.cloud.nacos.discovery.server-addr:127.0.0.1:8848}")
     private String nacosAddr;
 
-    @Autowired
-    private WebClient.Builder webClientBuilder;
+    private final WebClient.Builder webClientBuilder;
 
     @Bean
     public WebClient webClient() {

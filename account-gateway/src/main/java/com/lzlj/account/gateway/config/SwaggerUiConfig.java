@@ -7,8 +7,6 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import java.time.Duration;
-
 /**
  * Swagger UI 静态资源配置
  * 网关层提供 Swagger UI 和 OpenAPI 文档聚合
