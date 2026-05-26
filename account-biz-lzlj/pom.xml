@@ -10,9 +10,9 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>account-lj-biz</artifactId>
+    <artifactId>account-biz-lzlj</artifactId>
     <packaging>pom</packaging>
-    <name>Account-LJ-Biz</name>
+    <name>Account-Biz-LZLJ</name>
     <description>老窖定制业务服务模块聚合</description>
 
     <modules>

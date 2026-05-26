@@ -17,9 +17,9 @@
         <!-- 网关服务 -->
         <module>account-gateway</module>
         <!-- SAAS 业务服务 -->
-        <module>account-saas-biz</module>
+        <module>account-biz-saas</module>
         <!-- 老窖定制业务服务 -->
-        <module>account-lj-biz</module>
+        <module>account-biz-lzlj</module>
     </modules>
 
     <properties>

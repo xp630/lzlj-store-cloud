@@ -12,7 +12,7 @@
 
     <artifactId>account-common</artifactId>
     <packaging>pom</packaging>
-    <name>Account-Common</name>
+    <name>account-common</name>
     <description>公共模块聚合</description>
 
     <modules>

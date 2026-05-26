@@ -10,9 +10,9 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>account-saas-biz</artifactId>
+    <artifactId>account-biz-saas</artifactId>
     <packaging>pom</packaging>
-    <name>Account-SAAS-Biz</name>
+    <name>Account-Biz-SAAS</name>
     <description>SAAS 业务服务模块聚合</description>
 
     <modules>
