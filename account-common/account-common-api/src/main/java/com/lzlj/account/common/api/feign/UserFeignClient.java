@@ -1,5 +1,6 @@
 package com.lzlj.account.common.api.feign;
 
+import com.lzlj.account.common.api.feign.fallback.UserFeignClientFallback;
 import com.lzlj.account.common.core.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +12,9 @@ import java.io.Serializable;
  * 用户服务 Feign 客户端
  */
 @FeignClient(
-    name = "account-saas-auth",
-    path = "/user"
+        name = "account-saas-auth",
+        path = "/user",
+        fallback = UserFeignClientFallback.class
 )
 public interface UserFeignClient {
 
@@ -40,7 +42,8 @@ public interface UserFeignClient {
         private Long tenantId;
         private Long orgId;
 
-        public UserInfo() {}
+        public UserInfo() {
+        }
 
         public UserInfo(Long id, String username, String realName, String phone, String email, Long tenantId, Long orgId) {
             this.id = id;
@@ -52,19 +55,60 @@ public interface UserFeignClient {
             this.orgId = orgId;
         }
 
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getRealName() { return realName; }
-        public void setRealName(String realName) { this.realName = realName; }
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public Long getTenantId() { return tenantId; }
-        public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
-        public Long getOrgId() { return orgId; }
-        public void setOrgId(Long orgId) { this.orgId = orgId; }
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getRealName() {
+            return realName;
+        }
+
+        public void setRealName(String realName) {
+            this.realName = realName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public Long getTenantId() {
+            return tenantId;
+        }
+
+        public void setTenantId(Long tenantId) {
+            this.tenantId = tenantId;
+        }
+
+        public Long getOrgId() {
+            return orgId;
+        }
+
+        public void setOrgId(Long orgId) {
+            this.orgId = orgId;
+        }
     }
 }
