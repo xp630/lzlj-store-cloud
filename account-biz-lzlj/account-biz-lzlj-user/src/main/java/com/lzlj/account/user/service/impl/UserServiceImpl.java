@@ -17,6 +17,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -39,8 +40,12 @@ public class UserServiceImpl implements UserService {
     private final UserDao userDao;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String JWT_SECRET = "your-256-bit-secret-key-for-jwt-token-signing-lzlj";
-    private static final long JWT_EXPIRATION = 86400000; // 24小时
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expiration:86400000}")
+    private Long jwtExpiration;
+
     private static final String TOKEN_PREFIX = "token:";
     private static final String USER_INFO_PREFIX = "user:info:";
 
@@ -239,9 +244,9 @@ public class UserServiceImpl implements UserService {
     // ========== 私有方法 ==========
 
     private String generateToken(User user) {
-        SecretKey key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + JWT_EXPIRATION);
+        Date expiration = new Date(now.getTime() + jwtExpiration);
 
         String token = Jwts.builder()
                 .setSubject(String.valueOf(user.getId()))
@@ -254,7 +259,7 @@ public class UserServiceImpl implements UserService {
 
         // 缓存Token
         String cacheKey = TOKEN_PREFIX + user.getId();
-        redisTemplate.opsForValue().set(cacheKey, token, JWT_EXPIRATION, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(cacheKey, token, jwtExpiration, TimeUnit.MILLISECONDS);
 
         return token;
     }

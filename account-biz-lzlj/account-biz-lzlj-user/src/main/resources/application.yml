@@ -11,12 +11,7 @@ spring:
   profiles:
     active: dev
   config:
-    import: optional:nacos:account-lzlj-user.yml
-  web:
-    resources:
-      add-mappings: false
-  mvc:
-    throw-exception-if-no-handler-found: true
+    import: optional:nacos:common.yml,optional:nacos:account-lzlj-user.yml
   autoconfigure:
     exclude:
       - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
@@ -28,25 +23,17 @@ spring:
       password: nacos
       server-addr: 127.0.0.1:8848
       config:
-        import-check:
-          enabled: false
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
         file-extension: yml
-        shared-configs:
-          - data-id: common.yml
-            group: DEFAULT_GROUP
-            refresh: true
+        import-check:
+          enabled: false
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
 
 seata:
   enabled: false
-
-jwt:
-  secret: ${jwt.secret}
-  expiration: ${jwt.expiration:86400000}
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
