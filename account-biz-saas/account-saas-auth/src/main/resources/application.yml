@@ -1,5 +1,5 @@
 # ============================================
-# store-user 启动配置
+# account-auth 启动配置
 # ============================================
 
 server:
@@ -7,11 +7,11 @@ server:
 
 spring:
   application:
-    name: store-user
+    name: saas-auth
   profiles:
     active: dev
   config:
-    import: optional:nacos:store-user.yml
+    import: optional:nacos:saas-auth.yml
   web:
     resources:
       add-mappings: false
@@ -77,3 +77,13 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+
+# 启用 Feign Sentinel 降级（调用其他服务时使用）
+feign:
+  sentinel:
+    enabled: true
+
+# Sentinel 基础配置
+sentinel:
+  transport:
+    port: 8719
