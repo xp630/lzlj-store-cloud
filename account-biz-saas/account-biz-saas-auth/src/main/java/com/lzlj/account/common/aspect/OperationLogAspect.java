@@ -1,4 +1,4 @@
-package com.lzlj.account.common.core.aspect;
+package com.lzlj.account.common.aspect;
 
 import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.context.UserContext;

@@ -1,5 +1,6 @@
 package com.lzlj.account.tenant.controller;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.tenant.dto.CreateTenantDTO;
