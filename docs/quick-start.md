@@ -188,6 +188,106 @@ com.lzlj.account.user/
     └── handler/                   # 处理器
 ```
 
+### 6.3 Common 模块说明
+
+`account-common` 是公共模块，被所有业务模块依赖，**不包含业务逻辑**。
+
+```
+account-common/
+├── account-common-core/     # 核心共享代码
+│   └── com.lzlj.account.common.core/
+│       ├── Result.java              # 统一响应封装
+│       ├── ResultCode.java          # 响应码枚举
+│       ├── GlobalExceptionHandler.java  # 全局异常处理
+│       ├── BusinessException.java   # 业务异常
+│       ├── AuthException.java       # 认证异常
+│       └── config/                  # 公共配置（如 RedissonConfig）
+│
+└── account-common-api/      # 服务间接口契约
+    └── com.lzlj.account.common.api/
+        ├── feign/                  # FeignClient 接口定义
+        │   └── UserFeignClient.java
+        └── dto/                    # 跨服务共享 DTO
+            └── UserDTO.java
+```
+
+**约束**：
+- ✅ 所有业务模块都可以依赖
+- ❌ 不得依赖任何 `account-biz-*` 模块
+- ❌ 不得包含 Entity、Service 实现
+
+### 6.4 包结构详解
+
+```
+com.lzlj.account.{模块名}.{模块名}/
+│
+├── controller/          # 控制层
+│   └── 职责：接收请求、参数校验、调用 Service
+│   └── 命名：{业务}Controller，如 GoodsController
+│
+├── service/             # 服务层
+│   ├── {业务}Service.java      # 服务接口（简单场景可省略）
+│   └── impl/
+│       └── {业务}ServiceImpl.java  # 服务实现
+│
+├── dao/               # 数据访问层
+│   └── 命名：{业务}Dao.java 或 {业务}Mapper.java
+│
+├── entity/            # 数据库实体（本地，不放 Common）
+│   └── 命名：{业务}.java 或 {业务}Entity.java
+│
+├── dto/               # 本地 DTO（不跨服务共享）
+│   └── 命名：{业务}DTO.java，如 GoodsCreateDTO
+│
+├── vo/                # 视图对象（返回给前端）
+│   └── 命名：{业务}VO.java，如 GoodsVO
+│
+├── config/            # 配置类
+│   └── 命名：{功能}Config.java，如 RedisConfig
+│
+└── handler/           # 处理器（如 Sentinel BlockHandler）
+    └── 命名：{功能}Handler.java，如 GlobalExceptionHandler
+```
+
+**Entity vs DTO vs VO**：
+
+| 类型 | 位置 | 用途 | 是否跨服务 |
+|------|------|------|-----------|
+| Entity | `{模块}/entity/` | 对应数据库表 | ❌ 不跨服务 |
+| DTO | `{模块}/dto/` 或 `common-api/dto/` | 服务间传输 | ✅ 跨服务时放 common-api |
+| VO | `{模块}/vo/` | 返回给前端 | ❌ 不跨服务 |
+
+### 6.5 各层依赖方向
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Controller                        │
+│              接收请求，返回 Result<T>                 │
+└─────────────────────┬───────────────────────────────┘
+                      │ 调用
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                     Service                          │
+│              业务逻辑处理                             │
+└─────────────────────┬───────────────────────────────┘
+                      │ 调用
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                      DAO                            │
+│              MyBatis Mapper 操作数据库               │
+└─────────────────────────────────────────────────────┘
+
+跨服务调用：
+┌─────────────────────────────────────────────────────┐
+│              FeignClient (定义在 common-api)         │
+└─────────────────────┬───────────────────────────────┘
+                      │ HTTP 调用
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│              远程服务 Controller                      │
+└─────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 七、常见开发场景
