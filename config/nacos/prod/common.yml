@@ -89,3 +89,7 @@ logging:
   level:
     root: WARN
     com.lzlj.account: INFO
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-jwt-token-signing-lzlj}
+  expiration: ${JWT_EXPIRATION:86400000}

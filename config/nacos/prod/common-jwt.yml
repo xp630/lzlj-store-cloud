@@ -1,0 +1,8 @@
+# ============================================
+# JWT配置 - prod 环境
+# 所有需要JWT的服务共享
+# ============================================
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-jwt-token-signing-lzlj}
+  expiration: ${JWT_EXPIRATION:86400000}

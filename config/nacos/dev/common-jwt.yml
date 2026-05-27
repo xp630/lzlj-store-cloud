@@ -1,0 +1,8 @@
+# ============================================
+# JWT配置 - dev 环境
+# 所有需要JWT的服务共享
+# ============================================
+
+jwt:
+  secret: your-256-bit-secret-key-for-jwt-token-signing-lzlj
+  expiration: 86400000

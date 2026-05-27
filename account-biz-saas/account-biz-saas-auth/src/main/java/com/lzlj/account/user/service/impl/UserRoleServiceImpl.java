@@ -18,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,7 @@ public class UserRoleServiceImpl implements UserRoleService {
         List<UserRole> userRoles = userRoleDao.selectList(wrapper);
 
         if (userRoles.isEmpty()) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         // 获取角色列表
