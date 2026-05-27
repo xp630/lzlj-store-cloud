@@ -1,5 +1,6 @@
 package com.lzlj.account.role.controller;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.menu.dto.MenuDTO;
@@ -56,11 +57,10 @@ public class RoleController {
     @Operation(summary = "分页查询角色")
     @GetMapping("/page")
     public Result<PageResult<RoleDTO>> page(
+            PageRequest pageRequest,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        return Result.success(roleService.page(keyword, status, pageNum, pageSize));
+            @RequestParam(required = false) Integer status) {
+        return Result.success(roleService.page(keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "获取角色已授权菜单")

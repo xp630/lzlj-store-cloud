@@ -59,11 +59,10 @@ public class TenantController {
     @Operation(summary = "分页查询租户")
     @GetMapping("/page")
     public Result<PageResult<TenantDTO>> page(
+            PageRequest pageRequest,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        return Result.success(tenantService.page(keyword, status, pageNum, pageSize));
+            @RequestParam(required = false) Integer status) {
+        return Result.success(tenantService.page(keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "修改租户状态")

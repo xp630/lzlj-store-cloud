@@ -1,6 +1,7 @@
 
 package com.lzlj.account.user.controller;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.role.dto.RoleDTO;
@@ -53,12 +54,11 @@ public class UserController {
     @Operation(summary = "分页查询用户")
     @GetMapping("/page")
     public Result<PageResult<UserDTO>> page(
+            PageRequest pageRequest,
             @RequestParam(required = false) Long orgId,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-        return Result.success(userService.page(orgId, keyword, status, pageNum, pageSize));
+            @RequestParam(required = false) Integer status) {
+        return Result.success(userService.page(orgId, keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "创建用户")
