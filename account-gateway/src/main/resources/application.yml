@@ -59,3 +59,8 @@ management:
       show-details: always
     gateway:
       enabled: true
+
+# OpenAPI配置
+openapi:
+  auth-service-url: http://localhost:9092
+  signature-expire-seconds: 300

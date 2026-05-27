@@ -34,8 +34,10 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
     @Value("${openapi.signature.expire-seconds:300}")
     private int signatureExpireSeconds;
 
+    @Value("${openapi.auth-service-url:http://saas-auth:9092}")
+    private String authServiceUrl;
+
     private static final String OPENAPI_PATH_PREFIX = "/openapi/";
-    private static final String AUTH_SERVICE_URL = "http://localhost:9092";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -68,7 +70,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         // 4. 调用 auth 服务查询认证信息
         return webClientBuilder.build()
                 .get()
-                .uri(AUTH_SERVICE_URL + "/openapi/key/inner/auth/" + apiKey)
+                .uri(authServiceUrl + "/openapi/key/inner/auth/" + apiKey)
                 .retrieve()
                 .bodyToMono(ApiKeyAuthInfo.class)
                 .flatMap(authInfo -> {
@@ -129,7 +131,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
         return webClientBuilder.build()
                 .method(exchange.getRequest().getMethod())
-                .uri(AUTH_SERVICE_URL + originalPath)
+                .uri(authServiceUrl + originalPath)
                 .headers(h -> h.putAll(headers))
                 .retrieve()
                 .bodyToMono(byte[].class)
