@@ -3,6 +3,9 @@
 # ============================================
 
 spring:
+  autoconfigure:
+    exclude:
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
   cloud:
     nacos:
       username: nacos
