@@ -43,7 +43,10 @@ public class MybatisPlusConfig {
 
                     @Override
                     public boolean ignoreTable(String tableName) {
-                        // 白名单表（不需要租户隔离的系统表）返回 true
+                        // 租户表本身不需要租户隔离（租户表是系统表，不是业务数据）
+                        if ("saas_auth_tenant".equals(tableName)) {
+                            return true;
+                        }
                         return false;
                     }
 
