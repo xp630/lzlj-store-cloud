@@ -44,7 +44,7 @@ spring:
           filters:
             - StripPrefix=2
         - id: openapi-auth
-          uri: lb://saas-auth
+          uri: http://localhost:9092
           predicates:
             - Path=/openapi/**
           filters:

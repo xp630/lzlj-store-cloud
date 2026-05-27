@@ -1,9 +1,9 @@
-package com.lzlj.account.gateway.feign;
+package com.lzlj.account.gateway.filter;
 
 import lombok.Data;
 
 /**
- * API密钥认证信息（Feign响应）
+ * API密钥认证信息
  */
 @Data
 public class ApiKeyAuthInfo {

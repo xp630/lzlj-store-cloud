@@ -1,7 +1,5 @@
 package com.lzlj.account.log.service;
 
-import com.lzlj.account.log.entity.OperationLog;
-
 /**
  * 日志服务接口
  */

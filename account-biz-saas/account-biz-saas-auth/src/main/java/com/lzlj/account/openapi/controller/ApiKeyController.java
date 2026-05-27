@@ -77,4 +77,12 @@ public class ApiKeyController {
     public Result<ApiKeyAuthDTO> getAuthInfo(@PathVariable String apiKey) {
         return Result.success(apiKeyService.getAuthInfoByApiKey(apiKey));
     }
+
+    /**
+     * 内部接口 - 直接返回裸数据，供Feign调用
+     */
+    @GetMapping("/inner/auth/{apiKey}")
+    public ApiKeyAuthDTO getAuthInfoInner(@PathVariable String apiKey) {
+        return apiKeyService.getAuthInfoByApiKey(apiKey);
+    }
 }
