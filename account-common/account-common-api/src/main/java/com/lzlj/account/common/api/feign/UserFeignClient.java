@@ -4,7 +4,6 @@ import com.lzlj.account.common.core.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.Serializable;
 
@@ -24,22 +23,10 @@ public interface UserFeignClient {
     Result<UserInfo> getById(@PathVariable("id") Long id);
 
     /**
-     * 获取用户信息
+     * 获取当前用户信息
      */
-    @GetMapping("/info")
-    Result<UserInfo> getUserInfo(@RequestParam("userId") Long userId);
-
-    /**
-     * 获取多个用户信息
-     */
-    @GetMapping("/batch")
-    Result<java.util.List<UserInfo>> getBatchUsers(@RequestParam("userIds") String userIds);
-
-    /**
-     * 验证用户状态
-     */
-    @GetMapping("/valid/{userId}")
-    Result<Boolean> validateUserStatus(@PathVariable("userId") Long userId);
+    @GetMapping("/current")
+    Result<UserInfo> getCurrentUser();
 
     /**
      * 用户信息DTO
