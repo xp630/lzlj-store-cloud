@@ -26,14 +26,4 @@ public abstract class TenantEntity extends BaseEntity implements Serializable {
      * 组织ID（经销商/门店所属组织）
      */
     private Long orgId;
-
-    /**
-     * 门店ID（如果是门店级别）
-     */
-    private Long shopId;
-
-    /**
-     * 用户ID（如果是用户级别）
-     */
-    private Long userId;
 }

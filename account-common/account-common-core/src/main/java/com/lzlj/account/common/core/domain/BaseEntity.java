@@ -64,6 +64,5 @@ public abstract class BaseEntity implements Serializable {
     /**
      * 版本号（用于乐观锁）
      */
-    @Version
     private Integer version;
 }

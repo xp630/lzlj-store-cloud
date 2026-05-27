@@ -28,10 +28,11 @@ import java.util.List;
  *
  * 流程：
  * 1. 检查白名单路径（放行）
- * 2. 从 Authorization 头提取 JWT Token
- * 3. 验证 Token 签名
- * 4. 解析用户信息，传递给下游服务
- * 5. Token 无效或缺失，返回 401
+ * 2. 检查环境（非prod/test跳过鉴权）
+ * 3. 从 Authorization 头提取 JWT Token
+ * 4. 验证 Token 签名
+ * 5. 解析用户信息，传递给下游服务
+ * 6. Token 无效或缺失，返回 401
  */
 @Slf4j
 @Component
@@ -43,6 +44,18 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
      */
     @Value("${jwt.secret:}")
     private String jwtSecret;
+
+    /**
+     * 需要鉴权的环境
+     * test 和 prod 环境需要 JWT 鉴权
+     */
+    private static final List<String> AUTH_ENABLED_ENVIRONMENTS = Arrays.asList("test", "prod");
+
+    /**
+     * 当前激活的环境
+     */
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
 
     /**
      * 白名单路径 - 不需要认证的路径
@@ -77,7 +90,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        // 2. 提取 Token
+        // 2. 非 prod/test 环境，跳过鉴权
+        if (!AUTH_ENABLED_ENVIRONMENTS.contains(activeProfile)) {
+            log.debug("当前环境 [{}] 不需要鉴权，放行: {}", activeProfile, path);
+            return chain.filter(exchange);
+        }
+
+        // 3. 提取 Token
         String authHeader = request.getHeaders().getFirst("Authorization");
         String token = extractToken(authHeader);
 
