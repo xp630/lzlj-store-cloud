@@ -1,6 +1,9 @@
 package com.lzlj.account.gateway.filter;
 
+import com.lzlj.account.gateway.feign.ApiKeyFeignClient;
+import com.lzlj.account.gateway.feign.ApiKeyAuthInfo;
 import com.lzlj.account.common.core.utils.SignatureUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -11,35 +14,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * OpenAPI 认证过滤器
- *
- * 流程：
- * 1. 检查路径是否以 /openapi/ 开头（是的则走 OpenAPI 认证）
- * 2. 验证时间戳防重放
- * 3. 验证签名
- * 4. 通过后查询 API Key 对应的 tenantId，设置到 Header
- * 5. 验签失败返回 401
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
-    /**
-     * OpenAPI 签名有效期（秒）
-     */
+    private final ApiKeyFeignClient apiKeyFeignClient;
+
     @Value("${openapi.signature.expire-seconds:300}")
     private int signatureExpireSeconds;
 
-    /**
-     * OpenAPI 路径前缀
-     */
     private static final String OPENAPI_PATH_PREFIX = "/openapi/";
 
     @Override
@@ -47,9 +40,8 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        // 1. 检查是否是 OpenAPI 请求（通过路径判断）
+        // 1. 检查是否是 OpenAPI 请求
         if (!path.startsWith(OPENAPI_PATH_PREFIX)) {
-            // 不是 OpenAPI 请求，放行让后续 JwtAuthFilter 处理
             return chain.filter(exchange);
         }
 
@@ -71,11 +63,30 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "无效的时间戳格式");
         }
 
-        // 4. 验签
-        // TODO: 通过 Feign 调用 auth 服务查询 apiKey 对应的 secret
-        // 暂时先放行，生产环境需要实现
-        String secret = "sk_test_secret"; // 临时占位，实际应从 auth 服务查询
+        // 4. 调用 auth 服务查询认证信息（带Redis缓存）
+        ApiKeyAuthInfo authInfo;
+        try {
+            authInfo = apiKeyFeignClient.getAuthInfo(apiKey);
+        } catch (Exception e) {
+            log.error("调用认证服务失败: apiKey={}, error={}", apiKey, e.getMessage());
+            return unauthorized(exchange, "API Key 无效");
+        }
 
+        if (authInfo == null) {
+            log.warn("API Key 不存在: apiKey={}", apiKey);
+            return unauthorized(exchange, "API Key 无效");
+        }
+
+        // 5. 解密 secret
+        String secret;
+        try {
+            secret = new String(Base64.getDecoder().decode(authInfo.getApiSecret()));
+        } catch (Exception e) {
+            log.error("解密 secret 失败: apiKey={}", apiKey);
+            return unauthorized(exchange, "API Key 无效");
+        }
+
+        // 6. 验签
         boolean verified = SignatureUtils.verify(
             timestamp, method, path, null, secret, signature, signatureExpireSeconds
         );
@@ -85,14 +96,10 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "签名验证失败");
         }
 
-        // 5. 签名验证通过，查询 tenantId 并设置到 Header
-        // TODO: 通过 Feign 调用 auth 服务查询 apiKey 对应的 tenantId
-        Long tenantId = 1L; // 临时占位，实际应从 auth 服务查询
-
-        // 6. 将用户信息写入请求头，传递给下游服务
+        // 7. 验签通过，设置用户信息
         ServerHttpRequest mutatedRequest = request.mutate()
-                .header("X-User-Id", "0")                    // API请求无用户ID
-                .header("X-Tenant-Id", String.valueOf(tenantId))
+                .header("X-User-Id", "0")
+                .header("X-Tenant-Id", String.valueOf(authInfo.getTenantId()))
                 .header("X-Username", "openapi")
                 .header("X-API-Key", apiKey)
                 .build();
@@ -101,7 +108,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                 .request(mutatedRequest)
                 .build();
 
-        log.debug("OpenAPI 认证成功: apiKey={}, tenantId={}, path={}", apiKey, tenantId, path);
+        log.debug("OpenAPI 认证成功: apiKey={}, tenantId={}, path={}", apiKey, authInfo.getTenantId(), path);
         return chain.filter(mutatedExchange);
     }
 
@@ -118,6 +125,6 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -100; // 在 JwtAuthFilter 之前执行
+        return -100;
     }
 }

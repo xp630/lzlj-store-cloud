@@ -3,6 +3,7 @@ package com.lzlj.account.openapi.controller;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
@@ -69,5 +70,11 @@ public class ApiKeyController {
             @RequestParam Integer status) {
         apiKeyService.changeStatus(id, status);
         return Result.success();
+    }
+
+    @Operation(summary = "根据API Key获取认证信息（内部接口，供网关调用）")
+    @GetMapping("/auth/{apiKey}")
+    public Result<ApiKeyAuthDTO> getAuthInfo(@PathVariable String apiKey) {
+        return Result.success(apiKeyService.getAuthInfoByApiKey(apiKey));
     }
 }

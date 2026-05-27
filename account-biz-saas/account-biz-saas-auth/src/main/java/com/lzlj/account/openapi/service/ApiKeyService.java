@@ -1,6 +1,7 @@
 package com.lzlj.account.openapi.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
@@ -41,6 +42,11 @@ public interface ApiKeyService {
      * 根据API Key获取密钥信息（用于认证）
      */
     ApiKeyDTO getByApiKey(String apiKey);
+
+    /**
+     * 根据API Key获取认证信息（供网关调用，包含加密的secret）
+     */
+    ApiKeyAuthDTO getAuthInfoByApiKey(String apiKey);
 
     /**
      * 更新最后使用时间

@@ -7,6 +7,7 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.openapi.dao.ApiKeyDao;
+import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
@@ -15,15 +16,15 @@ import com.lzlj.account.openapi.service.ApiKeyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * API密钥服务实现
@@ -34,6 +35,10 @@ import java.util.stream.Collectors;
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyDao apiKeyDao;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String AUTH_CACHE_PREFIX = "saas:api_key:auth:";
+    private static final long AUTH_CACHE_TTL = 300; // 5分钟
 
     @Override
     public ApiKeyDTO create(CreateApiKeyDTO dto) {
@@ -67,6 +72,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
         BeanUtils.copyProperties(dto, existKey);
         apiKeyDao.updateById(existKey);
+
+        // 清除缓存
+        redisTemplate.delete(AUTH_CACHE_PREFIX + existKey.getApiKey());
+
         log.info("更新API密钥成功: id={}", id);
     }
 
@@ -76,6 +85,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         if (apiKey == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
+
+        // 清除缓存
+        redisTemplate.delete(AUTH_CACHE_PREFIX + apiKey.getApiKey());
+
         apiKeyDao.deleteById(id);
         log.info("删除API密钥成功: id={}", id);
     }
@@ -107,7 +120,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     ApiKeyDTO dto = convertToDTO(apiKey);
                     dto.setApiSecret(null); // 列表不返回secret
                     return dto;
-                }).collect(Collectors.toList()),
+                }).collect(java.util.stream.Collectors.toList()),
                 resultPage.getTotal(),
                 resultPage.getCurrent(),
                 resultPage.getSize()
@@ -116,6 +129,34 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public ApiKeyDTO getByApiKey(String apiKey) {
+        ApiKeyAuthDTO authDTO = getAuthInfoByApiKey(apiKey);
+        if (authDTO == null) {
+            return null;
+        }
+        ApiKeyDTO dto = new ApiKeyDTO();
+        dto.setId(authDTO.getId());
+        dto.setApiKey(authDTO.getApiKey());
+        dto.setTenantId(authDTO.getTenantId());
+        dto.setStatus(authDTO.getStatus());
+        return dto;
+    }
+
+    @Override
+    public ApiKeyAuthDTO getAuthInfoByApiKey(String apiKey) {
+        String cacheKey = AUTH_CACHE_PREFIX + apiKey;
+
+        // 1. 先从 Redis 缓存获取
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            if (cached instanceof ApiKeyAuthDTO) {
+                log.debug("从缓存获取API密钥认证信息: apiKey={}", apiKey);
+                return (ApiKeyAuthDTO) cached;
+            }
+        } catch (Exception e) {
+            log.warn("读取缓存失败: apiKey={}, error={}", apiKey, e.getMessage());
+        }
+
+        // 2. 缓存未命中，查询数据库
         LambdaQueryWrapper<ApiKey> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ApiKey::getApiKey, apiKey)
                .eq(ApiKey::getStatus, 1)
@@ -124,7 +165,23 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         if (existKey == null) {
             return null;
         }
-        return convertToDTO(existKey);
+
+        ApiKeyAuthDTO dto = new ApiKeyAuthDTO();
+        dto.setId(existKey.getId());
+        dto.setApiKey(existKey.getApiKey());
+        dto.setApiSecret(existKey.getApiSecret());
+        dto.setTenantId(existKey.getTenantId());
+        dto.setStatus(existKey.getStatus());
+
+        // 3. 写入缓存
+        try {
+            redisTemplate.opsForValue().set(cacheKey, dto, AUTH_CACHE_TTL, TimeUnit.SECONDS);
+            log.debug("缓存API密钥认证信息: apiKey={}, ttl={}s", apiKey, AUTH_CACHE_TTL);
+        } catch (Exception e) {
+            log.warn("写入缓存失败: apiKey={}, error={}", apiKey, e.getMessage());
+        }
+
+        return dto;
     }
 
     @Override
@@ -144,6 +201,10 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         }
         apiKey.setStatus(status);
         apiKeyDao.updateById(apiKey);
+
+        // 清除缓存
+        redisTemplate.delete(AUTH_CACHE_PREFIX + apiKey.getApiKey());
+
         log.info("修改API密钥状态: id={}, status={}", id, status);
     }
 
@@ -155,16 +216,9 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     /**
-     * 简单加密secret（实际生产应使用更安全的加密方式）
+     * 简单加密secret
      */
     private String encryptSecret(String secret) {
         return Base64.getEncoder().encodeToString(secret.getBytes());
-    }
-
-    /**
-     * 解密secret
-     */
-    public String decryptSecret(String encryptedSecret) {
-        return new String(Base64.getDecoder().decode(encryptedSecret));
     }
 }

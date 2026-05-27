@@ -3,11 +3,13 @@ package com.lzlj.account.gateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * 网关启动类
  */
 @EnableDiscoveryClient
+@EnableFeignClients
 @SpringBootApplication
 public class GatewayApplication {
 
