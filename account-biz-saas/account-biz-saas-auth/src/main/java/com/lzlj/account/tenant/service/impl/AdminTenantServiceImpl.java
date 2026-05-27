@@ -10,6 +10,8 @@ import com.lzlj.account.tenant.dto.AssignTenantDTO;
 import com.lzlj.account.tenant.entity.AdminTenant;
 import com.lzlj.account.tenant.entity.Tenant;
 import com.lzlj.account.tenant.service.AdminTenantService;
+import com.lzlj.account.user.dao.UserDao;
+import com.lzlj.account.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +33,7 @@ public class AdminTenantServiceImpl implements AdminTenantService {
 
     private final AdminTenantDao adminTenantDao;
     private final TenantDao tenantDao;
+    private final UserDao userDao;
 
     @Override
     public List<AdminTenantDTO> getAdminTenants(Long adminUserId) {
@@ -38,13 +42,20 @@ public class AdminTenantServiceImpl implements AdminTenantService {
         wrapper.eq(AdminTenant::getAdminUserId, adminUserId);
         List<AdminTenant> adminTenants = adminTenantDao.selectList(wrapper);
 
-        if (adminTenants.isEmpty()) {
-            return new ArrayList<>();
-        }
+        List<Long> tenantIds;
 
-        List<Long> tenantIds = adminTenants.stream()
-                .map(AdminTenant::getTenantId)
-                .collect(Collectors.toList());
+        // 如果关联表没有记录，则返回用户自己的租户
+        if (adminTenants.isEmpty()) {
+            User user = userDao.selectById(adminUserId);
+            if (user == null || user.getTenantId() == null) {
+                return Collections.emptyList();
+            }
+            tenantIds = Collections.singletonList(user.getTenantId());
+        } else {
+            tenantIds = adminTenants.stream()
+                    .map(AdminTenant::getTenantId)
+                    .collect(Collectors.toList());
+        }
 
         // 获取租户信息
         LambdaQueryWrapper<Tenant> tenantWrapper = new LambdaQueryWrapper<>();
