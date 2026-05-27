@@ -49,6 +49,7 @@ spring:
             - Path=/openapi/**
           filters:
             - StripPrefix=1
+
 management:
   endpoints:
     web:
@@ -62,5 +63,4 @@ management:
 
 # OpenAPI配置
 openapi:
-  auth-service-url: http://localhost:9092
   signature-expire-seconds: 300

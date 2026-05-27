@@ -1,8 +1,9 @@
 package com.lzlj.account.gateway.filter;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -19,25 +20,29 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * OpenAPI 认证过滤器
- * 直接转发已验签的请求到后端服务
+ * 使用Spring Cloud DiscoveryClient解析服务地址，无需硬编码URL
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
+    private final DiscoveryClient discoveryClient;
     private final WebClient.Builder webClientBuilder;
 
     @Value("${openapi.signature.expire-seconds:300}")
     private int signatureExpireSeconds;
 
-    @Value("${openapi.auth-service-url:http://saas-auth:9092}")
-    private String authServiceUrl;
-
     private static final String OPENAPI_PATH_PREFIX = "/openapi/";
+    private static final String AUTH_SERVICE_ID = "saas-auth";
+
+    public OpenApiAuthFilter(DiscoveryClient discoveryClient, WebClient.Builder webClientBuilder) {
+        this.discoveryClient = discoveryClient;
+        this.webClientBuilder = webClientBuilder;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -67,7 +72,17 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "无效的时间戳格式");
         }
 
-        // 4. 调用 auth 服务查询认证信息
+        // 4. 通过服务发现获取 auth 服务地址
+        List<ServiceInstance> instances = discoveryClient.getInstances(AUTH_SERVICE_ID);
+        if (instances == null || instances.isEmpty()) {
+            log.error("未找到 auth 服务实例: {}", AUTH_SERVICE_ID);
+            return unauthorized(exchange, "认证服务不可用");
+        }
+
+        ServiceInstance authInstance = instances.get(0);
+        String authServiceUrl = "http://" + authInstance.getHost() + ":" + authInstance.getPort();
+
+        // 5. 调用 auth 服务查询认证信息
         return webClientBuilder.build()
                 .get()
                 .uri(authServiceUrl + "/openapi/key/inner/auth/" + apiKey)
@@ -79,7 +94,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                         return unauthorized(exchange, "API Key 无效");
                     }
 
-                    // 5. 解密 secret
+                    // 6. 解密 secret
                     String secret;
                     try {
                         secret = new String(Base64.getDecoder().decode(authInfo.getApiSecret()));
@@ -88,7 +103,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                         return unauthorized(exchange, "API Key 无效");
                     }
 
-                    // 6. 验签
+                    // 7. 验签
                     boolean verified = SignatureUtils.verify(
                             timestamp, method, path, null, secret, signature, signatureExpireSeconds
                     );
@@ -100,8 +115,8 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
                     log.debug("OpenAPI 认证成功: apiKey={}, tenantId={}, path={}", apiKey, authInfo.getTenantId(), path);
 
-                    // 7. 验签通过，直接转发请求到后端服务
-                    return forwardToBackend(exchange, authInfo, path);
+                    // 8. 验签通过，直接转发请求到后端服务
+                    return forwardToBackend(exchange, authInfo, authServiceUrl, path);
                 })
                 .onErrorResume(e -> {
                     log.error("调用认证服务失败: apiKey={}, error={}", apiKey, e.getMessage());
@@ -112,7 +127,8 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
     /**
      * 直接转发请求到后端服务
      */
-    private Mono<Void> forwardToBackend(ServerWebExchange exchange, ApiKeyAuthInfo authInfo, String originalPath) {
+    private Mono<Void> forwardToBackend(ServerWebExchange exchange, ApiKeyAuthInfo authInfo,
+                                         String authServiceUrl, String originalPath) {
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = new HttpHeaders();
         headers.putAll(exchange.getRequest().getHeaders());
