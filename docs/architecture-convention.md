@@ -188,9 +188,8 @@ com.lzlj.account.{模块名}.{模块名}/
 ├── controller/    # 控制层
 ├── service/       # 服务层
 ├── dao/          # 数据访问层
-├── entity/       # 实体类
-├── dto/          # 数据传输对象
-├── vo/           # 视图对象
+├── entity/       # 实体类（MyBatis 映射）
+├── dto/          # 数据传输对象（入参和出参统一使用）
 ├── config/       # 配置类
 └── handler/      # 处理器
 ```
@@ -257,7 +256,7 @@ public interface UserFeignClient {
 
 ---
 
-## 五、DTO/VO 规范
+## 五、DTO 规范
 
 ### 4.1 共享层级
 
@@ -280,21 +279,30 @@ public interface UserFeignClient {
 │              account-biz-*                          │
 │                                                      │
 │   {模块名}/                                         │
-│   ├── dto/                      # 本地 DTO         │
-│   ├── vo/                       # 本地 VO           │
+│   ├── dto/                      # 统一 DTO         │
 │   └── entity/                   # 本地 Entity       │
 └─────────────────────────────────────────────────────┘
 ```
 
-### 4.2 DTO 分布规则
+### 4.2 DTO 统一约定
 
-| DTO 类型 | 位置 | 例子 |
+**不再区分 VO，所有数据传输统一使用 DTO**。
+
+| 类型 | 位置 | 说明 |
+|------|------|------|
+| Entity | `{模块}/entity/` | MyBatis-Plus 数据库映射，仅本地使用 |
+| DTO | `{模块}/dto/` 或 `common-api/dto/` | 统一数据传输，包括内部和跨服务 |
+
+**原因**：难以预判接口是否会跨服务共享，统一使用 DTO 减少复杂度。
+
+### 4.3 DTO 分布规则
+
+| DTO 用途 | 位置 | 例子 |
 |---------|------|------|
 | 跨服务共享 | `common-api/dto/` | `UserDTO`、`OrderDTO` |
-| 本地使用 | `{模块}/dto/` | `GoodsCreateDTO` |
-| 本地 VO | `{模块}/vo/` | `GoodsVO` |
+| 本地使用 | `{模块}/dto/` | `GoodsCreateDTO`、`GoodsQueryDTO` |
 
-### 4.3 Entity 规范
+### 4.4 Entity 规范
 
 **Entity 属于本地服务，不放 common**。
 
@@ -322,8 +330,7 @@ account-common/
 ├── controller/     # 接收请求，参数校验
 ├── service/       # 业务逻辑
 ├── dao/           # 数据访问
-├── dto/           # 本地 DTO
-├── vo/            # 本地 VO
+├── dto/           # 统一数据传输（不再区分 VO）
 └── entity/        # 本地 Entity
 ```
 

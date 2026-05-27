@@ -22,9 +22,8 @@ com.lzlj.account.{模块名}.*
 │   ├── service/       # 服务接口
 │   │   └── impl/      # 服务实现
 │   ├── dao/           # 数据访问层 (Mapper)
-│   ├── entity/        # 实体类
-│   ├── dto/           # 数据传输对象
-│   ├── vo/            # 视图对象
+│   ├── entity/        # 实体类（MyBatis 映射用）
+│   ├── dto/           # 数据传输对象（统一使用，不再区分 VO）
 │   ├── config/        # 配置类
 │   └── handler/      # 处理器 (如 Sentinel BlockHandler)
 │
@@ -52,7 +51,6 @@ src/main/java/
         ├── dao/
         ├── entity/
         ├── dto/
-        ├── vo/
         ├── config/
         └── handler/
 ```
@@ -64,7 +62,9 @@ src/main/java/
     └── goods/
         ├── controller/GoodsController.java  → package com.lzlj.account.goods.controller;
         ├── service/GoodsService.java        → package com.lzlj.account.goods.service;
-        └── vo/GoodsVO.java                 → package com.lzlj.account.goods.vo;
+        ├── dao/GoodsDao.java              → package com.lzlj.account.goods.dao;
+        ├── entity/GoodsEntity.java         → package com.lzlj.account.goods.entity;
+        └── dto/GoodsDTO.java               → package com.lzlj.account.goods.dto;
 ```
 
 ## 五、命名规则
@@ -77,12 +77,13 @@ src/main/java/
 | Service | `{业务}Service` | `GoodsService` |
 | Service Impl | `{业务}ServiceImpl` | `GoodsServiceImpl` |
 | DAO/Mapper | `{业务}Dao` 或 `{业务}Mapper` | `UserDao`, `GoodsMapper` |
-| Entity | `{业务}` 或 `{业务}Entity` | `User`, `GoodsEntity` |
-| DTO | `{业务}DTO` | `UserDTO`, `OrderDTO` |
-| VO | `{业务}VO` | `UserVO`, `GoodsVO` |
+| Entity | `{业务}Entity` | `UserEntity`, `GoodsEntity` |
+| DTO | `{业务}DTO` | `UserDTO`, `GoodsDTO`, `GoodsCreateDTO` |
 | Config | `{功能}Config` | `RedisConfig`, `FeignConfig` |
 | Handler | `{功能}Handler` | `GlobalExceptionHandler` |
 | Fallback | `{FeignClient}Fallback` | `UserFeignClientFallback` |
+
+**注**：统一使用 DTO，不再区分 VO。
 
 ### 5.2 包名命名
 

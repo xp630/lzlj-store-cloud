@@ -181,9 +181,8 @@ com.lzlj.account.user/
     │   ├── UserService.java       # 接口
     │   └── impl/                  # 实现
     ├── dao/                       # MyBatis Mapper
-    ├── entity/                    # 数据库实体
-    ├── dto/                       # 本地 DTO
-    ├── vo/                        # 视图对象
+    ├── entity/                    # 数据库实体（MyBatis 映射）
+    ├── dto/                       # 数据传输对象（入参和出参统一使用）
     ├── config/                    # 配置类
     └── handler/                   # 处理器
 ```
@@ -216,7 +215,7 @@ account-common/
 - ❌ 不得依赖任何 `account-biz-*` 模块
 - ❌ 不得包含 Entity、Service 实现
 
-### 6.4 包结构详解
+### 6.4 包结构详解（统一 DTO 约定）
 
 ```
 com.lzlj.account.{模块名}.{模块名}/
@@ -233,14 +232,11 @@ com.lzlj.account.{模块名}.{模块名}/
 ├── dao/               # 数据访问层
 │   └── 命名：{业务}Dao.java 或 {业务}Mapper.java
 │
-├── entity/            # 数据库实体（本地，不放 Common）
-│   └── 命名：{业务}.java 或 {业务}Entity.java
+├── entity/            # 数据库实体（MyBatis 映射用，本地不跨服务）
+│   └── 命名：{业务}Entity.java，如 GoodsEntity
 │
-├── dto/               # 本地 DTO（不跨服务共享）
-│   └── 命名：{业务}DTO.java，如 GoodsCreateDTO
-│
-├── vo/                # 视图对象（返回给前端）
-│   └── 命名：{业务}VO.java，如 GoodsVO
+├── dto/               # 数据传输对象（统一使用，不再区分 VO）
+│   └── 命名：{业务}DTO.java，如 GoodsDTO、GoodsCreateDTO、GoodsQueryDTO
 │
 ├── config/            # 配置类
 │   └── 命名：{功能}Config.java，如 RedisConfig
@@ -249,13 +245,19 @@ com.lzlj.account.{模块名}.{模块名}/
     └── 命名：{功能}Handler.java，如 GlobalExceptionHandler
 ```
 
-**Entity vs DTO vs VO**：
+**统一 DTO 约定**：
 
-| 类型 | 位置 | 用途 | 是否跨服务 |
-|------|------|------|-----------|
-| Entity | `{模块}/entity/` | 对应数据库表 | ❌ 不跨服务 |
-| DTO | `{模块}/dto/` 或 `common-api/dto/` | 服务间传输 | ✅ 跨服务时放 common-api |
-| VO | `{模块}/vo/` | 返回给前端 | ❌ 不跨服务 |
+| 类型 | 位置 | 用途 | 说明 |
+|------|------|------|------|
+| Entity | `{模块}/entity/` | 数据库映射 | MyBatis-Plus 用 `@TableName`，仅本地使用 |
+| DTO | `{模块}/dto/` | 统一数据传输 | **不再区分 VO**，所有数据传递都用 DTO |
+
+**为什么不用 VO？**
+- 难以预判接口是否会跨服务共享
+- DTO 既可用于内部传递，也可跨服务传递
+- 减少类型数量，降低复杂度
+
+**Entity 唯一用途**：MyBatis-Plus 数据库表映射，标注 `@TableName("表名")`
 
 ### 6.5 各层依赖方向
 
@@ -303,7 +305,7 @@ com.lzlj.account.{模块名}.{模块名}/
 public class GoodsController {
 
     @GetMapping("/{id}")
-    public Result<GoodsVO> getById(@PathVariable Long id) {
+    public Result<GoodsDTO> getById(@PathVariable Long id) {
         return goodsService.getById(id);
     }
 }
@@ -316,9 +318,9 @@ public class GoodsController {
 @Service
 public class GoodsService {
 
-    public GoodsVO getById(Long id) {
+    public GoodsDTO getById(Long id) {
         GoodsEntity entity = goodsDao.selectById(id);
-        return GoodsConverter.toVO(entity);
+        return BeanCopyUtils.copy(entity, GoodsDTO.class);
     }
 }
 ```
@@ -349,7 +351,7 @@ public class GoodsController {
     private UserFeignClient userFeignClient;  // 调用用户服务
 
     @GetMapping("/owner/{goodsId}")
-    public Result<UserVO> getGoodsOwner(@PathVariable Long goodsId) {
+    public Result<UserDTO> getGoodsOwner(@PathVariable Long goodsId) {
         // 调用远程用户服务
         Result<UserDTO> userResult = userFeignClient.getById(goodsId);
         return Result.success(userResult.getData());
