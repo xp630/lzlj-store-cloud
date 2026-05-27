@@ -129,6 +129,8 @@ spring:
 - [ ] Redis 已启动
 - [ ] Nacos 中已导入配置（shared-configs: common.yml 等）
 - [ ] 数据库已初始化（执行 SQL 脚本）
+  - `sql/saas_tenant.sql` - 租户表
+  - `sql/saas_sys_user.sql` - 用户表
 
 ---
 
@@ -409,7 +411,127 @@ public interface UserFeignClient {
 
 ---
 
-## 八、调试验证
+## 八、多租户数据隔离
+
+### 8.1 隔离方案
+
+采用 **共享数据库 + tenant_id 字段** 方案实现多租户数据隔离。
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   共享数据库                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │ tenant_id=1 │  │ tenant_id=2 │  │ tenant_id=3 │  │
+│  │   租户A数据  │  │   租户B数据  │  │   租户C数据  │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### 8.2 核心组件
+
+| 组件 | 文件位置 | 用途 |
+|------|----------|------|
+| TenantContext | `account-common-core/.../tenant/TenantContext.java` | ThreadLocal 持有当前请求的租户ID |
+| TenantContextInitializerFilter | `account-common-core/.../tenant/TenantContextInitializerFilter.java` | 从 X-Tenant-Id header 提取租户ID |
+| TenantContextFeignInterceptor | `account-common-api/.../tenant/TenantContextFeignInterceptor.java` | Feign 调用时传递租户ID |
+| TenantLineInnerInterceptor | MyBatis Plus 租户拦截器 | 自动添加 tenant_id 过滤条件 |
+| TenantEntity | `account-common-core/.../domain/TenantEntity.java` | 租户实体基类 |
+
+### 8.3 租户ID传递流程
+
+```
+请求 → Gateway (JWT解析) → X-Tenant-Id Header → TenantContextInitializerFilter → TenantContext
+                                                              ↓
+                                              MyBatis Plus 拦截器自动过滤
+                                                              ↓
+                                                      只返回当前租户数据
+```
+
+### 8.4 环境鉴权规则
+
+| 环境 | 是否需要 JWT 鉴权 | 说明 |
+|------|-----------------|------|
+| dev | ❌ 否 | 开发环境跳过鉴权 |
+| test | ✅ 是 | 测试环境需要鉴权 |
+| prod | ✅ 是 | 生产环境需要鉴权 |
+
+### 8.5 租户表结构
+
+```sql
+-- 租户表
+CREATE TABLE saas_auth_tenant (
+    id BIGINT PRIMARY KEY,
+    tenant_name VARCHAR(100) NOT NULL COMMENT '租户名称',
+    tenant_code VARCHAR(50) NOT NULL COMMENT '租户编码',
+    contact_name VARCHAR(50) COMMENT '联系人',
+    contact_phone VARCHAR(20) COMMENT '联系电话',
+    status TINYINT DEFAULT 1 COMMENT '状态 0:禁用 1:启用',
+    deleted TINYINT DEFAULT 0 COMMENT '删除标记',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_tenant_code (tenant_code)
+) COMMENT '租户表';
+
+-- 用户表（继承 TenantEntity）
+CREATE TABLE saas_auth_user (
+    id BIGINT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL COMMENT '用户名',
+    password VARCHAR(100) NOT NULL COMMENT '密码',
+    salt VARCHAR(20) COMMENT '盐值',
+    real_name VARCHAR(50) COMMENT '真实姓名',
+    phone VARCHAR(20) COMMENT '手机号',
+    tenant_id BIGINT NOT NULL COMMENT '租户ID',
+    org_id BIGINT COMMENT '组织ID',
+    -- ... 其他字段
+) COMMENT '用户表';
+```
+
+### 8.6 租户管理 API
+
+| 接口 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| 创建租户 | POST | /tenant | 创建新租户 |
+| 查询租户 | GET | /tenant/{id} | 根据ID查询租户 |
+| 分页查询租户 | GET | /tenant/page | 分页查询租户列表 |
+| 更新租户 | PUT | /tenant/{id} | 更新租户信息 |
+| 删除租户 | DELETE | /tenant/{id} | 删除租户 |
+
+**创建租户示例**：
+
+```bash
+curl -X POST http://localhost:9092/tenant \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenantName": "测试租户",
+    "tenantCode": "test001",
+    "contactName": "张三",
+    "contactPhone": "13800138000"
+  }'
+```
+
+### 8.7 如何使用租户实体
+
+实体类继承 `TenantEntity` 即可自动获得租户隔离能力：
+
+```java
+// 用户实体继承 TenantEntity
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName("saas_auth_user")
+public class User extends TenantEntity {
+    private String username;
+    private String password;
+    // ...
+}
+```
+
+**查询时**：MyBatis Plus 自动添加 `WHERE tenant_id = ?` 条件
+
+**新增时**：MetaObjectHandler 自动填充 `tenant_id` 字段
+
+---
+
+## 九、调试验证
 
 ### 8.1 验证服务注册
 
@@ -434,7 +556,7 @@ curl http://localhost:9092/user/1
 
 ---
 
-## 九、问题排查
+## 十、问题排查
 
 ### 9.1 服务无法启动
 
@@ -460,7 +582,7 @@ curl http://localhost:9092/user/1
 
 ---
 
-## 十、参考资料
+## 十一、参考资料
 
 | 文档 | 说明 |
 |------|------|
