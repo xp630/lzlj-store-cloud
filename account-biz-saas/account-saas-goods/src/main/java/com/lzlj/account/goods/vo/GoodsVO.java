@@ -1,4 +1,4 @@
-package com.lzlj.lzlj.goods.vo;
+package com.lzlj.account.goods.vo;
 
 import lombok.Data;
 import java.math.BigDecimal;

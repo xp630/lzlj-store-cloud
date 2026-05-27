@@ -1,6 +1,6 @@
-package com.lzlj.lzlj.goods.service;
+package com.lzlj.account.goods.service;
 
-import com.lzlj.lzlj.goods.vo.GoodsVO;
+import com.lzlj.account.goods.vo.GoodsVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

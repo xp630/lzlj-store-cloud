@@ -7,11 +7,11 @@ server:
 
 spring:
   application:
-    name: store-user
+    name: account-lzlj-user
   profiles:
     active: dev
   config:
-    import: optional:nacos:store-user.yml
+    import: optional:nacos:account-lzlj-user.yml
   web:
     resources:
       add-mappings: false

@@ -1,9 +1,9 @@
-package com.lzlj.lzlj.goods.controller;
+package com.lzlj.account.goods.controller;
 
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
-import com.lzlj.lzlj.goods.handler.UserFeignBlockHandler;
-import com.lzlj.lzlj.goods.service.GoodsService;
-import com.lzlj.lzlj.goods.vo.GoodsVO;
+import com.lzlj.account.goods.handler.UserFeignBlockHandler;
+import com.lzlj.account.goods.service.GoodsService;
+import com.lzlj.account.goods.vo.GoodsVO;
 import com.lzlj.account.common.api.feign.UserFeignClient;
 import com.lzlj.account.common.api.feign.UserFeignClientForSentinel;
 import com.lzlj.account.common.api.feign.fallback.UserFeignClientFallback;

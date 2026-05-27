@@ -1,4 +1,4 @@
-package com.lzlj.lzlj.goods.handler;
+package com.lzlj.account.goods.handler;
 
 import com.lzlj.account.common.api.feign.UserFeignClient;
 import com.lzlj.account.common.core.result.Result;

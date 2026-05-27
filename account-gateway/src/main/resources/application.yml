@@ -1,47 +1,47 @@
 # ============================================
-# store-gateway 启动配置
+# account-gateway 服务配置 - dev 环境
 # ============================================
-
 server:
   port: 18080
-
 spring:
   application:
-    name: store-gateway
-  profiles:
-    active: dev
-  config:
-    import: optional:nacos:store-gateway.yml?namespace=6fcc6887-5cdd-47d0-aece-6387e527b368
-  autoconfigure:
-    exclude:
-      - org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration
+    name: account-gateway
   cloud:
     nacos:
       username: nacos
       password: nacos
       server-addr: 127.0.0.1:8848
       config:
-        import-check:
-          enabled: false
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
         file-extension: yml
+        import-check:
+          enabled: false
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
-        enabled: true
     gateway:
       discovery:
         locator:
           enabled: false
-      metrics:
-        enabled: true
-
+      routes:
+        - id: auth-api
+          uri: lb://saas-auth
+          predicates:
+            - Path=/api/saas-auth/**
+          filters:
+            - StripPrefix=2
+        - id: goods-api
+          uri: lb://saas-goods
+          predicates:
+            - Path=/api/saas-goods/**
+          filters:
+            - StripPrefix=2
 management:
   endpoints:
     web:
       exposure:
-        include: health,gateway,info,metrics
+        include: health,info,metrics,gateway
   endpoint:
     health:
       show-details: always

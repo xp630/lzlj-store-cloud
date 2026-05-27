@@ -1,4 +1,4 @@
-package com.lzlj.lzlj.goods;
+package com.lzlj.account.goods;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,7 +13,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = "com.lzlj.account.common.api.feign")
 @SpringBootApplication(scanBasePackages = {
-    "com.lzlj.lzlj.goods",
+    "com.lzlj.account.goods",
     "com.lzlj.account.common"
 }, exclude = {DataSourceAutoConfiguration.class, MybatisPlusAutoConfiguration.class})
 public class SaasGoodsApplication {
