@@ -3,6 +3,7 @@ package com.lzlj.account.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
@@ -75,7 +76,11 @@ public class UserServiceImpl implements UserService {
         // 4. 生成Token
         String token = generateToken(user);
 
-        // 5. 更新登录信息
+        // 5. 设置用户上下文
+        UserContext.setUserId(user.getId());
+        UserContext.setUsername(user.getUsername());
+
+        // 6. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
         userDao.updateById(user);
 
@@ -282,7 +287,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private Long getCurrentUserId() {
-        // TODO: 从ThreadLocal获取
-        return 1L;
+        return UserContext.getUserId();
     }
 }
