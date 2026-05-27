@@ -1,0 +1,83 @@
+# ============================================
+# saas-goods 商品服务配置 - dev 环境
+# ============================================
+
+spring:
+  application:
+    name: saas-goods
+  autoconfigure:
+    exclude:
+      - com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
+  shardingsphere:
+    datasource:
+      names: ds_0,ds_0_read
+      ds_0:
+        dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        jdbcUrl: jdbc:mysql://localhost:3306/lzlj_goods?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+        username: root
+        password: password123
+        hikari:
+          minimumIdle: 5
+          maximumPoolSize: 20
+          connectionTimeout: 30000
+      ds_0_read:
+        dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        jdbcUrl: jdbc:mysql://localhost:3306/lzlj_goods?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+        username: root
+        password: password123
+        hikari:
+          minimumIdle: 5
+          maximumPoolSize: 20
+          connectionTimeout: 30000
+    rules:
+      readwrite-splitting:
+        dataSources:
+          ds_0:
+            writeDataSourceName: ds_0
+            readDataSourceNames:
+              - ds_0_read
+            type: RoundRobin
+    props:
+      sql-show: true
+
+seata:
+  enabled: false
+
+jwt:
+  secret: ${jwt.secret:your-256-bit-secret-key-for-jwt-token-signing-lzlj}
+  expiration: 86400000
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.lzlj.account.goods.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: account-gateway
+  config:
+    import: optional:nacos:common.yml,optional:nacos:account-gateway.yml
   cloud:
     nacos:
       username: nacos

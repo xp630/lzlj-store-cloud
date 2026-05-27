@@ -14,7 +14,7 @@ import org.springframework.context.annotation.FilterType;
  */
 @EnableDiscoveryClient
 @EnableFeignClients
-@MapperScan("com.lzlj.account.user.dao")
+@MapperScan({"com.lzlj.account.user.dao", "com.lzlj.account.tenant.dao"})
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.lzlj.account.user", "com.lzlj.account.common"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
 public class SaasAuthApplication {

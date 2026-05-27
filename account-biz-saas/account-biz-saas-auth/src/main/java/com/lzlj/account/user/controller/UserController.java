@@ -1,17 +1,18 @@
+
 package com.lzlj.account.user.controller;
 
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.User;
 import com.lzlj.account.user.service.UserService;
-import com.lzlj.account.user.dto.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 /**

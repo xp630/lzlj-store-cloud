@@ -59,3 +59,7 @@ logging:
   level:
     root: INFO
     com.lzlj.account: DEBUG
+
+jwt:
+  secret: your-256-bit-secret-key-for-jwt-token-signing-lzlj
+  expiration: 86400000
