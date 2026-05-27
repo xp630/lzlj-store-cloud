@@ -36,9 +36,9 @@ com.lzlj.account.{模块名}.*
 | 模块 | 包名 | 端口 | 说明 |
 |------|------|------|------|
 | account-gateway | `com.lzlj.account.gateway` | 18080 | 网关服务 |
-| account-saas-auth | `com.lzlj.account.user` | 9092 | SaaS 用户服务 |
-| account-saas-goods | `com.lzlj.account.goods` | 9091 | SaaS 商品服务 |
-| account-lzlj-user | `com.lzlj.account.user` | 9093 | LZLJ 用户服务 |
+| account-biz-saas-auth | `com.lzlj.account.user` | 9092 | SaaS 用户服务 |
+| account-biz-saas-goods | `com.lzlj.account.goods` | 9091 | SaaS 商品服务 |
+| account-biz-lzlj-user | `com.lzlj.account.user` | 9093 | LZLJ 用户服务 |
 | account-common | `com.lzlj.account.common.*` | - | 公共模块 |
 
 ## 四、目录 vs 包名对照

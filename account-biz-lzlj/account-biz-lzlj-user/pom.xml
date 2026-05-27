@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>account-lzlj-user</artifactId>
+    <artifactId>account-biz-lzlj-user</artifactId>
     <packaging>jar</packaging>
     <name>LZLJ User Service</name>
     <description>用户服务 - 用户账户、组织架构、门店管理</description>

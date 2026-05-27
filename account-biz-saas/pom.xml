@@ -16,7 +16,7 @@
     <description>SAAS 业务服务模块聚合</description>
 
     <modules>
-        <module>account-saas-auth</module>
-        <module>account-saas-goods</module>
+        <module>account-biz-saas-auth</module>
+        <module>account-biz-saas-goods</module>
     </modules>
 </project>
