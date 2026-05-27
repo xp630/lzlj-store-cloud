@@ -1,14 +1,14 @@
-package com.lzlj.account.goods.vo;
+package com.lzlj.account.goods.dto;
 
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 商品 VO
+ * 商品 DTO
  */
 @Data
-public class GoodsVO {
+public class GoodsDTO {
     private Long id;
     private String name;
     private String category;

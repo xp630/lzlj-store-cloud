@@ -5,7 +5,7 @@ import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.User;
 import com.lzlj.account.user.service.UserService;
-import com.lzlj.account.user.vo.UserVO;
+import com.lzlj.account.user.dto.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.validation.Valid;
@@ -34,19 +34,19 @@ public class UserController {
 
     @Operation(summary = "获取当前用户信息")
     @GetMapping("/current")
-    public Result<UserVO> getCurrentUser() {
+    public Result<UserDTO> getCurrentUser() {
         return Result.success(userService.getCurrentUser());
     }
 
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
-    public Result<UserVO> getById(@PathVariable Long id) {
+    public Result<UserDTO> getById(@PathVariable Long id) {
         return Result.success(userService.getById(id));
     }
 
     @Operation(summary = "分页查询用户")
     @GetMapping("/page")
-    public Result<PageResult<UserVO>> page(
+    public Result<PageResult<UserDTO>> page(
             @RequestParam(required = false) Long orgId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer status,

@@ -1,6 +1,6 @@
 package com.lzlj.account.goods.service;
 
-import com.lzlj.account.goods.vo.GoodsVO;
+import com.lzlj.account.goods.dto.GoodsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class GoodsService {
 
-    private final Map<Long, GoodsVO> goodsMap = new ConcurrentHashMap<>();
+    private final Map<Long, GoodsDTO> goodsMap = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1000);
 
     @PostConstruct
@@ -31,7 +31,7 @@ public class GoodsService {
 
     private void initMockData() {
         for (int i = 1; i <= 5; i++) {
-            GoodsVO goods = new GoodsVO();
+            GoodsDTO goods = new GoodsDTO();
             goods.setId((long) i);
             goods.setName("商品-" + i);
             goods.setCategory(i % 2 == 0 ? "食品" : "饮料");
@@ -52,7 +52,7 @@ public class GoodsService {
     /**
      * 本地服务调用示例 - 获取商品列表
      */
-    public List<GoodsVO> list() {
+    public List<GoodsDTO> list() {
         log.info("本地服务调用: 获取商品列表");
         return new ArrayList<>(goodsMap.values());
     }
@@ -60,7 +60,7 @@ public class GoodsService {
     /**
      * 本地服务调用示例 - 根据ID获取商品
      */
-    public GoodsVO getById(Long id) {
+    public GoodsDTO getById(Long id) {
         log.info("本地服务调用: 获取商品详情, id={}", id);
         return goodsMap.get(id);
     }
@@ -68,9 +68,9 @@ public class GoodsService {
     /**
      * 本地服务调用示例 - 分页查询
      */
-    public List<GoodsVO> page(int pageNum, int pageSize) {
+    public List<GoodsDTO> page(int pageNum, int pageSize) {
         log.info("本地服务调用: 分页查询商品, pageNum={}, pageSize={}", pageNum, pageSize);
-        List<GoodsVO> allGoods = new ArrayList<>(goodsMap.values());
+        List<GoodsDTO> allGoods = new ArrayList<>(goodsMap.values());
         int start = (pageNum - 1) * pageSize;
         int end = Math.min(start + pageSize, allGoods.size());
         if (start >= allGoods.size()) {
@@ -82,7 +82,7 @@ public class GoodsService {
     /**
      * 本地服务调用示例 - 创建商品
      */
-    public Long create(GoodsVO goods) {
+    public Long create(GoodsDTO goods) {
         log.info("本地服务调用: 创建商品, name={}", goods.getName());
         Long id = idGenerator.incrementAndGet();
         goods.setId(id);

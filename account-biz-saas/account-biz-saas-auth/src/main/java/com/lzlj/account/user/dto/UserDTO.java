@@ -1,13 +1,13 @@
-package com.lzlj.account.user.vo;
+package com.lzlj.account.user.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户VO
+ * 用户 DTO
  */
 @Data
-public class UserVO {
+public class UserDTO {
 
     /**
      * 用户ID

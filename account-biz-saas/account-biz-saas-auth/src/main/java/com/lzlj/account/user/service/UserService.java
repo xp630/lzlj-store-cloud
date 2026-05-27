@@ -3,7 +3,7 @@ package com.lzlj.account.user.service;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.User;
-import com.lzlj.account.user.vo.UserVO;
+import com.lzlj.account.user.dto.UserDTO;
 
 import java.util.List;
 
@@ -20,17 +20,17 @@ public interface UserService {
     /**
      * 获取当前用户信息
      */
-    UserVO getCurrentUser();
+    UserDTO getCurrentUser();
 
     /**
      * 根据ID获取用户
      */
-    UserVO getById(Long id);
+    UserDTO getById(Long id);
 
     /**
      * 分页查询用户
      */
-    PageResult<UserVO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize);
 
     /**
      * 创建用户

@@ -3,7 +3,7 @@ package com.lzlj.account.goods.controller;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.lzlj.account.goods.handler.UserFeignBlockHandler;
 import com.lzlj.account.goods.service.GoodsService;
-import com.lzlj.account.goods.vo.GoodsVO;
+import com.lzlj.account.goods.dto.GoodsDTO;
 import com.lzlj.account.common.api.feign.UserFeignClient;
 import com.lzlj.account.common.api.feign.UserFeignClientForSentinel;
 import com.lzlj.account.common.api.feign.fallback.UserFeignClientFallback;
@@ -37,17 +37,17 @@ public class GoodsController {
 
     @Operation(summary = "获取商品列表 - 本地服务调用")
     @GetMapping("/list")
-    public Result<List<GoodsVO>> list() {
+    public Result<List<GoodsDTO>> list() {
         // 本地服务调用
-        List<GoodsVO> goodsList = goodsService.list();
+        List<GoodsDTO> goodsList = goodsService.list();
         return Result.success(goodsList);
     }
 
     @Operation(summary = "获取商品详情 - 本地服务调用")
     @GetMapping("/{id}")
-    public Result<GoodsVO> getById(@PathVariable Long id) {
+    public Result<GoodsDTO> getById(@PathVariable Long id) {
         // 本地服务调用
-        GoodsVO goods = goodsService.getById(id);
+        GoodsDTO goods = goodsService.getById(id);
         if (goods == null) {
             return Result.fail("商品不存在");
         }
@@ -56,17 +56,17 @@ public class GoodsController {
 
     @Operation(summary = "分页查询商品 - 本地服务调用")
     @GetMapping("/page")
-    public Result<List<GoodsVO>> page(
+    public Result<List<GoodsDTO>> page(
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize) {
         // 本地服务调用
-        List<GoodsVO> goodsList = goodsService.page(pageNum, pageSize);
+        List<GoodsDTO> goodsList = goodsService.page(pageNum, pageSize);
         return Result.success(goodsList);
     }
 
     @Operation(summary = "创建商品 - 本地服务调用 + 跨服务调用")
     @PostMapping
-    public Result<Long> create(@RequestBody GoodsVO goods) {
+    public Result<Long> create(@RequestBody GoodsDTO goods) {
         // 跨服务调用 - 验证创建人是否存在
         log.info("跨服务调用: 验证用户 {}, userFeignClient={}", goods.getCreatorId(), userFeignClient);
         try {
@@ -88,7 +88,7 @@ public class GoodsController {
     @GetMapping("/detail/{id}")
     public Result<Map<String, Object>> getGoodsWithCreator(@PathVariable Long id) {
         // 本地服务调用
-        GoodsVO goods = goodsService.getById(id);
+        GoodsDTO goods = goodsService.getById(id);
         if (goods == null) {
             return Result.fail("商品不存在");
         }

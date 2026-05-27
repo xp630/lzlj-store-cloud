@@ -11,7 +11,7 @@ import com.lzlj.account.user.dao.UserDao;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.User;
 import com.lzlj.account.user.service.UserService;
-import com.lzlj.account.user.vo.UserVO;
+import com.lzlj.account.user.dto.UserDTO;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -81,17 +81,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserVO getCurrentUser() {
+    public UserDTO getCurrentUser() {
         // 从ThreadLocal获取当前用户ID
         Long userId = getCurrentUserId();
         return getById(userId);
     }
 
     @Override
-    public UserVO getById(Long id) {
+    public UserDTO getById(Long id) {
         // 先从缓存获取
         String cacheKey = USER_INFO_PREFIX + id;
-        UserVO cachedUser = (UserVO) redisTemplate.opsForValue().get(cacheKey);
+        UserDTO cachedUser = (UserDTO) redisTemplate.opsForValue().get(cacheKey);
         if (cachedUser != null) {
             return cachedUser;
         }
@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        UserVO userVO = convertToVO(user);
+        UserDTO userVO = convertToDTO(user);
 
         // 缓存用户信息
         redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageResult<UserVO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
+    public PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
         Page<User> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(orgId != null, User::getOrgId, orgId)
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
         IPage<User> resultPage = userDao.selectPage(page, wrapper);
 
         return new PageResult<>(
-                resultPage.getRecords().stream().map(this::convertToVO).collect(Collectors.toList()),
+                resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
                 resultPage.getTotal(),
                 resultPage.getCurrent(),
                 resultPage.getSize()
@@ -261,12 +261,12 @@ public class UserServiceImpl implements UserService {
 
     private void cacheUserInfo(User user) {
         String cacheKey = USER_INFO_PREFIX + user.getId();
-        UserVO userVO = convertToVO(user);
+        UserDTO userVO = convertToDTO(user);
         redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
     }
 
-    private UserVO convertToVO(User user) {
-        UserVO vo = new UserVO();
+    private UserDTO convertToDTO(User user) {
+        UserDTO vo = new UserDTO();
         BeanUtils.copyProperties(user, vo);
         return vo;
     }
