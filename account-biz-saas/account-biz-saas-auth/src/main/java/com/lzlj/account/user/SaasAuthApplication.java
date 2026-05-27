@@ -8,13 +8,15 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 用户服务启动类
  */
 @EnableDiscoveryClient
 @EnableFeignClients
-@MapperScan({"com.lzlj.account.user.dao", "com.lzlj.account.tenant.dao"})
+@EnableAsync
+@MapperScan({"com.lzlj.account.user.dao", "com.lzlj.account.tenant.dao", "com.lzlj.account.menu.dao", "com.lzlj.account.role.dao", "com.lzlj.account.openapi.dao", "com.lzlj.account.log.dao"})
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.lzlj.account.*"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
 public class SaasAuthApplication {
