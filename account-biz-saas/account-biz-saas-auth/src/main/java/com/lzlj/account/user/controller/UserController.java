@@ -3,9 +3,12 @@ package com.lzlj.account.user.controller;
 
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
+import com.lzlj.account.user.dto.UserRoleDTO;
 import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.service.UserRoleService;
 import com.lzlj.account.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +29,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final UserRoleService userRoleService;
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
@@ -112,6 +117,19 @@ public class UserController {
             @RequestParam(required = false) String wxOpenid,
             @RequestParam(required = false) String wxMaOpenid) {
         userService.bindWx(userId, wxOpenid, wxMaOpenid);
+        return Result.success();
+    }
+
+    @Operation(summary = "获取用户角色")
+    @GetMapping("/{id}/roles")
+    public Result<List<RoleDTO>> getUserRoles(@PathVariable Long id) {
+        return Result.success(userRoleService.getUserRoles(id));
+    }
+
+    @Operation(summary = "分配用户角色")
+    @PutMapping("/{id}/roles")
+    public Result<Void> assignRoles(@PathVariable Long id, @RequestBody UserRoleDTO dto) {
+        userRoleService.assignRoles(id, dto);
         return Result.success();
     }
 }
