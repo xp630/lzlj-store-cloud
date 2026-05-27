@@ -1,5 +1,5 @@
 # ============================================
-# store-goods 启动配置 - 最小化版本
+# saas-goods 启动配置 - 最小化版本
 # 所有业务配置统一在 Nacos 中管理
 # ============================================
 
@@ -8,11 +8,11 @@ server:
 
 spring:
   application:
-    name: store-goods
+    name: saas-goods
   profiles:
     active: dev
   config:
-    import: optional:nacos:store-goods.yml
+    import: optional:nacos:saas-goods.yml
   autoconfigure:
     exclude:
       - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
@@ -36,3 +36,9 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
+# 启用 Feign CircuitBreaker (Fallback)
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    default-to-properties: false

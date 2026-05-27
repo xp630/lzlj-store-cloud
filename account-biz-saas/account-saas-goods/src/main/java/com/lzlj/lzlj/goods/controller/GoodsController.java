@@ -1,8 +1,12 @@
 package com.lzlj.lzlj.goods.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.lzlj.lzlj.goods.handler.UserFeignBlockHandler;
 import com.lzlj.lzlj.goods.service.GoodsService;
 import com.lzlj.lzlj.goods.vo.GoodsVO;
 import com.lzlj.account.common.api.feign.UserFeignClient;
+import com.lzlj.account.common.api.feign.UserFeignClientForSentinel;
+import com.lzlj.account.common.api.feign.fallback.UserFeignClientFallback;
 import com.lzlj.account.common.core.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +32,8 @@ public class GoodsController {
 
     private final GoodsService goodsService;
     private final UserFeignClient userFeignClient;
+    private final UserFeignClientForSentinel userFeignClientForSentinel;
+    private final UserFeignClientFallback fallback;
 
     @Operation(summary = "获取商品列表 - 本地服务调用")
     @GetMapping("/list")
@@ -103,32 +109,69 @@ public class GoodsController {
         return Result.success(result);
     }
 
-    @Operation(summary = "批量获取商品及创建人信息 - 本地服务调用 + 跨服务调用")
-    @GetMapping("/batch/detail")
-    public Result<Map<String, Object>> getBatchGoodsWithCreators(
-            @RequestParam List<Long> ids) {
-        List<GoodsVO> goodsList = new java.util.ArrayList<>();
-        for (Long id : ids) {
-            GoodsVO goods = goodsService.getById(id);
-            if (goods != null) {
-                goodsList.add(goods);
-            }
-        }
-
-        // 跨服务调用 - 批量获取创建人信息
-        String userIds = String.join(",", ids.stream().map(String::valueOf).collect(java.util.stream.Collectors.toList()));
-        Map<String, Object> result = new java.util.HashMap<>();
-        result.put("goodsList", goodsList);
-
+    @Operation(summary = "测试Feign Fallback - 直接调用不过滤异常")
+    @GetMapping("/test/feign/{id}")
+    public Result<UserFeignClient.UserInfo> testFeignFallback(@PathVariable Long id) {
+        log.info("测试Feign调用, id={}, userFeignClient.class={}", id, userFeignClient.getClass());
+        log.info("userFeignClient 是代理对象吗？{}", java.lang.reflect.Proxy.isProxyClass(userFeignClient.getClass()));
         try {
-            Result<java.util.List<UserFeignClient.UserInfo>> userResult = userFeignClient.getBatchUsers(userIds);
-            result.put("creators", userResult.getData());
-            log.info("跨服务批量调用成功: 获取 {} 个用户信息", ids.size());
+            Result<UserFeignClient.UserInfo> result = userFeignClient.getById(id);
+            log.info("Feign调用结果: {}", result);
+            return result;
         } catch (Exception e) {
-            log.warn("跨服务批量调用失败: {}", e.getMessage());
-            result.put("creators", java.util.Collections.emptyList());
+            log.error("Feign调用抛出异常: type={}, message={}", e.getClass().getName(), e.getMessage());
+            // 手动触发 Fallback 逻辑
+            return fallback.getById(id);
         }
+    }
 
-        return Result.success(result);
+    @Operation(summary = "测试Sentinel降级 - 使用@SentinelResource")
+    @GetMapping("/test/sentinel/{id}")
+    @SentinelResource(value = "userFeign#getById",
+            fallbackClass = UserFeignBlockHandler.class,
+            fallback = "getByIdBlockHandler")
+    public Result<UserFeignClient.UserInfo> testSentinelFallback(@PathVariable Long id) {
+        log.info("Sentinel测试: 调用userFeign.getById({})", id);
+        return userFeignClient.getById(id);
+    }
+
+    // ==================== 统一降级策略示例 ====================
+
+    @Operation(summary = "Sentinel统一降级 - 所有方法共用fallback策略")
+    @GetMapping("/test/sentinel/unified/{id}")
+    @SentinelResource(value = "userFeign#getById",
+            fallbackClass = UserFeignBlockHandler.class,
+            fallback = "fallback")
+    public Result<UserFeignClient.UserInfo> testSentinelUnified(@PathVariable Long id) {
+        return userFeignClient.getById(id);
+    }
+
+    @Operation(summary = "Sentinel统一降级 - getCurrentUser")
+    @GetMapping("/test/sentinel/current")
+    @SentinelResource(value = "userFeign#getCurrentUser",
+            fallbackClass = UserFeignBlockHandler.class,
+            fallback = "fallback")
+    public Result<UserFeignClient.UserInfo> testSentinelCurrentUser() {
+        return userFeignClient.getCurrentUser();
+    }
+
+    // ==================== Sentinel 真实降级测试（使用无 Fallback 的 Feign Client） ====================
+
+    @Operation(summary = "Sentinel真实降级 - 使用无Fallback的Feign Client")
+    @GetMapping("/test/sentinel/real/{id}")
+    @SentinelResource(value = "userFeignReal#getById",
+            fallbackClass = UserFeignBlockHandler.class,
+            fallback = "getByIdBlockHandler")
+    public Result<UserFeignClient.UserInfo> testSentinelRealFallback(@PathVariable Long id) {
+        return userFeignClientForSentinel.getById(id);
+    }
+
+    @Operation(summary = "Sentinel真实降级 - 统一策略")
+    @GetMapping("/test/sentinel/real/unified/{id}")
+    @SentinelResource(value = "userFeignReal#getById",
+            fallbackClass = UserFeignBlockHandler.class,
+            fallback = "unifiedFallback")
+    public Result<UserFeignClient.UserInfo> testSentinelRealUnified(@PathVariable Long id) {
+        return userFeignClientForSentinel.getById(id);
     }
 }

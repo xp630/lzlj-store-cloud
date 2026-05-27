@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 用户服务 Feign 客户端
  */
 @FeignClient(
-        name = "account-saas-auth",
+        name = "saas-auth",
         path = "/user",
         fallback = UserFeignClientFallback.class
 )

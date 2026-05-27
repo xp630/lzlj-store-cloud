@@ -16,10 +16,10 @@ import org.springframework.context.annotation.FilterType;
 @EnableFeignClients
 @MapperScan("com.lzlj.account.user.dao")
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.lzlj.account.user", "com.lzlj.account.common.core"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
-public class UserApplication {
+@ComponentScan(basePackages = {"com.lzlj.account.user", "com.lzlj.account.common"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
+public class SaasAuthApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
+        SpringApplication.run(SaasAuthApplication.class, args);
     }
 }

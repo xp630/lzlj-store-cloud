@@ -14,11 +14,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(basePackages = "com.lzlj.account.common.api.feign")
 @SpringBootApplication(scanBasePackages = {
     "com.lzlj.lzlj.goods",
-    "com.lzlj.account.common.core"
+    "com.lzlj.account.common"
 }, exclude = {DataSourceAutoConfiguration.class, MybatisPlusAutoConfiguration.class})
-public class GoodsApplication {
+public class SaasGoodsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(GoodsApplication.class, args);
+        SpringApplication.run(SaasGoodsApplication.class, args);
     }
 }
