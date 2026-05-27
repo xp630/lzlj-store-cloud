@@ -1,0 +1,79 @@
+# ============================================
+# store-user 启动配置
+# ============================================
+
+server:
+  port: 9092
+
+spring:
+  application:
+    name: store-user
+  profiles:
+    active: dev
+  config:
+    import: optional:nacos:store-user.yml
+  web:
+    resources:
+      add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  autoconfigure:
+    exclude:
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      server-addr: 127.0.0.1:8848
+      config:
+        import-check:
+          enabled: false
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true
+      discovery:
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
+
+seata:
+  enabled: false
+
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-jwt-token-signing-lzlj}
+  expiration: 86400000
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.lzlj.account.user.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

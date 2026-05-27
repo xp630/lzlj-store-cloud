@@ -16,6 +16,6 @@
     <description>老窖定制业务服务模块聚合</description>
 
     <modules>
-        <!-- 老窖定制业务服务子模块 -->
+        <module>account-lzlj-user</module>
     </modules>
 </project>

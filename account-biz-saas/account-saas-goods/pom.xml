@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>account-goods</artifactId>
+    <artifactId>account-saas-goods</artifactId>
     <packaging>jar</packaging>
     <name>LZLJ Goods Service</name>
     <description>商品服务 - 商品SPU/SKU、分类、搜索</description>
