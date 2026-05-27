@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lzlj.account.common.core.tenant.TenantContext;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.context.annotation.Bean;
@@ -31,23 +32,21 @@ public class MybatisPlusConfig {
         TenantLineInnerInterceptor tenantInterceptor = new TenantLineInnerInterceptor(
                 new TenantLineHandler() {
                     @Override
-                    public Column getTenantId() {
-                        // 返回租户ID列，用于 WHERE 条件构建
+                    public Expression getTenantId() {
+                        // 返回租户ID列表达式
                         return new Column("tenant_id");
                     }
 
                     @Override
                     public String getTenantIdColumn() {
+                        // 返回租户ID列名
                         return "tenant_id";
                     }
 
                     @Override
                     public boolean ignoreTable(String tableName) {
                         // 租户表本身不需要租户隔离（租户表是系统表，不是业务数据）
-                        if ("saas_auth_tenant".equals(tableName)) {
-                            return true;
-                        }
-                        return false;
+                        return "saas_auth_tenant".equals(tableName);
                     }
 
                     @Override
