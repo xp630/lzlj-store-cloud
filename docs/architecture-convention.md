@@ -132,7 +132,8 @@ account-gateway/
          │                   │          │
          ▼                   ▼          ▼
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│  saas-auth     │ │  saas-goods    │ │  lzlj-user     │
+│ account-biz    │ │ account-biz    │ │ account-biz   │
+│ -saas-auth    │ │ -saas-goods   │ │ -lzlj-user   │
 │   (9092)        │ │   (9091)        │ │   (9093)        │
 │  用户服务       │ │  商品服务        │ │  用户服务       │
 └─────────────────┘ └─────────────────┘ └─────────────────┘
@@ -402,7 +403,8 @@ controller → service → dao
           │                  │                  │
           ▼                  ▼                  ▼
    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-   │saas-auth   │    │saas-goods  │    │lzlj-user   │
+   │account-biz │    │account-biz │    │account-biz │
+   │-saas-auth  │    │-saas-goods│    │-lzlj-user  │
    │(用户服务)   │    │(商品服务)   │    │(用户服务)   │
    └─────┬──────┘    └─────┬──────┘    └─────┬──────┘
          │                   │                   │
