@@ -1,5 +1,6 @@
 package com.lzlj.account.role.controller;
 
+import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -29,12 +30,14 @@ public class RoleController {
     private final RoleService roleService;
 
     @Operation(summary = "创建角色")
+    @OperationLog(module = "role", operation = "CREATE", content = "创建角色")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateRoleDTO dto) {
         return Result.success(roleService.create(dto));
     }
 
     @Operation(summary = "更新角色")
+    @OperationLog(module = "role", operation = "UPDATE", content = "更新角色")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateRoleDTO dto) {
         roleService.update(id, dto);
@@ -42,6 +45,7 @@ public class RoleController {
     }
 
     @Operation(summary = "删除角色")
+    @OperationLog(module = "role", operation = "DELETE", content = "删除角色")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         roleService.delete(id);
@@ -58,9 +62,9 @@ public class RoleController {
     @GetMapping("/page")
     public Result<PageResult<RoleDTO>> page(
             PageRequest pageRequest,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String loginName,
             @RequestParam(required = false) Integer status) {
-        return Result.success(roleService.page(keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+        return Result.success(roleService.page(loginName, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "获取角色已授权菜单")
@@ -70,6 +74,7 @@ public class RoleController {
     }
 
     @Operation(summary = "分配菜单权限")
+    @OperationLog(module = "role", operation = "GRANT", content = "分配菜单权限")
     @PutMapping("/{id}/menus")
     public Result<Void> assignMenus(@PathVariable Long id, @RequestBody RoleMenuDTO dto) {
         roleService.assignMenus(id, dto);

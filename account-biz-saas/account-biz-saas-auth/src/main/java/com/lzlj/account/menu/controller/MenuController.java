@@ -1,5 +1,6 @@
 package com.lzlj.account.menu.controller;
 
+import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.menu.dto.CreateMenuDTO;
 import com.lzlj.account.menu.dto.MenuDTO;
@@ -25,12 +26,14 @@ public class MenuController {
     private final MenuService menuService;
 
     @Operation(summary = "创建菜单")
+    @OperationLog(module = "menu", operation = "CREATE", content = "创建菜单")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateMenuDTO dto) {
         return Result.success(menuService.create(dto));
     }
 
     @Operation(summary = "更新菜单")
+    @OperationLog(module = "menu", operation = "UPDATE", content = "更新菜单")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateMenuDTO dto) {
         menuService.update(id, dto);
@@ -38,6 +41,7 @@ public class MenuController {
     }
 
     @Operation(summary = "删除菜单")
+    @OperationLog(module = "menu", operation = "DELETE", content = "删除菜单")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         menuService.delete(id);
