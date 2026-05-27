@@ -10,7 +10,6 @@ spring:
     import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
   autoconfigure:
     exclude:
-      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
       - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   cloud:
@@ -44,6 +43,12 @@ spring:
             - Path=/api/saas-goods/**
           filters:
             - StripPrefix=2
+        - id: openapi-auth
+          uri: lb://saas-auth
+          predicates:
+            - Path=/openapi/**
+          filters:
+            - StripPrefix=1
 management:
   endpoints:
     web:
