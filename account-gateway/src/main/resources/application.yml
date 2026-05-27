@@ -7,7 +7,12 @@ spring:
   application:
     name: account-gateway
   config:
-    import: optional:nacos:common.yml,optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
+    import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
+  autoconfigure:
+    exclude:
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   cloud:
     nacos:
       username: nacos

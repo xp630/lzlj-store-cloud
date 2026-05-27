@@ -2,7 +2,6 @@ package com.lzlj.account.gateway.filter;
 
 import com.lzlj.account.gateway.feign.ApiKeyFeignClient;
 import com.lzlj.account.gateway.feign.ApiKeyAuthInfo;
-import com.lzlj.account.common.core.utils.SignatureUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

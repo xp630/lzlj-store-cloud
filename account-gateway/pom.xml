@@ -93,13 +93,6 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
-        <!-- Common Core -->
-        <dependency>
-            <groupId>com.lzlj.account</groupId>
-            <artifactId>account-common-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- WebClient (用于调用各服务获取API Docs) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
