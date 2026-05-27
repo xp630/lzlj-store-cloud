@@ -16,14 +16,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * OpenAPI 认证过滤器
  *
  * 流程：
- * 1. 检查是否包含 X-API-Key Header（有则走 OpenAPI 认证）
+ * 1. 检查路径是否以 /openapi/ 开头（是的则走 OpenAPI 认证）
  * 2. 验证时间戳防重放
  * 3. 验证签名
  * 4. 通过后查询 API Key 对应的 tenantId，设置到 Header
@@ -40,40 +38,29 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
     private int signatureExpireSeconds;
 
     /**
-     * OpenAPI 白名单路径（不需要认证）
+     * OpenAPI 路径前缀
      */
-    private static final List<String> WHITELIST_PATHS = Arrays.asList(
-            "/openapi/key",       // API密钥管理（后台使用，不需要验签）
-            "/doc.html",
-            "/swagger-ui",
-            "/v3/api-docs"
-    );
+    private static final String OPENAPI_PATH_PREFIX = "/openapi/";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        // 1. 检查是否是 OpenAPI 请求（通过 X-API-Key Header 判断）
-        String apiKey = request.getHeaders().getFirst("X-API-Key");
-        if (!StringUtils.hasText(apiKey)) {
+        // 1. 检查是否是 OpenAPI 请求（通过路径判断）
+        if (!path.startsWith(OPENAPI_PATH_PREFIX)) {
             // 不是 OpenAPI 请求，放行让后续 JwtAuthFilter 处理
             return chain.filter(exchange);
         }
 
-        // 2. 白名单路径放行
-        if (isWhitelisted(path)) {
-            return chain.filter(exchange);
-        }
-
-        // 3. 提取签名参数
+        // 2. 提取签名参数
+        String apiKey = request.getHeaders().getFirst("X-API-Key");
         String timestampStr = request.getHeaders().getFirst("X-Timestamp");
         String signature = request.getHeaders().getFirst("X-Signature");
         String method = request.getMethod().name();
-        String body = getRequestBody(exchange);
 
-        // 4. 验证参数完整性
-        if (!StringUtils.hasText(timestampStr) || !StringUtils.hasText(signature)) {
+        // 3. 验证参数完整性
+        if (!StringUtils.hasText(apiKey) || !StringUtils.hasText(timestampStr) || !StringUtils.hasText(signature)) {
             return unauthorized(exchange, "缺少签名参数");
         }
 
@@ -84,13 +71,13 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "无效的时间戳格式");
         }
 
-        // 5. 验签
+        // 4. 验签
         // TODO: 通过 Feign 调用 auth 服务查询 apiKey 对应的 secret
         // 暂时先放行，生产环境需要实现
         String secret = "sk_test_secret"; // 临时占位，实际应从 auth 服务查询
 
         boolean verified = SignatureUtils.verify(
-            timestamp, method, path, body, secret, signature, signatureExpireSeconds
+            timestamp, method, path, null, secret, signature, signatureExpireSeconds
         );
 
         if (!verified) {
@@ -98,11 +85,11 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, "签名验证失败");
         }
 
-        // 6. 签名验证通过，查询 tenantId 并设置到 Header
+        // 5. 签名验证通过，查询 tenantId 并设置到 Header
         // TODO: 通过 Feign 调用 auth 服务查询 apiKey 对应的 tenantId
         Long tenantId = 1L; // 临时占位，实际应从 auth 服务查询
 
-        // 7. 将用户信息写入请求头，传递给下游服务
+        // 6. 将用户信息写入请求头，传递给下游服务
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header("X-User-Id", "0")                    // API请求无用户ID
                 .header("X-Tenant-Id", String.valueOf(tenantId))
@@ -116,22 +103,6 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
         log.debug("OpenAPI 认证成功: apiKey={}, tenantId={}, path={}", apiKey, tenantId, path);
         return chain.filter(mutatedExchange);
-    }
-
-    private boolean isWhitelisted(String path) {
-        return WHITELIST_PATHS.stream().anyMatch(pattern ->
-            path.startsWith(pattern) || path.equals(pattern)
-        );
-    }
-
-    private String getRequestBody(ServerWebExchange exchange) {
-        // 对于 GET 请求，body 为空
-        if ("GET".equals(exchange.getRequest().getMethod().name())) {
-            return "";
-        }
-        // TODO: 需要缓存 request body 才能读取
-        // 暂时返回空字符串
-        return "";
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
