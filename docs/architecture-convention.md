@@ -479,7 +479,63 @@ controller → service → dao
 
 ---
 
-## 八、约束汇总
+## 八、缓存策略
+
+### 8.1 缓存组件
+
+| 组件 | 模块 | 说明 |
+|------|------|------|
+| `@Cacheable` | `common-redis` | 声明式缓存，基于 Redisson |
+| `UserCacheService` | `auth` | 旁路缓存 Demo 示例 |
+
+### 8.2 @Cacheable（声明式缓存）
+
+**优点**：简单，注解即可
+**缺点**：同步阻塞，无法精细控制
+
+```java
+@Cacheable(value = "apiKeyAuth", key = "#apiKey", unless = "#result == null")
+public ApiKeyAuthDTO getAuthInfoByApiKey(String apiKey) {
+    // 缓存未命中时执行
+}
+```
+
+### 8.3 旁路缓存（Cache-Aside）
+
+**优点**：完全可控，支持复杂场景
+**缺点**：代码量大
+
+```java
+// 读：先缓存 -> 未命中 -> 查DB -> 写入缓存
+public UserDTO getById(Long id) {
+    UserDTO cached = cache.get(id);
+    if (cached != null) return cached;
+    UserDTO user = db.findById(id);
+    cache.put(id, user);
+    return user;
+}
+
+// 写：先DB -> 删除缓存（不是更新）
+public void update(User user) {
+    db.update(user);
+    cache.remove(user.getId());
+}
+```
+
+**Demo 位置**：`account-biz-saas-auth/.../service/impl/UserCacheService.java`
+
+### 8.4 缓存策略选择
+
+| 场景 | 推荐 |
+|------|------|
+| 简单查询、低并发 | `@Cacheable` |
+| 高并发、复杂逻辑 | 旁路缓存 |
+| 缓存一致性要求高 | 旁路缓存 + 延迟双删 |
+| 快速开发 | `@Cacheable` |
+
+---
+
+## 九、约束汇总
 
 | 编号 | 约束 | 说明 |
 |------|------|------|
@@ -496,7 +552,7 @@ controller → service → dao
 
 ---
 
-## 九、违规示例
+## 十、违规示例
 
 ### 8.1 包命名违规
 
@@ -544,7 +600,7 @@ private UserDTO currentUser;
 
 ---
 
-## 十、违反检查
+## 十一、违反检查
 
 ```bash
 # 检查是否使用废弃包名
