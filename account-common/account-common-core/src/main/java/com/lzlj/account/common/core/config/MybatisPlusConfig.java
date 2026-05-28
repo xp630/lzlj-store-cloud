@@ -46,7 +46,15 @@ public class MybatisPlusConfig {
                     @Override
                     public boolean ignoreTable(String tableName) {
                         // 租户表本身不需要租户隔离（租户表是系统表，不是业务数据）
-                        return "saas_auth_tenant".equals(tableName);
+                        // 平台级数据表也不需要租户隔离
+                        // 日志表需要单独处理租户ID（通过 @TableField(fill = FieldFill.INSERT) 自动填充）
+                        return "saas_auth_tenant".equals(tableName)
+                                || "saas_auth_menu".equals(tableName)
+                                || "saas_auth_role".equals(tableName)
+                                || "saas_auth_role_menu".equals(tableName)
+                                || "saas_auth_user_role".equals(tableName)
+                                || "saas_auth_operation_log".equals(tableName)
+                                || "saas_auth_api_log".equals(tableName);
                     }
 
                     @Override

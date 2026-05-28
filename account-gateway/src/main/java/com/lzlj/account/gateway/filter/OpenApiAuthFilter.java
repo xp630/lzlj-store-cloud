@@ -1,5 +1,6 @@
 package com.lzlj.account.gateway.filter;
 
+import com.lzlj.account.gateway.log.service.GatewayLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
@@ -32,6 +33,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
     private final DiscoveryClient discoveryClient;
     private final WebClient.Builder webClientBuilder;
+    private final GatewayLogService gatewayLogService;
 
     @Value("${openapi.signature.expire-seconds:300}")
     private int signatureExpireSeconds;
@@ -39,15 +41,23 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
     private static final String OPENAPI_PATH_PREFIX = "/openapi/";
     private static final String AUTH_SERVICE_ID = "saas-auth";
 
-    public OpenApiAuthFilter(DiscoveryClient discoveryClient, WebClient.Builder webClientBuilder) {
+    public OpenApiAuthFilter(DiscoveryClient discoveryClient, WebClient.Builder webClientBuilder,
+                            GatewayLogService gatewayLogService) {
         this.discoveryClient = discoveryClient;
         this.webClientBuilder = webClientBuilder;
+        this.gatewayLogService = gatewayLogService;
     }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
+        String method = request.getMethod().name();
+        String ip = getClientIp(request);
+        String userAgent = request.getHeaders().getFirst(HttpHeaders.USER_AGENT);
+
+        // 记录开始时间
+        long startTime = System.currentTimeMillis();
 
         // 1. 检查是否是 OpenAPI 请求
         if (!path.startsWith(OPENAPI_PATH_PREFIX)) {
@@ -58,10 +68,10 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         String apiKey = request.getHeaders().getFirst("X-API-Key");
         String timestampStr = request.getHeaders().getFirst("X-Timestamp");
         String signature = request.getHeaders().getFirst("X-Signature");
-        String method = request.getMethod().name();
 
         // 3. 验证参数完整性
         if (!StringUtils.hasText(apiKey) || !StringUtils.hasText(timestampStr) || !StringUtils.hasText(signature)) {
+            logApiAccess(apiKey, 0L, method, path, null, null, 401, System.currentTimeMillis() - startTime, ip, userAgent, "缺少签名参数");
             return unauthorized(exchange, "缺少签名参数");
         }
 
@@ -69,6 +79,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         try {
             timestamp = Long.parseLong(timestampStr);
         } catch (NumberFormatException e) {
+            logApiAccess(apiKey, 0L, method, path, null, null, 401, System.currentTimeMillis() - startTime, ip, userAgent, "无效的时间戳格式");
             return unauthorized(exchange, "无效的时间戳格式");
         }
 
@@ -76,11 +87,13 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         List<ServiceInstance> instances = discoveryClient.getInstances(AUTH_SERVICE_ID);
         if (instances == null || instances.isEmpty()) {
             log.error("未找到 auth 服务实例: {}", AUTH_SERVICE_ID);
+            logApiAccess(apiKey, 0L, method, path, null, null, 503, System.currentTimeMillis() - startTime, ip, userAgent, "认证服务不可用");
             return unauthorized(exchange, "认证服务不可用");
         }
 
         ServiceInstance authInstance = instances.get(0);
         String authServiceUrl = "http://" + authInstance.getHost() + ":" + authInstance.getPort();
+        log.info("Auth service URL: {}, host: {}, port: {}", authServiceUrl, authInstance.getHost(), authInstance.getPort());
 
         // 5. 调用 auth 服务查询认证信息
         return webClientBuilder.build()
@@ -91,6 +104,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                 .flatMap(authInfo -> {
                     if (authInfo == null) {
                         log.warn("API Key 不存在: apiKey={}", apiKey);
+                        logApiAccess(apiKey, 0L, method, path, null, null, 401, System.currentTimeMillis() - startTime, ip, userAgent, "API Key 无效");
                         return unauthorized(exchange, "API Key 无效");
                     }
 
@@ -100,6 +114,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                         secret = new String(Base64.getDecoder().decode(authInfo.getApiSecret()));
                     } catch (Exception e) {
                         log.error("解密 secret 失败: apiKey={}", apiKey);
+                        logApiAccess(apiKey, authInfo.getTenantId(), method, path, null, null, 401, System.currentTimeMillis() - startTime, ip, userAgent, "API Key 无效");
                         return unauthorized(exchange, "API Key 无效");
                     }
 
@@ -110,16 +125,19 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
                     if (!verified) {
                         log.warn("OpenAPI 签名验证失败: apiKey={}, path={}", apiKey, path);
+                        logApiAccess(apiKey, authInfo.getTenantId(), method, path, null, null, 401, System.currentTimeMillis() - startTime, ip, userAgent, "签名验证失败");
                         return unauthorized(exchange, "签名验证失败");
                     }
 
                     log.debug("OpenAPI 认证成功: apiKey={}, tenantId={}, path={}", apiKey, authInfo.getTenantId(), path);
 
-                    // 8. 验签通过，直接转发请求到后端服务
-                    return forwardToBackend(exchange, authInfo, authServiceUrl, path);
+                    // 8. 验签通过，直接转发请求到后端服务（剥离 /openapi 前缀，但保留 /）
+                    String backendPath = path.substring(OPENAPI_PATH_PREFIX.length() - 1);
+                    return forwardToBackend(exchange, authInfo, authServiceUrl, backendPath, method, ip, userAgent, startTime);
                 })
                 .onErrorResume(e -> {
-                    log.error("调用认证服务失败: apiKey={}, error={}", apiKey, e.getMessage());
+                    log.error("调用认证服务失败: apiKey={}, error={}", apiKey, e.getMessage(), e);
+                    logApiAccess(apiKey, 0L, method, path, null, null, 500, System.currentTimeMillis() - startTime, ip, userAgent, "认证服务调用失败: " + e.getMessage());
                     return unauthorized(exchange, "API Key 无效");
                 });
     }
@@ -128,7 +146,9 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
      * 直接转发请求到后端服务
      */
     private Mono<Void> forwardToBackend(ServerWebExchange exchange, ApiKeyAuthInfo authInfo,
-                                         String authServiceUrl, String originalPath) {
+                                         String authServiceUrl, String originalPath, String method,
+                                         String ip, String userAgent, long startTime) {
+        log.info("forwardToBackend: authServiceUrl={}, originalPath={}", authServiceUrl, originalPath);
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = new HttpHeaders();
         headers.putAll(exchange.getRequest().getHeaders());
@@ -154,8 +174,45 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                 .flatMap(body -> {
                     response.getHeaders().setContentLength((long) body.length);
                     DataBuffer buffer = response.bufferFactory().wrap(body);
+                    // 记录成功访问日志
+                    String responseBody = new String(body, StandardCharsets.UTF_8);
+                    logApiAccess(authInfo.getApiKey(), authInfo.getTenantId(), method, originalPath, null, responseBody, 200, System.currentTimeMillis() - startTime, ip, userAgent, null);
                     return response.writeWith(Mono.just(buffer));
                 });
+    }
+
+    /**
+     * 记录API访问日志
+     */
+    private void logApiAccess(String apiKey, Long tenantId, String method, String path,
+                             String requestBody, String responseBody, Integer statusCode,
+                             Long duration, String ip, String userAgent, String errorMsg) {
+        try {
+            gatewayLogService.logApiAccessAsync(
+                    null, apiKey, tenantId, method, path, requestBody, responseBody,
+                    statusCode, duration, ip, userAgent, errorMsg
+            );
+        } catch (Exception e) {
+            log.error("记录API访问日志失败", e);
+        }
+    }
+
+    /**
+     * 获取客户端IP
+     */
+    private String getClientIp(ServerHttpRequest request) {
+        String ip = request.getHeaders().getFirst("X-Forwarded-For");
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeaders().getFirst("X-Real-IP");
+        }
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddress() != null ? request.getRemoteAddress().getAddress().getHostAddress() : "";
+        }
+        // 多级代理时取第一个IP
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {

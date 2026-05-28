@@ -47,7 +47,6 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    @Async
     public void logApiAccess(Long apiKeyId, String apiKey, Long tenantId, String method,
                              String path, String requestBody, String responseBody,
                              Integer statusCode, Long duration, String ip, String userAgent, String errorMsg) {

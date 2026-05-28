@@ -57,11 +57,6 @@ public abstract class BaseEntity implements Serializable {
     private String remark;
 
     /**
-     * 租户ID
-     */
-    private Long tenantId;
-
-    /**
      * 版本号（用于乐观锁）
      */
     private Integer version;

@@ -4,14 +4,14 @@ import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.tenant.TenantContext;
 import com.lzlj.account.common.core.utils.ServletUtils;
-import com.lzlj.account.log.service.LogService;
+import com.lzlj.account.log.event.OperationLogEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -25,13 +25,20 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class OperationLogAspect {
 
-    private final LogService logService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Around("@annotation(com.lzlj.account.common.core.annotation.OperationLog)")
     public Object around(ProceedingJoinPoint point) throws Throwable {
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         OperationLog annotation = method.getAnnotation(OperationLog.class);
+
+        // 在主线程中捕获上下文（避免 ThreadLocal 在异步方法中丢失）
+        Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
+        Long tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : 0L;
+        String username = UserContext.getUsername();
+        String ip = ServletUtils.getClientIp();
+        String userAgent = ServletUtils.getUserAgent();
 
         Object result = null;
 
@@ -41,43 +48,19 @@ public class OperationLogAspect {
         } catch (Throwable e) {
             throw e;
         } finally {
-            // 异步记录日志
+            // 发布事件异步记录日志
             try {
-                recordLog(annotation, signature, result);
+                String content = annotation.content();
+                if (content.isEmpty()) {
+                    content = signature.getDeclaringType().getSimpleName() + "." + signature.getName();
+                }
+                eventPublisher.publishEvent(new OperationLogEvent(
+                        userId, tenantId, username, annotation.module(),
+                        annotation.operation(), content, extractBizId(result), ip, userAgent
+                ));
             } catch (Exception e) {
-                log.error("记录操作日志失败", e);
+                log.error("发布操作日志事件失败", e);
             }
-        }
-    }
-
-    @Async
-    protected void recordLog(OperationLog annotation, MethodSignature signature, Object result) {
-        try {
-            Long userId = UserContext.getUserId();
-            Long tenantId = TenantContext.getTenantId();
-            String username = UserContext.getUsername();
-            String ip = ServletUtils.getClientIp();
-            String userAgent = ServletUtils.getUserAgent();
-
-            // 构建操作内容
-            String content = annotation.content();
-            if (content.isEmpty()) {
-                content = signature.getDeclaringType().getSimpleName() + "." + signature.getName();
-            }
-
-            logService.logOperation(
-                userId,
-                tenantId,
-                username,
-                annotation.module(),
-                annotation.operation(),
-                content,
-                extractBizId(result),
-                ip,
-                userAgent
-            );
-        } catch (Exception e) {
-            log.error("记录操作日志异常", e);
         }
     }
 
