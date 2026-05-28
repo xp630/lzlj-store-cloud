@@ -63,16 +63,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Redis (Lettuce) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
-        </dependency>
-
         <!-- 公共模块 -->
         <dependency>
             <groupId>com.lzlj.account</groupId>
@@ -85,6 +75,10 @@
         <dependency>
             <groupId>com.lzlj.account</groupId>
             <artifactId>account-common-mq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lzlj.account</groupId>
+            <artifactId>account-common-rpc</artifactId>
         </dependency>
 
         <!-- LoadBalancer for Feign -->
