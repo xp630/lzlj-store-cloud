@@ -1,7 +1,7 @@
 package com.lzlj.account.gateway.filter;
 
 import com.lzlj.account.gateway.config.AuthServiceUrlProvider;
-import com.lzlj.account.gateway.log.service.GatewayLogService;
+import com.lzlj.account.gateway.log.ApiAccessLogger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -37,16 +37,16 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
     private static final String HEADER_API_KEY = "X-API-Key";
 
     private final WebClient.Builder webClientBuilder;
-    private final GatewayLogService gatewayLogService;
+    private final ApiAccessLogger apiAccessLogger;
     private final AuthServiceUrlProvider authServiceUrlProvider;
 
     @Value("${openapi.signature.expire-seconds:300}")
     private int signatureExpireSeconds;
 
-    public OpenApiAuthFilter(WebClient.Builder webClientBuilder, GatewayLogService gatewayLogService,
+    public OpenApiAuthFilter(WebClient.Builder webClientBuilder, ApiAccessLogger apiAccessLogger,
                             AuthServiceUrlProvider authServiceUrlProvider) {
         this.webClientBuilder = webClientBuilder;
-        this.gatewayLogService = gatewayLogService;
+        this.apiAccessLogger = apiAccessLogger;
         this.authServiceUrlProvider = authServiceUrlProvider;
     }
 
@@ -180,7 +180,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                 .flatMap(body -> {
                     // 记录成功日志
                     String responseBody = new String(body, StandardCharsets.UTF_8);
-                    gatewayLogService.logApiAccessAsync(
+                    apiAccessLogger.log(
                             authInfo.getId(), authInfo.getApiKey(), authInfo.getTenantId(),
                             ctx.method, backendPath, null, responseBody, 200,
                             System.currentTimeMillis() - ctx.startTime, ctx.ip, ctx.userAgent, null);
@@ -196,7 +196,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
      */
     private Mono<Void> unauthorized(ServerWebExchange exchange, RequestContext ctx, String message) {
         // 记录失败日志
-        gatewayLogService.logApiAccessAsync(
+        apiAccessLogger.log(
                 null, ctx.apiKey, 0L, ctx.method, ctx.path, null, null, 401,
                 System.currentTimeMillis() - ctx.startTime, ctx.ip, ctx.userAgent, message);
 
