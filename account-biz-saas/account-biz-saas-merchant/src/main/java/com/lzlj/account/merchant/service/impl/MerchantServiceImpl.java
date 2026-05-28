@@ -11,7 +11,7 @@ import com.lzlj.account.merchant.dto.CreateMerchantDTO;
 import com.lzlj.account.merchant.dto.MerchantDTO;
 import com.lzlj.account.merchant.dto.UpdateMerchantDTO;
 import com.lzlj.account.merchant.entity.Merchant;
-import com.lzlj.merchant.merchant.service.MerchantService;
+import com.lzlj.account.merchant.service.MerchantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

@@ -1,7 +1,7 @@
 package com.lzlj.account.merchant.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lzlj.merchant.merchant.entity.Merchant;
+import com.lzlj.account.merchant.entity.Merchant;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
