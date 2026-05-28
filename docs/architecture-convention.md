@@ -6,10 +6,15 @@
 lzlj-cloud/
 ├── account-common/              # 公共模块
 │   ├── account-common-core/     # 核心公共代码
+│   ├── account-common-database/ # 数据库（MyBatis-Plus、Druid、MySQL）
+│   ├── account-common-mq/       # 消息队列（RocketMQ）
+│   ├── account-common-rpc/      # RPC（Dubbo、Seata）
+│   ├── account-common-redis/    # Redis（Redisson）
 │   └── account-common-api/      # Feign 接口定义
 ├── account-biz-saas/            # SaaS 业务模块
 │   ├── account-biz-saas-auth/   # 用户服务
-│   └── account-biz-saas-goods/  # 商品服务
+│   ├── account-biz-saas-goods/  # 商品服务
+│   └── account-biz-saas-merchant/ # 商户服务
 ├── account-biz-lzlj/            # LZLJ 定制业务模块
 │   └── account-biz-lzlj-user/  # LZLJ 用户服务
 └── account-gateway/            # API 网关
@@ -32,7 +37,21 @@ account-common/
 │       ├── GlobalExceptionHandler # 全局异常处理
 │       ├── BusinessException    # 业务异常
 │       ├── AuthException       # 认证异常
+│       ├── TenantEntity         # 租户实体基类
 │       └── 其他通用工具类
+│
+├── account-common-database/ # 数据库组件
+│   └── 包含：
+│       └── MybatisPlusConfig  # MyBatis-Plus 配置
+│
+├── account-common-mq/       # 消息队列组件
+│   └── RocketMQ 配置
+│
+├── account-common-rpc/      # RPC 组件
+│   └── Dubbo、Seata 配置
+│
+├── account-common-redis/    # Redis 组件
+│   └── RedissonConfig       # Redisson 客户端配置
 │
 └── account-common-api/      # 服务间接口契约
     └── 包含：
@@ -48,7 +67,20 @@ account-common/
 
 ---
 
-### 2.2 account-biz-*（业务模块）
+### 2.2 各 common 模块职责
+
+| 模块 | 职责 | 主要依赖 |
+|------|------|---------|
+| `account-common-core` | 核心基础：Result、Exception、工具类、实体基类 | Spring Boot Web、Nacos、Sentinel、JWT |
+| `account-common-database` | 数据库访问 | MyBatis-Plus、Druid、MySQL |
+| `account-common-mq` | 消息队列 | RocketMQ |
+| `account-common-rpc` | 服务通信：RPC 调用、分布式事务 | Dubbo、Seata |
+| `account-common-redis` | Redis 客户端：缓存、分布式锁 | Redisson |
+| `account-common-api` | Feign 接口定义 | OpenFeign |
+
+---
+
+### 2.3 account-biz-*（业务模块）
 
 **职责**：实现具体业务逻辑，不共享给其他模块。
 
@@ -62,21 +94,38 @@ account-biz-saas/                    # SaaS 业务父模块
 │   │   ├── 用户注册/登录
 │   │   ├── JWT 认证
 │   │   ├── 用户信息管理
+│   │   ├── 租户管理
 │   │   └── 组织架构管理
-│   └── 依赖：account-common
+│   └── 依赖：common-core、common-database、common-mq、common-redis、common-api
 │
-└── account-biz-saas-goods/         # 商品服务
-    ├── 包名：com.lzlj.account.goods
-    ├── 端口：9091
+├── account-biz-saas-goods/         # 商品服务
+│   ├── 包名：com.lzlj.account.goods
+│   ├── 端口：9091
+│   ├── 职责：
+│   │   ├── 商品 CRUD
+│   │   ├── 商品分类
+│   │   └── 商品搜索
+│   └── 依赖：common-core、common-database、common-mq、common-redis、common-api
+│
+└── account-biz-saas-merchant/     # 商户服务
+    ├── 包名：com.lzlj.account.merchant
+    ├── 端口：9093
     ├── 职责：
-    │   ├── 商品 CRUD
-    │   ├── 商品分类
-    │   └── 商品搜索
-    └── 依赖：account-common, UserFeignClient
+    │   └── 商户信息管理
+    └── 依赖：common-core、common-database、common-mq、common-redis、common-api
+
+account-biz-lzlj/                    # LZLJ 定制业务父模块
+│
+└── account-biz-lzlj-user/        # LZLJ 用户服务
+    ├── 包名：com.lzlj.account.user
+    ├── 端口：9094
+    ├── 职责：
+    │   └── 定制化用户功能
+    └── 依赖：common-core、common-database、common-mq、common-redis、common-api
 ```
 
 **约束**：
-- ✅ 可以依赖 `account-common`
+- ✅ 可以依赖 `account-common` 任意子模块
 - ✅ 可以依赖其他服务的 `FeignClient`
 - ❌ 不得依赖其他 `account-biz-*` 的实现代码
 - ❌ 不得被其他 `account-biz-*` 直接依赖
@@ -108,35 +157,39 @@ account-gateway/
 ### 2.4 模块依赖关系图
 
 ```
-                          ┌─────────────────────┐
-                          │   account-gateway    │
-                          │      (18080)        │
-                          └──────────┬──────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    │                │                │
-                    ▼                ▼                ▼
-          ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-          │ account-common  │ │ account-common  │ │ account-common  │
-          │   (core)       │ │    (api)       │ │   (api)       │
-          └────────┬────────┘ └────────┬────────┘ └─────────────────┘
-                   │                    │
-         ┌────────┴────────┐          │
-         │                   │          │
-         ▼                   ▼          │
-┌─────────────────┐ ┌─────────────────┐ │
-│  account-biz    │ │  account-biz    │ │
-│    -saas        │ │    -lzlj        │ │
-│  (父模块)        │ │  (父模块)        │ │
-└────────┬────────┘ └────────┬────────┘ │
-         │                   │          │
-         ▼                   ▼          ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ account-biz    │ │ account-biz    │ │ account-biz   │
-│ -saas-auth    │ │ -saas-goods   │ │ -lzlj-user   │
-│   (9092)        │ │   (9091)        │ │   (9093)        │
-│  用户服务       │ │  商品服务        │ │  用户服务       │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
+                                ┌─────────────────────┐
+                                │   account-gateway    │
+                                │      (18080)        │
+                                └──────────┬──────────┘
+                                           │
+                      ┌────────────────────┼────────────────────┐
+                      │                    │                    │
+                      ▼                    ▼                    ▼
+            ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+            │ account-common   │ │ account-common  │ │ account-common   │
+            │    (api)        │ │   (redis)      │ │    (core)       │
+            └────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+                     │                   │                   │
+           ┌─────────┴─────────┐        │                   │
+           │                   │        │                   │
+           ▼                   ▼        ▼                   ▼
+    ┌─────────────┐    ┌─────────────┐ ┌─────────────────────────────┐
+    │account-biz  │    │account-biz  │ │         account-biz         │
+    │  -saas     │    │  -lzlj     │ │          -saas             │
+    │  (父模块)   │    │  (父模块)   │ │                             │
+    └──────┬──────┘    └──────┬──────┘ │  ┌──────────────────────┐   │
+           │                   │        │  │ account-biz-saas-auth │   │
+           ▼                   ▼        │  │    (9092) 用户服务   │   │
+    ┌─────────────┐    ┌─────────────┐ │  └──────────────────────┘   │
+    │account-biz  │    │account-biz  │ │  ┌──────────────────────┐   │
+    │ -saas-auth  │    │-lzlj-user   │ │  │account-biz-saas-goods│   │
+    │   (9092)    │    │   (9094)    │ │  │    (9091) 商品服务   │   │
+    └─────────────┘    └─────────────┘ │  └──────────────────────┘   │
+                                       │  ┌──────────────────────┐   │
+                                       │  │account-biz-saas-merchant│ │
+                                       │  │   (9093) 商户服务    │   │
+                                       │  └──────────────────────┘   │
+                                       └─────────────────────────────┘
 ```
 
 ---
@@ -145,12 +198,17 @@ account-gateway/
 
 | 模块 | 一句话说明 |
 |------|-----------|
-| `account-common-core` | 全局共享代码，所有模块都依赖 |
-| `account-common-api` | 服务间接口契约（FeignClient + DTO） |
+| `account-common-core` | 核心基础：Result、Exception、实体基类、工具类 |
+| `account-common-database` | 数据库：MyBatis-Plus、Druid、MySQL |
+| `account-common-mq` | 消息队列：RocketMQ |
+| `account-common-rpc` | 服务通信：Dubbo RPC、Seata 分布式事务 |
+| `account-common-redis` | Redis 客户端：Redisson 缓存和分布式锁 |
+| `account-common-api` | 服务间接口契约：FeignClient + DTO |
 | `account-biz-saas` | SaaS 业务父模块 |
 | `account-biz-lzlj` | LZLJ 定制业务父模块 |
-| `account-biz-saas-auth` | 用户服务：认证、用户管理 |
+| `account-biz-saas-auth` | 用户服务：认证、用户管理、租户管理 |
 | `account-biz-saas-goods` | 商品服务：商品 CRUD、分类、搜索 |
+| `account-biz-saas-merchant` | 商户服务：商户信息管理 |
 | `account-biz-lzlj-user` | LZLJ 用户服务：定制化用户功能 |
 | `account-gateway` | 网关：路由、鉴权、限流 |
 
