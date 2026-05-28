@@ -1,10 +1,8 @@
 package com.lzlj.account.gateway.log.service.impl;
 
+import com.lzlj.account.gateway.config.AuthServiceUrlProvider;
 import com.lzlj.account.gateway.log.service.GatewayLogService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,13 +16,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class GatewayLogServiceImpl implements GatewayLogService {
 
     private final WebClient.Builder webClientBuilder;
-    private final DiscoveryClient discoveryClient;
+    private final AuthServiceUrlProvider authServiceUrlProvider;
 
-    private static final String AUTH_SERVICE_ID = "saas-auth";
-
-    public GatewayLogServiceImpl(WebClient.Builder webClientBuilder, DiscoveryClient discoveryClient) {
+    public GatewayLogServiceImpl(WebClient.Builder webClientBuilder, AuthServiceUrlProvider authServiceUrlProvider) {
         this.webClientBuilder = webClientBuilder;
-        this.discoveryClient = discoveryClient;
+        this.authServiceUrlProvider = authServiceUrlProvider;
     }
 
     @Async
@@ -33,10 +29,11 @@ public class GatewayLogServiceImpl implements GatewayLogService {
                                   String path, String requestBody, String responseBody,
                                   Integer statusCode, Long duration, String ip, String userAgent, String errorMsg) {
         try {
-            // 获取auth服务地址
-            ServiceInstance authInstance = discoveryClient.getInstances(AUTH_SERVICE_ID).get(0);
-            String authServiceUrl = "http://" + authInstance.getHost() + ":" + authInstance.getPort();
-            log.debug("Auth service URL for logging: {}", authServiceUrl);
+            String authServiceUrl = authServiceUrlProvider.getAuthServiceUrl();
+            if (authServiceUrl == null) {
+                log.warn("无法获取auth服务地址，跳过日志记录");
+                return;
+            }
 
             // 构建请求体
             String requestBodyJson = String.format(
