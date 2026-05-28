@@ -1,4 +1,4 @@
-package com.lzlj.merchant;
+package com.lzlj.account.merchant;
 
 import com.lzlj.account.common.core.config.RedissonConfig;
 import org.mybatis.spring.annotation.MapperScan;
@@ -16,12 +16,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableAsync
-@MapperScan({"com.lzlj.merchant.**.dao"})
+@MapperScan({"com.lzlj.account.**.dao"})
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.lzlj.merchant.*", "com.lzlj.account.*"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
-public class MerchantApplication {
+@ComponentScan(basePackages = {"com.lzlj.account.*", "com.lzlj.account.*"}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RedissonConfig.class))
+public class SaasMerchantApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MerchantApplication.class, args);
+        SpringApplication.run(SaasMerchantApplication.class, args);
     }
 }

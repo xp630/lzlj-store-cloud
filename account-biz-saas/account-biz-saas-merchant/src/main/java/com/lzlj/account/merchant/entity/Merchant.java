@@ -1,4 +1,4 @@
-package com.lzlj.merchant.merchant.entity;
+package com.lzlj.account.merchant.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lzlj.account.common.core.domain.TenantEntity;
@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("saas_merchant")
+@TableName("saas_merchant_merchant")
 public class Merchant extends TenantEntity {
 
     /**
