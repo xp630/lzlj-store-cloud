@@ -3,9 +3,6 @@
 # ============================================
 
 spring:
-  autoconfigure:
-    exclude:
-      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
   cloud:
     nacos:
       username: nacos
@@ -15,3 +12,8 @@ spring:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+
+# API访问日志配置
+openapi:
+  access-log:
+    path: /tmp/gateway-api-access
