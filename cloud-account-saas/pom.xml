@@ -18,7 +18,7 @@
     <modules>
         <module>cloud-account-saas-api</module>
         <module>cloud-account-saas-biz</module>
-        <module>cloud-account-saas-gateway</module>
+        <module>cloud-account-saas-entrance</module>
     </modules>
 
     <dependencyManagement>
@@ -82,11 +82,6 @@
             <dependency>
                 <groupId>com.lzlj.account</groupId>
                 <artifactId>cloud-account-saas-merchant</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>cloud-account-saas-gateway-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

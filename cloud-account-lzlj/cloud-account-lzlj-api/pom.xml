@@ -11,34 +11,11 @@
     </parent>
 
     <artifactId>cloud-account-lzlj-api</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>cloud-account-lzlj-api</name>
-    <description>LZLJ Feign API 接口定义</description>
+    <description>LZLJ Feign API 聚合模块</description>
 
-    <dependencies>
-        <!-- Spring Boot Web (仅用于注解) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- OpenFeign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-
-        <!-- 公共核心模块 (实体类) -->
-        <dependency>
-            <groupId>com.lzlj.account</groupId>
-            <artifactId>cloud-account-common-core</artifactId>
-        </dependency>
-
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>cloud-account-lzlj-api-auth</module>
+    </modules>
 </project>

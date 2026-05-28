@@ -17,8 +17,8 @@
 
     <modules>
         <module>cloud-account-lzlj-api</module>
-        <module>cloud-account-biz</module>
-        <module>cloud-account-lzlj-gateway</module>
+        <module>cloud-account-lzlj-biz</module>
+        <module>cloud-account-lzlj-entrance</module>
     </modules>
 
     <dependencyManagement>
@@ -51,7 +51,7 @@
             </dependency>
             <dependency>
                 <groupId>com.lzlj.account</groupId>
-                <artifactId>cloud-account-lzlj-api</artifactId>
+                <artifactId>cloud-account-lzlj-api-auth</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
