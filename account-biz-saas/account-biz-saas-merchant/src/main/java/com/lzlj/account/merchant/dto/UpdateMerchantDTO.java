@@ -1,4 +1,4 @@
-package com.lzlj.merchant.merchant.dto;
+package com.lzlj.account.merchant.dto;
 
 import lombok.Data;
 

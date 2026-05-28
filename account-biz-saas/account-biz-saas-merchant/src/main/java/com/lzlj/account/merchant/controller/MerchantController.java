@@ -1,4 +1,4 @@
-package com.lzlj.merchant.merchant.controller;
+package com.lzlj.account.merchant.controller;
 
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;

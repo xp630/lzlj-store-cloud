@@ -1,9 +1,9 @@
-package com.lzlj.merchant.merchant.service;
+package com.lzlj.account.merchant.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
-import com.lzlj.merchant.merchant.dto.CreateMerchantDTO;
-import com.lzlj.merchant.merchant.dto.MerchantDTO;
-import com.lzlj.merchant.merchant.dto.UpdateMerchantDTO;
+import com.lzlj.account.merchant.dto.CreateMerchantDTO;
+import com.lzlj.account.merchant.dto.MerchantDTO;
+import com.lzlj.account.merchant.dto.UpdateMerchantDTO;
 
 /**
  * 商户服务接口
