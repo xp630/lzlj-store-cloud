@@ -2,18 +2,12 @@
 # account-gateway dev 环境配置
 # ============================================
 
-server:
-  port: 18080
 
 spring:
   application:
     name: account-gateway
   config:
     import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   cloud:
     nacos:
       username: nacos
@@ -28,32 +22,9 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
-    gateway:
-      discovery:
-        locator:
-          enabled: false
-      routes:
-        - id: auth-api
-          uri: lb://saas-auth
-          predicates:
-            - Path=/api/saas-auth/**
-          filters:
-            - StripPrefix=2
-        - id: goods-api
-          uri: lb://saas-goods
-          predicates:
-            - Path=/api/saas-goods/**
-          filters:
-            - StripPrefix=2
-        - id: openapi-auth
-          uri: lb://saas-auth
-          predicates:
-            - Path=/openapi/**
-          filters:
-            - StripPrefix=1
 
-# OpenAPI配置
+# API访问日志配置 (由 logback-spring.xml 管理滚动和清理)
 openapi:
-  signature-expire-seconds: 300
   access-log:
     path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/account-gateway/tmp
+  signature-expire-seconds: 300

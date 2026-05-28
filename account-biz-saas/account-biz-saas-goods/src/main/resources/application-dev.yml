@@ -2,7 +2,19 @@
 # saas-goods dev 环境配置
 # ============================================
 
+server:
+  port: 9091
+
 spring:
+  application:
+    name: saas-goods
+  config:
+    import: optional:nacos:common.yml,optional:nacos:common-jwt.yml,optional:nacos:saas-goods.yml
+  autoconfigure:
+    exclude:
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
   cloud:
     nacos:
       username: nacos
@@ -10,19 +22,17 @@ spring:
       server-addr: 127.0.0.1:8848
       config:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
-        shared-configs:
-          - data-id: common.yml
-            group: DEFAULT_GROUP
-            refresh: true
+        group: DEFAULT_GROUP
+        file-extension: yml
+        import-check:
+          enabled: false
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
 
-# 启用 Feign Sentinel 降级
+# 启用 Feign CircuitBreaker
 feign:
-  sentinel:
+  circuitbreaker:
     enabled: true
-
-# Sentinel 基础配置（仅用于服务监控，可选）
-sentinel:
-  transport:
-    port: 8719
+  client:
+    default-to-properties: false
