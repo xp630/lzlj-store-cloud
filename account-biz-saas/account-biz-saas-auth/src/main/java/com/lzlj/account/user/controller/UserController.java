@@ -11,6 +11,7 @@ import com.lzlj.account.user.dto.UserRoleDTO;
 import com.lzlj.account.user.entity.User;
 import com.lzlj.account.user.service.UserRoleService;
 import com.lzlj.account.user.service.UserService;
+import com.lzlj.account.user.service.impl.UserCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserRoleService userRoleService;
+    private final UserCacheService userCacheService;
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
@@ -131,5 +133,19 @@ public class UserController {
     public Result<Void> assignRoles(@PathVariable Long id, @RequestBody UserRoleDTO dto) {
         userRoleService.assignRoles(id, dto);
         return Result.success();
+    }
+
+    // ==================== 旁路缓存测试接口 ====================
+
+    @Operation(summary = "【测试】旁路缓存 - 获取用户（先查缓存后查DB）")
+    @GetMapping("/cache/{id}")
+    public Result<UserDTO> getByIdWithCache(@PathVariable Long id) {
+        return Result.success(userCacheService.getById(id));
+    }
+
+    @Operation(summary = "【测试】旁路缓存 - 穿透防护（空值也缓存）")
+    @GetMapping("/cache/protect/{id}")
+    public Result<UserDTO> getByIdWithProtection(@PathVariable Long id) {
+        return Result.success(userCacheService.getByIdWith穿透Protection(id));
     }
 }
