@@ -20,6 +20,7 @@
         <module>account-common-database</module>
         <module>account-common-mq</module>
         <module>account-common-rpc</module>
+        <module>account-common-redis</module>
         <module>account-common-api</module>
     </modules>
 </project>

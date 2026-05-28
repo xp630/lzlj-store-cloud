@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>com.lzlj.account</groupId>
-            <artifactId>account-common-rpc</artifactId>
+            <artifactId>account-common-redis</artifactId>
         </dependency>
 
         <!-- LoadBalancer for Feign -->
