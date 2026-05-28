@@ -13,7 +13,7 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
 
-# API访问日志配置(不支持相对路径)
+# API访问日志配置 (由 logback-spring.xml 管理滚动和清理，支持 Nacos 配置)
 openapi:
   access-log:
-    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/account-gateway/tmp/open-api-access
+    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/account-gateway/tmp

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 从 Spring 环境读取配置（支持 Nacos） -->
+    <springProperty scope="context" name="LOG_PATH" source="openapi.access-log.path" defaultValue="/tmp"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/open-api-access"/>
+
+    <!-- Console appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- API访问日志 RollingFileAppender -->
+    <appender name="API_ACCESS_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 按天滚动 -->
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留30天日志 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <pattern>%msg%n</pattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <!-- API访问日志 logger -->
+    <logger name="com.lzlj.account.gateway.log.ApiAccessLogger" level="INFO" additivity="false">
+        <appender-ref ref="API_ACCESS_LOG"/>
+    </logger>
+
+    <!-- root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
