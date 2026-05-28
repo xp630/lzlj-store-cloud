@@ -1,56 +1,10 @@
 # ============================================
-# account-gateway 服务配置 - dev 环境
+# account-gateway 公共配置
 # ============================================
-server:
-  port: 18080
+
 spring:
-  application:
-    name: account-gateway
   profiles:
     active: dev
-  config:
-    import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
-  cloud:
-    nacos:
-      username: nacos
-      password: nacos
-      server-addr: 127.0.0.1:8848
-      config:
-        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
-        group: DEFAULT_GROUP
-        file-extension: yml
-        import-check:
-          enabled: false
-      discovery:
-        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
-        group: DEFAULT_GROUP
-    gateway:
-      discovery:
-        locator:
-          enabled: false
-      routes:
-        - id: auth-api
-          uri: lb://saas-auth
-          predicates:
-            - Path=/api/saas-auth/**
-          filters:
-            - StripPrefix=2
-        - id: goods-api
-          uri: lb://saas-goods
-          predicates:
-            - Path=/api/saas-goods/**
-          filters:
-            - StripPrefix=2
-        - id: openapi-auth
-          uri: lb://saas-auth
-          predicates:
-            - Path=/openapi/**
-          filters:
-            - StripPrefix=1
 
 management:
   endpoints:
@@ -62,7 +16,3 @@ management:
       show-details: always
     gateway:
       enabled: true
-
-# OpenAPI配置
-openapi:
-  signature-expire-seconds: 300
