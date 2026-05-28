@@ -22,23 +22,25 @@ com.lzlj.account.{模块名}.*
 │   ├── service/       # 服务接口
 │   │   └── impl/      # 服务实现
 │   ├── dao/           # 数据访问层 (Mapper)
+│   ├── mapper/        # MyBatis Mapper 接口
 │   ├── entity/        # 实体类（MyBatis 映射用）
 │   ├── dto/           # 数据传输对象（统一使用，不再区分 VO）
 │   ├── config/        # 配置类
 │   └── handler/      # 处理器 (如 Sentinel BlockHandler)
 │
 ├── {模块名}Application.java  # 启动类
+└── log/                # 日志相关（操作日志、API日志）
 ```
 
 ## 三、当前项目包结构
 
 | 模块 | 包名 | 端口 | 说明 |
 |------|------|------|------|
-| account-gateway | `com.lzlj.account.gateway` | 18080 | 网关服务 |
-| account-biz-saas-auth | `com.lzlj.account.user` | 9092 | SaaS 用户服务 |
-| account-biz-saas-goods | `com.lzlj.account.goods` | 9091 | SaaS 商品服务 |
-| account-biz-lzlj-user | `com.lzlj.account.user` | 9093 | LZLJ 用户服务 |
-| account-common | `com.lzlj.account.common.*` | - | 公共模块 |
+| cloud-account-lzlj-gateway | `com.lzlj.account.gateway` | 18080 | 网关服务 |
+| cloud-account-lzlj-auth | `com.lzlj.account.user` | 9092 | 用户服务 |
+| cloud-account-lzlj-user | `com.lzlj.account.user` | 9093 | LZLJ 用户服务 |
+| cloud-account-common-api | `com.lzlj.account.common.api.*` | - | 公共 API 模块 |
+| cloud-account-common-core | `com.lzlj.account.common.core.*` | - | 公共核心模块 |
 
 ## 四、目录 vs 包名对照
 
@@ -48,23 +50,26 @@ src/main/java/
     └── {模块名}/
         ├── controller/
         ├── service/
+        │   └── impl/
         ├── dao/
+        ├── mapper/
         ├── entity/
         ├── dto/
         ├── config/
         └── handler/
 ```
 
-**示例**：商品服务
+**示例**：用户服务
 ```
 src/main/java/
-└── com/lzlj/account/goods/
-    └── goods/
-        ├── controller/GoodsController.java  → package com.lzlj.account.goods.controller;
-        ├── service/GoodsService.java        → package com.lzlj.account.goods.service;
-        ├── dao/GoodsDao.java              → package com.lzlj.account.goods.dao;
-        ├── entity/GoodsEntity.java         → package com.lzlj.account.goods.entity;
-        └── dto/GoodsDTO.java               → package com.lzlj.account.goods.dto;
+└── com/lzlj/account/user/
+    └── user/
+        ├── controller/UserController.java  → package com.lzlj.account.user.controller;
+        ├── service/UserService.java        → package com.lzlj.account.user.service;
+        ├── service/impl/UserServiceImpl.java → package com.lzlj.account.user.service.impl;
+        ├── mapper/UserMapper.java          → package com.lzlj.account.user.mapper;
+        ├── entity/UserEntity.java          → package com.lzlj.account.user.entity;
+        └── dto/UserDTO.java               → package com.lzlj.account.user.dto;
 ```
 
 ## 五、命名规则
@@ -73,13 +78,13 @@ src/main/java/
 
 | 类型 | 规则 | 示例 |
 |------|------|------|
-| Controller | `{业务}Controller` | `GoodsController` |
-| Service | `{业务}Service` | `GoodsService` |
-| Service Impl | `{业务}ServiceImpl` | `GoodsServiceImpl` |
-| DAO/Mapper | `{业务}Dao` 或 `{业务}Mapper` | `UserDao`, `GoodsMapper` |
-| Entity | `{业务}Entity` | `UserEntity`, `GoodsEntity` |
-| DTO | `{业务}DTO` | `UserDTO`, `GoodsDTO`, `GoodsCreateDTO` |
-| Config | `{功能}Config` | `RedisConfig`, `FeignConfig` |
+| Controller | `{业务}Controller` | `UserController` |
+| Service | `{业务}Service` | `UserService` |
+| Service Impl | `{业务}ServiceImpl` | `UserServiceImpl` |
+| DAO/Mapper | `{业务}Dao` 或 `{业务}Mapper` | `UserMapper` |
+| Entity | `{业务}Entity` | `UserEntity` |
+| DTO | `{业务}DTO` | `UserDTO`, `UserCreateDTO` |
+| Config | `{功能}Config` | `RedisConfig` |
 | Handler | `{功能}Handler` | `GlobalExceptionHandler` |
 | Fallback | `{FeignClient}Fallback` | `UserFeignClientFallback` |
 
@@ -107,9 +112,10 @@ src/main/java/
 - `com.lzlj.lzlj.*` （重复顶级包）
 
 ✅ **正确**使用：
-- `com.lzlj.account.goods.*`
+- `com.lzlj.account.gateway.*`
 - `com.lzlj.account.user.*`
-- `com.lzlj.account.common.*`
+- `com.lzlj.account.common.core.*`
+- `com.lzlj.account.common.api.*`
 
 ## 七、Git 提交规范
 

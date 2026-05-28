@@ -6,7 +6,7 @@
 
 | 中间件 | 版本 | 用途 | 默认端口 |
 |--------|------|------|----------|
-| JDK | 1.8+ | Java 运行时 | - |
+| JDK | 17+ | Java 运行时 | - |
 | Maven | 3.6+ | 项目构建 | - |
 | MySQL | 8.0+ | 主数据库 | 3306 |
 | Redis | 6.0+ | 缓存 | 6379 |
@@ -23,7 +23,7 @@
 
 ```bash
 # .bashrc 或 .zshrc
-export JAVA_HOME=/path/to/jdk1.8
+export JAVA_HOME=/path/to/jdk17
 export MAVEN_HOME=/path/to/maven
 export PATH=$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH
 ```
@@ -49,7 +49,7 @@ mvn clean install -DskipTests
 mvn compile
 
 # 指定模块构建
-mvn clean install -pl account-biz-saas/account-biz-saas-auth -am -DskipTests
+mvn clean install -pl cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth -am -DskipTests
 ```
 
 ### 2.3 导入 IDE
@@ -66,8 +66,8 @@ mvn clean install -pl account-biz-saas/account-biz-saas-auth -am -DskipTests
 
 | 名称类型 | 示例 | 用途 | 在哪里配置 |
 |----------|------|------|-----------|
-| **模块名** (artifactId) | `account-biz-saas-auth` | Maven 项目标识 | pom.xml |
-| **Nacos 服务名** | `saas-auth` | 服务注册与发现 | application.yml → `spring.application.name` |
+| **模块名** (artifactId) | `cloud-account-lzlj-auth` | Maven 项目标识 | pom.xml |
+| **Nacos 服务名** | `lzlj-auth` | 服务注册与发现 | application.yml → `spring.application.name` |
 | **包名** (package) | `com.lzlj.account.user` | 代码组织 | Java 文件 package 声明 |
 
 **重要**: 模块名 ≠ Nacos 服务名！两者可以不同。
@@ -80,21 +80,21 @@ mvn clean install -pl account-biz-saas/account-biz-saas-auth -am -DskipTests
   src/main/resources/application-dev.yml
 
 Nacos 配置（优先级高）:
-  Nacos 控制台 → 配置列表 → saas-auth.yml, saas-goods.yml 等
+  Nacos 控制台 → 配置列表 → lzlj-auth.yml, lzlj-user.yml 等
 ```
 
 ### 3.3 本地配置示例
 
 ```yaml
-# application.yml (saas-auth 示例)
+# application.yml (cloud-account-lzlj-auth 示例)
 server:
   port: 9092
 
 spring:
   application:
-    name: saas-auth        # ← 这就是 Nacos 服务名！
+    name: lzlj-auth        # ← 这就是 Nacos 服务名！
   config:
-    import: optional:nacos:saas-auth.yml   # 导入 Nacos 配置
+    import: optional:nacos:lzlj-auth.yml   # 导入 Nacos 配置
   cloud:
     nacos:
       server-addr: 127.0.0.1:8848
@@ -113,13 +113,11 @@ spring:
    ↓
 2. MySQL + Redis (基础设施)
    ↓
-3. account-gateway (网关，端口 18080)
+3. cloud-account-lzlj-gateway (网关，端口 18080)
    ↓
-4. account-biz-saas-auth (用户服务，端口 9092) ← 基础服务，其他服务可能依赖
+4. cloud-account-lzlj-auth (用户服务，端口 9092) ← 基础服务，其他服务可能依赖
    ↓
-5. account-biz-saas-goods (商品服务，端口 9091)
-   ↓
-6. account-biz-lzlj-user (LZLJ 用户服务，端口 9093)
+5. cloud-account-lzlj-user (LZLJ 用户服务，端口 9093)
 ```
 
 ### 4.2 启动检查清单
@@ -130,7 +128,7 @@ spring:
 - [ ] Nacos 中已导入配置（shared-configs: common.yml 等）
 - [ ] 数据库已初始化（执行 SQL 脚本）
   - `sql/saas_tenant.sql` - 租户表
-  - `sql/saas_sys_user.sql` - 用户表
+  - `sql/saas_auth_user.sql` - 用户表
 
 ---
 
@@ -141,16 +139,14 @@ spring:
 | 服务 | URL | 说明 |
 |------|-----|------|
 | Gateway | http://localhost:18080/swagger-ui.html | 统一入口 |
-| saas-auth | http://localhost:9092/swagger-ui.html | 用户服务 |
-| saas-goods | http://localhost:9091/swagger-ui.html | 商品服务 |
+| lzlj-auth | http://localhost:9092/swagger-ui.html | 用户服务 |
 | lzlj-user | http://localhost:9093/swagger-ui.html | LZLJ 用户服务 |
 
 ### 5.2 OpenAPI 文档
 
 | 服务 | OpenAPI JSON URL |
 |------|-----------------|
-| saas-auth | http://localhost:9092/v3/api-docs |
-| saas-goods | http://localhost:9091/v3/api-docs |
+| lzlj-auth | http://localhost:9092/v3/api-docs |
 
 ---
 
@@ -160,61 +156,78 @@ spring:
 
 ```
 lzlj-store-cloud/
-├── account-gateway/           # API 网关 (18080)
-├── account-common/             # 公共模块
-│   ├── account-common-core/  # 核心代码 (Result, Exception)
-│   └── account-common-api/   # Feign 接口定义
-├── account-biz-saas/          # SaaS 业务
-│   ├── account-biz-saas-auth/    # 用户服务 (9092)
-│   └── account-biz-saas-goods/   # 商品服务 (9091)
-├── account-biz-lzlj/          # LZLJ 定制业务
-│   └── account-biz-lzlj-user/    # LZLJ 用户服务 (9093)
-└── docs/                      # 文档
+├── cloud-account-lzlj/                    # LZLJ 主业务模块
+│   ├── cloud-account-lzlj-api/          # API 接口定义
+│   │   └── cloud-account-lzlj-api-auth/ # Auth Feign 接口
+│   ├── cloud-account-lzlj-biz/           # 业务实现
+│   │   ├── cloud-account-lzlj-auth/     # 用户服务 (9092)
+│   │   └── cloud-account-lzlj-user/     # LZLJ 用户服务 (9093)
+│   └── cloud-account-lzlj-entrance/      # 入口层
+│       └── cloud-account-lzlj-gateway/  # API 网关 (18080)
+├── cloud-account-saas/                    # SaaS 业务模块
+│   └── cloud-account-saas-entrance/
+│       └── cloud-account-saas-gateway/   # SaaS 网关
+├── cloud-account-common/                  # 公共模块
+│   ├── cloud-account-common-core/       # 核心代码 (Result, Exception)
+│   ├── cloud-account-common-api/        # Feign 接口定义
+│   └── cloud-account-common-redis/      # Redis 配置
+└── docs/                                  # 文档
 ```
 
-### 6.2 包结构（以 saas-auth 为例）
+### 6.2 包结构（以 cloud-account-lzlj-auth 为例）
 
 ```
 com.lzlj.account.user/
 └── user/
-    ├── SaasAuthApplication.java    # 启动类
+    ├── LzljAuthApplication.java    # 启动类
     ├── controller/                 # Controller
     ├── service/                    # Service
     │   ├── UserService.java       # 接口
     │   └── impl/                  # 实现
-    ├── dao/                       # MyBatis Mapper
+    ├── mapper/                    # MyBatis Mapper
     ├── entity/                    # 数据库实体（MyBatis 映射）
     ├── dto/                       # 数据传输对象（入参和出参统一使用）
     ├── config/                    # 配置类
+    ├── log/                       # 日志（操作日志、API日志）
+    │   ├── aspect/                # 日志切面
+    │   ├── entity/                # 日志实体
+    │   ├── event/                 # 日志事件
+    │   ├── mapper/                # 日志 Mapper
+    │   └── service/               # 日志服务
     └── handler/                   # 处理器
 ```
 
 ### 6.3 Common 模块说明
 
-`account-common` 是公共模块，被所有业务模块依赖，**不包含业务逻辑**。
+`cloud-account-common` 是公共模块，被所有业务模块依赖，**不包含业务逻辑**。
 
 ```
-account-common/
-├── account-common-core/     # 核心共享代码
-│   └── com.lzlj.account.common.core/
+cloud-account-common/
+├── cloud-account-common-core/     # 核心共享代码
+│   └── com/lzlj/account/common/core/
 │       ├── Result.java              # 统一响应封装
 │       ├── ResultCode.java          # 响应码枚举
 │       ├── GlobalExceptionHandler.java  # 全局异常处理
 │       ├── BusinessException.java   # 业务异常
 │       ├── AuthException.java       # 认证异常
-│       └── config/                  # 公共配置（如 RedissonConfig）
+│       └── tenant/                  # 租户相关
+│           ├── TenantContext.java   # 租户上下文
+│           └── TenantEntity.java    # 租户实体基类
 │
-└── account-common-api/      # 服务间接口契约
-    └── com.lzlj.account.common.api/
-        ├── feign/                  # FeignClient 接口定义
-        │   └── UserFeignClient.java
-        └── dto/                    # 跨服务共享 DTO
-            └── UserDTO.java
+├── cloud-account-common-api/      # 服务间接口契约
+│   └── com/lzlj/account/common/api/
+│       ├── feign/                  # FeignClient 接口定义
+│       │   └── UserFeignClient.java
+│       └── dto/                    # 跨服务共享 DTO
+│           └── UserDTO.java
+│
+└── cloud-account-common-redis/    # Redis 配置
+    └── RedissonConfig.java
 ```
 
 **约束**：
 - ✅ 所有业务模块都可以依赖
-- ❌ 不得依赖任何 `account-biz-*` 模块
+- ❌ 不得依赖任何 `cloud-account-*-biz` 模块
 - ❌ 不得包含 Entity、Service 实现
 
 ### 6.4 包结构详解（统一 DTO 约定）
@@ -224,26 +237,33 @@ com.lzlj.account.{模块名}.{模块名}/
 │
 ├── controller/          # 控制层
 │   └── 职责：接收请求、参数校验、调用 Service
-│   └── 命名：{业务}Controller，如 GoodsController
+│   └── 命名：{业务}Controller，如 UserController
 │
 ├── service/             # 服务层
 │   ├── {业务}Service.java      # 服务接口（简单场景可省略）
 │   └── impl/
 │       └── {业务}ServiceImpl.java  # 服务实现
 │
-├── dao/               # 数据访问层
-│   └── 命名：{业务}Dao.java 或 {业务}Mapper.java
+├── mapper/              # MyBatis Mapper 接口
+│   └── 命名：{业务}Mapper.java
 │
-├── entity/            # 数据库实体（MyBatis 映射用，本地不跨服务）
-│   └── 命名：{业务}Entity.java，如 GoodsEntity
+├── entity/              # 数据库实体（MyBatis 映射用，本地不跨服务）
+│   └── 命名：{业务}Entity.java，如 UserEntity
 │
-├── dto/               # 数据传输对象（统一使用，不再区分 VO）
-│   └── 命名：{业务}DTO.java，如 GoodsDTO、GoodsCreateDTO、GoodsQueryDTO
+├── dto/                 # 数据传输对象（统一使用，不再区分 VO）
+│   └── 命名：{业务}DTO.java，如 UserDTO、UserCreateDTO
 │
-├── config/            # 配置类
+├── config/              # 配置类
 │   └── 命名：{功能}Config.java，如 RedisConfig
 │
-└── handler/           # 处理器（如 Sentinel BlockHandler）
+├── log/                 # 日志相关
+│   ├── aspect/          # 日志切面
+│   ├── entity/          # 日志实体
+│   ├── event/           # 日志事件
+│   ├── mapper/          # 日志 Mapper
+│   └── service/         # 日志服务
+│
+└── handler/             # 处理器（如 Sentinel BlockHandler）
     └── 命名：{功能}Handler.java，如 GlobalExceptionHandler
 ```
 
@@ -277,13 +297,13 @@ com.lzlj.account.{模块名}.{模块名}/
                       │ 调用
                       ▼
 ┌─────────────────────────────────────────────────────┐
-│                      DAO                            │
+│                      Mapper                          │
 │              MyBatis Mapper 操作数据库               │
 └─────────────────────────────────────────────────────┘
 
 跨服务调用：
 ┌─────────────────────────────────────────────────────┐
-│              FeignClient (定义在 common-api)         │
+│        FeignClient (定义在 cloud-account-common-api) │
 └─────────────────────┬───────────────────────────────┘
                       │ HTTP 调用
                       ▼
@@ -301,14 +321,14 @@ com.lzlj.account.{模块名}.{模块名}/
 1. **在 Controller 中添加接口**
 
 ```java
-// GoodsController.java
+// UserController.java
 @RestController
-@RequestMapping("/goods")
-public class GoodsController {
+@RequestMapping("/user")
+public class UserController {
 
     @GetMapping("/{id}")
-    public Result<GoodsDTO> getById(@PathVariable Long id) {
-        return goodsService.getById(id);
+    public Result<UserDTO> getById(@PathVariable Long id) {
+        return userService.getById(id);
     }
 }
 ```
@@ -316,24 +336,27 @@ public class GoodsController {
 2. **在 Service 中实现业务逻辑**
 
 ```java
-// GoodsService.java (impl)
+// UserServiceImpl.java (impl)
 @Service
-public class GoodsService {
+public class UserServiceImpl implements UserService {
 
-    public GoodsDTO getById(Long id) {
-        GoodsEntity entity = goodsDao.selectById(id);
-        return BeanCopyUtils.copy(entity, GoodsDTO.class);
+    @Autowired
+    private UserMapper userMapper;
+
+    public UserDTO getById(Long id) {
+        UserEntity entity = userMapper.selectById(id);
+        return BeanCopyUtils.copy(entity, UserDTO.class);
     }
 }
 ```
 
 ### 7.2 如何调用其他服务
 
-1. **在 common-api 中定义 FeignClient**
+1. **在 cloud-account-common-api 或 cloud-account-lzlj-api 中定义 FeignClient**
 
 ```java
-// account-common-api/feign/UserFeignClient.java
-@FeignClient(name = "saas-auth", path = "/user")
+// cloud-account-common-api/feign/UserFeignClient.java
+@FeignClient(name = "lzlj-auth", path = "/user")
 public interface UserFeignClient {
 
     @GetMapping("/{id}")
@@ -344,18 +367,18 @@ public interface UserFeignClient {
 2. **在调用方注入使用**
 
 ```java
-// GoodsController.java (在 saas-goods 中)
+// RoleController.java (在 lzlj-auth 中)
 @RestController
-@RequestMapping("/goods")
-public class GoodsController {
+@RequestMapping("/role")
+public class RoleController {
 
     @Autowired
     private UserFeignClient userFeignClient;  // 调用用户服务
 
-    @GetMapping("/owner/{goodsId}")
-    public Result<UserDTO> getGoodsOwner(@PathVariable Long goodsId) {
+    @GetMapping("/owner/{roleId}")
+    public Result<UserDTO> getRoleOwner(@PathVariable Long roleId) {
         // 调用远程用户服务
-        Result<UserDTO> userResult = userFeignClient.getById(goodsId);
+        Result<UserDTO> userResult = userFeignClient.getById(roleId);
         return Result.success(userResult.getData());
     }
 }
@@ -366,23 +389,25 @@ public class GoodsController {
 1. 创建 Entity 类
 
 ```java
-// GoodsEntity.java
+// MenuEntity.java
 @Data
-@TableName("goods")
-public class GoodsEntity {
+@TableName("saas_auth_menu")
+public class MenuEntity {
     private Long id;
+    private Long parentId;
     private String name;
-    private BigDecimal price;
-    private Integer deleted;
+    private String path;
+    private Integer type;
+    private Integer status;
 }
 ```
 
 2. 创建 Mapper
 
 ```java
-// GoodsDao.java (或 GoodsMapper.java)
+// MenuMapper.java
 @Mapper
-public interface GoodsDao extends BaseMapper<GoodsEntity> {
+public interface MenuMapper extends BaseMapper<MenuEntity> {
 }
 ```
 
@@ -403,7 +428,7 @@ public class UserFeignClientFallback implements UserFeignClient {
 }
 
 // 使用 Fallback
-@FeignClient(name = "saas-auth", path = "/user", fallback = UserFeignClientFallback.class)
+@FeignClient(name = "lzlj-auth", path = "/user", fallback = UserFeignClientFallback.class)
 public interface UserFeignClient {
     // ...
 }
@@ -431,11 +456,11 @@ public interface UserFeignClient {
 
 | 组件 | 文件位置 | 用途 |
 |------|----------|------|
-| TenantContext | `account-common-core/.../tenant/TenantContext.java` | ThreadLocal 持有当前请求的租户ID |
-| TenantContextInitializerFilter | `account-common-core/.../tenant/TenantContextInitializerFilter.java` | 从 X-Tenant-Id header 提取租户ID |
-| TenantContextFeignInterceptor | `account-common-api/.../tenant/TenantContextFeignInterceptor.java` | Feign 调用时传递租户ID |
+| TenantContext | `cloud-account-common-core/.../tenant/TenantContext.java` | ThreadLocal 持有当前请求的租户ID |
+| TenantContextInitializerFilter | `cloud-account-common-core/.../tenant/TenantContextInitializerFilter.java` | 从 X-Tenant-Id header 提取租户ID |
+| TenantContextFeignInterceptor | `cloud-account-common-api/.../tenant/TenantContextFeignInterceptor.java` | Feign 调用时传递租户ID |
 | TenantLineInnerInterceptor | MyBatis Plus 租户拦截器 | 自动添加 tenant_id 过滤条件 |
-| TenantEntity | `account-common-core/.../domain/TenantEntity.java` | 租户实体基类 |
+| TenantEntity | `cloud-account-common-core/.../domain/TenantEntity.java` | 租户实体基类 |
 
 ### 8.3 租户ID传递流程
 
@@ -518,7 +543,7 @@ curl -X POST http://localhost:9092/tenant \
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("saas_auth_user")
-public class User extends TenantEntity {
+public class UserEntity extends TenantEntity {
     private String username;
     private String password;
     // ...
@@ -533,12 +558,12 @@ public class User extends TenantEntity {
 
 ## 九、调试验证
 
-### 8.1 验证服务注册
+### 9.1 验证服务注册
 
 访问 Nacos 控制台：http://localhost:8848/nacos
 → 服务管理 → 服务列表 → 应看到所有已启动服务
 
-### 8.2 验证网关路由
+### 9.2 验证网关路由
 
 ```bash
 # 通过网关访问用户服务
@@ -548,17 +573,17 @@ curl http://localhost:18080/user/1
 curl http://localhost:9092/user/1
 ```
 
-### 8.3 验证服务间调用
+### 9.3 验证服务间调用
 
-1. 启动 saas-auth 和 saas-goods
-2. 调用 saas-goods 的接口，该接口内部调用 saas-auth
+1. 启动 lzlj-auth 和 lzlj-user
+2. 调用 lzlj-user 的接口，该接口内部调用 lzlj-auth
 3. 查看返回结果
 
 ---
 
 ## 十、问题排查
 
-### 9.1 服务无法启动
+### 10.1 服务无法启动
 
 | 症状 | 可能原因 | 解决方案 |
 |------|----------|----------|
@@ -566,7 +591,7 @@ curl http://localhost:9092/user/1
 | Nacos 连接失败 | Nacos 未启动 | 启动 Nacos |
 | 数据库连接失败 | MySQL 未启动或配置错误 | 检查 application.yml |
 
-### 9.2 Feign 调用失败
+### 10.2 Feign 调用失败
 
 | 症状 | 可能原因 | 解决方案 |
 |------|----------|----------|
@@ -574,7 +599,7 @@ curl http://localhost:9092/user/1
 | 500 Error | 远程服务异常 | 查看远程服务日志 |
 | 超时 | 远程服务响应慢 | 增加超时配置 |
 
-### 9.3 Nacos 配置不生效
+### 10.3 Nacos 配置不生效
 
 1. 确认配置已添加到 Nacos
 2. 确认 `spring.config.import` 配置正确
