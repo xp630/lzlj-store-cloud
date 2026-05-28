@@ -18,5 +18,6 @@
     <modules>
         <module>account-biz-saas-auth</module>
         <module>account-biz-saas-goods</module>
+        <module>account-biz-saas-merchant</module>
     </modules>
 </project>
