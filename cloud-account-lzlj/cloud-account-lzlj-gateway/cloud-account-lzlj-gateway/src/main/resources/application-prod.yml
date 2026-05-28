@@ -1,0 +1,64 @@
+# ============================================
+# account-gateway-lzlj prod 环境配置
+# ============================================
+
+server:
+  port: 18081
+
+spring:
+  application:
+    name: account-gateway-lzlj
+  config:
+    import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway-lzlj.yml
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+  cloud:
+    nacos:
+      username: ${NACOS_USERNAME}
+      password: ${NACOS_PASSWORD}
+      server-addr: ${NACOS_SERVER}
+      config:
+        namespace: 69ccd4d5-5392-4b12-8d8b-bae0e5039e18
+        group: DEFAULT_GROUP
+        file-extension: yml
+        import-check:
+          enabled: false
+      discovery:
+        namespace: 69ccd4d5-5392-4b12-8d8b-bae0e5039e18
+        group: DEFAULT_GROUP
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        # LZLJ 用户服务
+        - id: lzlj-user
+          uri: lb://account-lzlj-user
+          predicates:
+            - Path=/api/lzlj/user/**
+          filters:
+            - StripPrefix=2
+        # LZLJ 商品服务
+        - id: lzlj-goods
+          uri: lb://account-biz-saas-goods
+          predicates:
+            - Path=/api/lzlj/goods/**
+          filters:
+            - StripPrefix=2
+        # SaaS 认证服务
+        - id: saas-auth
+          uri: lb://saas-auth
+          predicates:
+            - Path=/api/saas/auth/**
+          filters:
+            - StripPrefix=2
+        # SaaS 商品服务
+        - id: saas-goods
+          uri: lb://saas-goods
+          predicates:
+            - Path=/api/saas/goods/**
+          filters:
+            - StripPrefix=2

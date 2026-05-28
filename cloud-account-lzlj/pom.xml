@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.lzlj.account</groupId>
+        <artifactId>account-cloud</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>lzlj-cloud-account</artifactId>
+    <packaging>pom</packaging>
+    <name>lzlj-cloud-account</name>
+    <description>泸州老窖云店系统 - LZLJ 本地部署业务服务</description>
+
+    <modules>
+        <module>cloud-account-lzlj-api</module>
+        <module>cloud-account-biz</module>
+        <module>cloud-account-lzlj-gateway</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 本项目公共模块 -->
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-database</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-mq</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-rpc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-lzlj-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-saas-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

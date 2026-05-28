@@ -12,14 +12,9 @@
     <description>泸州老窖云店系统 - Spring Cloud 微服务架构</description>
 
     <modules>
-        <!-- 公共模块 -->
-        <module>account-common</module>
-        <!-- 网关服务 -->
-        <module>account-gateway</module>
-        <!-- SAAS 业务服务 -->
-        <module>account-biz-saas</module>
-        <!-- 老窖定制业务服务 -->
-        <module>account-biz-lzlj</module>
+        <module>cloud-account-common</module>
+        <module>cloud-account-saas</module>
+        <module>cloud-account-lzlj</module>
     </modules>
 
     <properties>
@@ -214,18 +209,24 @@
                 <artifactId>mapstruct</artifactId>
                 <version>${mapstruct.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>0.2.0</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- ShardingSphere -->
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
                 <artifactId>shardingsphere-jdbc-core</artifactId>
                 <version>${shardingsphere.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct-processor</artifactId>
-                <version>${mapstruct.version}</version>
-                <scope>provided</scope>
             </dependency>
 
             <!-- Elasticsearch -->
@@ -261,38 +262,6 @@
                 <groupId>io.micrometer</groupId>
                 <artifactId>micrometer-registry-prometheus</artifactId>
                 <version>${micrometer.version}</version>
-            </dependency>
-
-            <!-- 本项目公共模块 -->
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-database</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-mq</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-rpc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-redis</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lzlj.account</groupId>
-                <artifactId>account-common-api</artifactId>
-                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -335,24 +304,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>aliyun</id>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 </project>
