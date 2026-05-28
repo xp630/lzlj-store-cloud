@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: account-gateway
+  profiles:
+    active: dev
   config:
     import: optional:nacos:common-jwt.yml,optional:nacos:account-gateway.yml
   autoconfigure:
@@ -44,7 +46,7 @@ spring:
           filters:
             - StripPrefix=2
         - id: openapi-auth
-          uri: http://localhost:9092
+          uri: lb://saas-auth
           predicates:
             - Path=/openapi/**
           filters:

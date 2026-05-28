@@ -13,7 +13,7 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
 
-# API访问日志配置
+# API访问日志配置(不支持相对路径)
 openapi:
   access-log:
-    path: /tmp/gateway-api-access
+    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/account-gateway/tmp/open-api-access

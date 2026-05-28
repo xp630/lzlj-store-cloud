@@ -3,7 +3,6 @@ package com.lzlj.account.gateway.log;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -25,6 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Component
 public class ApiAccessLogger {
 
+    // 注意：仅支持绝对路径，不支持相对路径（相对路径以进程启动目录为基准）
     @Value("${openapi.access-log.path:/tmp/gateway-api-access.log}")
     private String logFilePath;
 
@@ -76,7 +76,6 @@ public class ApiAccessLogger {
     /**
      * 异步记录API访问日志
      */
-    @Async
     public void logAsync(ApiAccessLog accessLog) {
         if (!queue.offer(accessLog)) {
             log.warn("API访问日志队列已满，跳过日志: {}", accessLog.getPath());
@@ -126,18 +125,26 @@ public class ApiAccessLogger {
     private void flush() {
         String logFile = getLogFile();
         int count = 0;
-        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
-            while (count < BATCH_SIZE) {
-                ApiAccessLog accessLog = queue.poll();
-                if (accessLog == null) {
-                    break;
-                }
-                writer.println(objectMapper.writeValueAsString(accessLog));
-                count++;
+        try {
+            // 确保目录存在
+            File file = new File(logFile);
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
             }
-            if (count > 0) {
-                writer.flush();
-                log.debug("已刷新 {} 条API访问日志到文件: {}", count, logFile);
+            try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
+                while (count < BATCH_SIZE) {
+                    ApiAccessLog accessLog = queue.poll();
+                    if (accessLog == null) {
+                        break;
+                    }
+                    writer.println(objectMapper.writeValueAsString(accessLog));
+                    count++;
+                }
+                if (count > 0) {
+                    writer.flush();
+                    log.info("已刷新 {} 条API访问日志到文件: {}", count, logFile);
+                }
             }
         } catch (IOException e) {
             log.error("写入API访问日志失败: {}", logFile, e);
@@ -150,14 +157,22 @@ public class ApiAccessLogger {
     private void flushAll() {
         String logFile = getLogFile();
         int total = 0;
-        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
-            ApiAccessLog accessLog;
-            while ((accessLog = queue.poll()) != null) {
-                writer.println(objectMapper.writeValueAsString(accessLog));
-                total++;
+        try {
+            // 确保目录存在
+            File file = new File(logFile);
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
             }
-            writer.flush();
-            log.info("已刷新剩余 {} 条API访问日志到文件: {}", total, logFile);
+            try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
+                ApiAccessLog accessLog;
+                while ((accessLog = queue.poll()) != null) {
+                    writer.println(objectMapper.writeValueAsString(accessLog));
+                    total++;
+                }
+                writer.flush();
+                log.info("已刷新剩余 {} 条API访问日志到文件: {}", total, logFile);
+            }
         } catch (IOException e) {
             log.error("写入API访问日志失败: {}", logFile, e);
         }

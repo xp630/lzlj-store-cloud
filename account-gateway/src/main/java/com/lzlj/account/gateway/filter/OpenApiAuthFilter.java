@@ -95,8 +95,14 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         }
 
         // 6. 调用 auth 服务查询认证信息并验签
-        return fetchAuthInfo(authServiceUrl, apiKey)
-                .flatMap(authInfo -> verifyAndForward(exchange, authInfo, timestamp, signature, ctx, authServiceUrl))
+        Mono<ApiKeyAuthInfo> authMono = fetchAuthInfo(authServiceUrl, apiKey);
+        return authMono
+                .flatMap(authInfo -> {
+                    if (authInfo == null) {
+                        return unauthorized(exchange, ctx, "API Key 无效");
+                    }
+                    return verifyAndForward(exchange, authInfo, timestamp, signature, ctx, authServiceUrl);
+                })
                 .onErrorResume(e -> unauthorized(exchange, ctx, "API Key 无效"));
     }
 
@@ -108,7 +114,10 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
                 .get()
                 .uri(authServiceUrl + "/openapi/key/inner/auth/" + apiKey)
                 .retrieve()
-                .bodyToMono(ApiKeyAuthInfo.class);
+                .onStatus(status -> !status.is2xxSuccessful(), response ->
+                        Mono.error(new RuntimeException("Auth failed: " + response.statusCode())))
+                .bodyToMono(ApiKeyAuthInfo.class)
+                .switchIfEmpty(Mono.error(new RuntimeException("API Key 不存在")));
     }
 
     /**
@@ -195,6 +204,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
      * 返回 401 响应
      */
     private Mono<Void> unauthorized(ServerWebExchange exchange, RequestContext ctx, String message) {
+        log.info("unauthorized 被调用: apiKey={}, path={}, message={}", ctx.apiKey, ctx.path, message);
         // 记录失败日志
         apiAccessLogger.log(
                 null, ctx.apiKey, 0L, ctx.method, ctx.path, null, null, 401,
