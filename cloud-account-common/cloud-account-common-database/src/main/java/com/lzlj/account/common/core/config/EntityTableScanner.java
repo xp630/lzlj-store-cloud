@@ -11,10 +11,13 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
 
 /**
  * 实体类与表名扫描器
  * 用于租户拦截器判断表是否需要租户隔离
+ *
+ * 自动扫描 com.lzlj.account 下所有 *.entity 和 *.domain 包中的 BaseEntity 子类
  */
 @Component
 public class EntityTableScanner {
@@ -68,29 +71,69 @@ public class EntityTableScanner {
 
     /**
      * 扫描所有继承 BaseEntity 的类
+     * 自动发现 com.lzlj.account.**.entity 和 com.lzlj.account.**.domain 包
      */
     @SuppressWarnings("unchecked")
     private Set<Class<? extends BaseEntity>> scanEntityClasses() {
-        Set<Class<? extends BaseEntity>> classes = new java.util.HashSet<>();
+        Set<Class<? extends BaseEntity>> classes = new HashSet<>();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-        // 需要扫描的包路径
-        String[] packages = {
-            "com.lzlj.account.common.core.domain",
-            "com.lzlj.account.user.entity",
-            "com.lzlj.account.menu.entity",
-            "com.lzlj.account.role.entity",
-            "com.lzlj.account.tenant.entity",
-            "com.lzlj.account.log.entity",
-            "com.lzlj.account.openapi.entity",
-            "com.lzlj.account.paymentchannel.entity"
-        };
+        // 从 com.lzlj.account 根包开始扫描，自动发现 entity 和 domain 包
+        Set<String> entityPackages = discoverEntityPackages("com.lzlj.account", classLoader);
 
-        for (String packageName : packages) {
+        System.out.println("[EntityTableScanner] Discovered entity packages: " + entityPackages);
+
+        for (String packageName : entityPackages) {
             scanPackage(classes, packageName, classLoader);
         }
 
         return classes;
+    }
+
+    /**
+     * 自动发现所有 *.entity 和 *.domain 包
+     */
+    private Set<String> discoverEntityPackages(String rootPackage, ClassLoader classLoader) {
+        Set<String> packages = new HashSet<>();
+        String path = rootPackage.replace('.', '/');
+
+        try {
+            java.util.Enumeration<java.net.URL> resources = classLoader.getResources(path);
+            while (resources.hasMoreElements()) {
+                java.net.URL resource = resources.nextElement();
+                if ("file".equals(resource.getProtocol())) {
+                    File dir = new File(resource.toURI());
+                    if (dir.exists()) {
+                        discoverPackagesRecursive(dir, rootPackage, packages);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 忽略无法扫描的包
+        }
+
+        return packages;
+    }
+
+    /**
+     * 递归扫描目录，查找 *.entity 和 *.domain 包
+     */
+    private void discoverPackagesRecursive(File dir, String packageName, Set<String> packages) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                String subPackage = packageName + "." + file.getName();
+                // 检查是否是需要扫描的包
+                if (file.getName().equals("entity") || file.getName().equals("domain")) {
+                    packages.add(subPackage);
+                } else {
+                    // 继续递归扫描子包
+                    discoverPackagesRecursive(file, subPackage, packages);
+                }
+            }
+        }
     }
 
     /**

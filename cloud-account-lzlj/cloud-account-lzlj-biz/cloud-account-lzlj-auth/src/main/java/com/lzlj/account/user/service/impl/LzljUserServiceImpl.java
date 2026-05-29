@@ -11,7 +11,7 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
-import com.lzlj.account.user.mapper.LzljUserDao;
+import com.lzlj.account.user.dao.LzljUserDao;
 import com.lzlj.account.user.service.LzljUserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

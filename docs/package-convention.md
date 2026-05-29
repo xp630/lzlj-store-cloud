@@ -67,7 +67,7 @@ src/main/java/
         ├── controller/UserController.java  → package com.lzlj.account.user.controller;
         ├── service/UserService.java        → package com.lzlj.account.user.service;
         ├── service/impl/UserServiceImpl.java → package com.lzlj.account.user.service.impl;
-        ├── mapper/UserMapper.java          → package com.lzlj.account.user.mapper;
+        ├── mapper/UserMapper.java          → package com.lzlj.account.user.dao;
         ├── entity/UserEntity.java          → package com.lzlj.account.user.entity;
         └── dto/UserDTO.java               → package com.lzlj.account.user.dto;
 ```

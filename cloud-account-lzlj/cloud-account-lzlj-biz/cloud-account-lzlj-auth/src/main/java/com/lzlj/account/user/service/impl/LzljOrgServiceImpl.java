@@ -6,8 +6,8 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.user.dto.LzljOrgDTO;
 import com.lzlj.account.user.entity.LzljOrg;
 import com.lzlj.account.user.entity.LzljUser;
-import com.lzlj.account.user.mapper.LzljOrgDao;
-import com.lzlj.account.user.mapper.LzljUserDao;
+import com.lzlj.account.user.dao.LzljOrgDao;
+import com.lzlj.account.user.dao.LzljUserDao;
 import com.lzlj.account.user.service.LzljOrgService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
