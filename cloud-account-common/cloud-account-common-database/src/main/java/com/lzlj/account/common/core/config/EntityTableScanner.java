@@ -82,7 +82,8 @@ public class EntityTableScanner {
             "com.lzlj.account.role.entity",
             "com.lzlj.account.tenant.entity",
             "com.lzlj.account.log.entity",
-            "com.lzlj.account.openapi.entity"
+            "com.lzlj.account.openapi.entity",
+            "com.lzlj.account.paymentchannel.entity"
         };
 
         for (String packageName : packages) {

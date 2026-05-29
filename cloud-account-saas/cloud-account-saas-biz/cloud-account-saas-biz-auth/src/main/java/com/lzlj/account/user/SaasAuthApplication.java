@@ -14,9 +14,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableAsync
-@MapperScan({"com.lzlj.account.user.dao", "com.lzlj.account.tenant.dao", "com.lzlj.account.menu.dao", "com.lzlj.account.role.dao", "com.lzlj.account.openapi.dao", "com.lzlj.account.log.dao"})
+@MapperScan({"com.lzlj.account.**.dao"})
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.lzlj.account.*", "com.lzlj.account.*"})
+@ComponentScan(basePackages = {"com.lzlj.account.*"})
 public class SaasAuthApplication {
 
     public static void main(String[] args) {
