@@ -19,6 +19,7 @@
         <module>cloud-account-common-core</module>
         <module>cloud-account-common-database</module>
         <module>cloud-account-common-mq</module>
+        <module>cloud-account-common-oss</module>
         <module>cloud-account-common-rpc</module>
         <module>cloud-account-common-redis</module>
     </modules>

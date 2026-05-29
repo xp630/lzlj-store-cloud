@@ -246,6 +246,18 @@ public class UserServiceImpl implements UserService {
         redisTemplate.delete(USER_INFO_PREFIX + userId);
     }
 
+    @Override
+    public void updateAvatar(Long userId, String avatar) {
+        User user = userDao.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+        user.setAvatar(avatar);
+        userDao.updateById(user);
+
+        redisTemplate.delete(USER_INFO_PREFIX + userId);
+    }
+
     // ========== 私有方法 ==========
 
     private String generateToken(User user) {
