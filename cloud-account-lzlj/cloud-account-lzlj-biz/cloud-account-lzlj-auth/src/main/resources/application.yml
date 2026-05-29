@@ -6,6 +6,9 @@ spring:
   profiles:
     active: dev
 
+server:
+  port: 9292
+
 management:
   endpoints:
     web:

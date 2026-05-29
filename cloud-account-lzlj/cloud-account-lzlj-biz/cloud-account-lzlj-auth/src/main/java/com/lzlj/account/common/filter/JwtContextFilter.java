@@ -68,6 +68,11 @@ public class JwtContextFilter implements Filter {
                         if (StringUtils.hasText(claimUsername)) {
                             UserContext.setUsername(claimUsername);
                         }
+                        // 解析 orgId
+                        Long orgId = claims.get("orgId", Long.class);
+                        if (orgId != null) {
+                            UserContext.setOrgId(orgId);
+                        }
                     } catch (Exception e) {
                         log.debug("JWT 解析失败: {}", e.getMessage());
                     }
