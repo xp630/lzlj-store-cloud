@@ -144,24 +144,24 @@
 | RocketMQ | 4.9+ | 消息队列 |
 | Elasticsearch | 8.x | 搜索引擎 |
 | Sentinel | 1.8.8 | 限流熔断 |
-| Seata | 2.0.0 | 分布式事务 |
+| Seata | 1.7.1 | 分布式事务 |
 
 ---
 
 ## 快速测试命令
 
 ```bash
-# 测试网关 - 用户列表
-curl "http://localhost:18080/user/page?pageNum=1&pageSize=10"
+# 测试 LZLJ 网关 - 用户列表
+curl "http://localhost:28080/api/lzlj/user/page?pageNum=1&pageSize=10"
 
-# 测试网关 - 商品列表
-curl "http://localhost:18080/goods/page?pageNum=1&pageSize=10"
+# 测试 LZLJ 网关 - 商品列表
+curl "http://localhost:28080/api/lzlj/goods/page?pageNum=1&pageSize=10"
 
-# 直接调用用户服务
-curl "http://localhost:9092/user/page?pageNum=1&pageSize=10"
+# 直接调用 LZLJ 用户服务
+curl "http://localhost:9093/user/page?pageNum=1&pageSize=10"
 
-# 直接调用商品服务
-curl "http://localhost:9093/goods/page?pageNum=1&pageSize=10"
+# 直接调用 LZLJ 认证服务
+curl "http://localhost:9294/user/page?pageNum=1&pageSize=10"
 ```
 
 ---

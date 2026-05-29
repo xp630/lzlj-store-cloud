@@ -8,10 +8,10 @@ lzlj-cloud/
 │   ├── cloud-account-lzlj-api/  # API 接口定义
 │   │   └── cloud-account-lzlj-api-auth/  # Auth Feign 接口
 │   ├── cloud-account-lzlj-biz/  # 业务实现
-│   │   ├── cloud-account-lzlj-auth/  # 用户服务 (9092)
+│   │   ├── cloud-account-lzlj-auth/  # LZLJ 认证服务 (9294)
 │   │   └── cloud-account-lzlj-user/  # LZLJ 用户服务 (9093)
 │   └── cloud-account-lzlj-entrance/   # 入口层
-│       └── cloud-account-lzlj-gateway/ # API 网关 (18080)
+│       └── cloud-account-lzlj-gateway/ # LZLJ 网关 (28080)
 ├── cloud-account-saas/           # SaaS 业务模块
 │   └── cloud-account-saas-entrance/
 │       └── cloud-account-saas-gateway/ # SaaS 网关
@@ -85,9 +85,9 @@ cloud-account-lzlj/                         # LZLJ 主业务父模块
 │
 ├── cloud-account-lzlj-biz/                # 业务实现
 │   │
-│   ├── cloud-account-lzlj-auth/           # 用户服务
+│   ├── cloud-account-lzlj-auth/           # LZLJ 认证服务
 │   │   ├── 包名：com.lzlj.account.user
-│   │   ├── 端口：9092
+│   │   ├── 端口：9294
 │   │   ├── 职责：
 │   │   │   ├── 用户注册/登录
 │   │   │   ├── JWT 认证
@@ -106,9 +106,9 @@ cloud-account-lzlj/                         # LZLJ 主业务父模块
 │       └── 依赖：common-core、common-database、common-redis
 │
 └── cloud-account-lzlj-entrance/           # 入口层
-    └── cloud-account-lzlj-gateway/        # API 网关
+    └── cloud-account-lzlj-gateway/        # LZLJ 网关
         ├── 包名：com.lzlj.account.gateway
-        ├── 端口：18080
+        ├── 端口：28080
         └── 职责：
             ├── 路由转发（Route）
             ├── 统一鉴权（JWT）
@@ -132,7 +132,7 @@ cloud-account-lzlj/                         # LZLJ 主业务父模块
                                 │     -entrance        │
                                 │ cloud-account-lzlj  │
                                 │     -gateway         │
-                                │      (18080)        │
+                                │      (28080)        │
                                 └──────────┬──────────┘
                                            │
                       ┌────────────────────┼────────────────────┐
@@ -151,12 +151,12 @@ cloud-account-lzlj/                         # LZLJ 主业务父模块
     │ -lzlj-api   │    │ -lzlj-biz   │ │                             │
     │  (父模块)    │    │  (父模块)    │ │  ┌──────────────────────┐   │
     └──────┬──────┘    └──────┬──────┘ │  │cloud-account-lzlj-auth│   │
-           │                   │        │  │    (9092) 用户服务   │   │
+           │                   │        │  │    (9294) 认证服务   │   │
            ▼                   ▼        │  └──────────────────────┘   │
     ┌─────────────┐    ┌─────────────┐ │  ┌──────────────────────┐   │
     │cloud-account│    │cloud-account│ │  │cloud-account-lzlj-user│   │
     │ -lzlj-api- │    │ -lzlj-auth  │ │  │    (9093) 用户服务   │   │
-    │  -auth     │    │   (9092)    │ │  └──────────────────────┘   │
+    │  -auth     │    │   (9294)    │ │  └──────────────────────┘   │
     └─────────────┘    └─────────────┘ └─────────────────────────────┘
 ```
 
@@ -201,8 +201,8 @@ com.lzlj.account.{模块名}.*
 
 | 模块 | 包名 | 端口 |
 |------|------|------|
-| cloud-account-lzlj-gateway | `com.lzlj.account.gateway` | 18080 |
-| cloud-account-lzlj-auth | `com.lzlj.account.user` | 9092 |
+| cloud-account-lzlj-gateway | `com.lzlj.account.gateway` | 28080 |
+| cloud-account-lzlj-auth | `com.lzlj.account.user` | 9294 |
 | cloud-account-lzlj-user | `com.lzlj.account.user` | 9093 |
 
 ### 3.3 包内结构

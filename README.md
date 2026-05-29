@@ -1,13 +1,13 @@
 # LZLJ Cloud - 泸州老窖云店系统
 
-基于 **JDK 17** + **Spring Cloud Alibaba 2023** 的云原生微服务架构
+基于 **Java 8** + **Spring Cloud Alibaba 2021.0.5.0** 的云原生微服务架构
 
 ## 技术栈
 
 | 层级 | 技术 |
 |------|------|
-| 基础框架 | JDK 17, Spring Boot 3.2.4 |
-| 微服务框架 | Spring Cloud Alibaba 2023.0.1.2, Spring Cloud 2023.0.1 |
+| 基础框架 | Java 8, Spring Boot 2.7.18 |
+| 微服务框架 | Spring Cloud Alibaba 2021.0.5.0, Spring Cloud 2021.0.9 |
 | 服务注册/配置 | Alibaba Nacos 2.3.3 |
 | 服务治理 | Alibaba MSE (Microservice Engine) |
 | 服务调用 | Apache Dubbo 3.2.16, OpenFeign |
@@ -25,24 +25,44 @@
 ## 项目结构
 
 ```
-lzlj-cloud/
-├── pom.xml                           # 父POM
-├── store-common/                     # 公共模块
-│   ├── store-common-core/            # 核心公共代码
-│   └── store-common-api/             # Feign接口定义
-├── store-gateway/                    # API网关 (18080)
-├── store-user/                       # 用户服务 (9092)
-├── store-goods/                      # 商品服务 (9093)
-└── sql/                              # SQL脚本
+lzlj-cloud-account/
+├── pom.xml                                    # 父POM
+├── cloud-account-common/                      # 公共模块
+│   ├── cloud-account-common-core/             # 核心代码 (Result/Exception/Entity基类)
+│   ├── cloud-account-common-database/         # 数据库 (MyBatis-Plus/Druid)
+│   ├── cloud-account-common-redis/            # Redis客户端 (Redisson)
+│   ├── cloud-account-common-rpc/              # RPC依赖 (Dubbo)
+│   └── cloud-account-common-mq/               # 消息队列 (RocketMQ)
+├── cloud-account-saas/                        # SaaS多租户业务模块
+│   ├── cloud-account-saas-api/                # Feign接口定义
+│   │   └── cloud-account-saas-api-auth/
+│   ├── cloud-account-saas-biz/               # 业务实现
+│   │   ├── cloud-account-saas-biz-auth/      # 认证服务 (9092)
+│   │   ├── cloud-account-saas-biz-goods/     # 商品服务
+│   │   └── cloud-account-saas-biz-merchant/  # 商户服务
+│   └── cloud-account-saas-entrance/
+│       └── cloud-account-saas-gateway/       # SaaS网关 (18080)
+├── cloud-account-lzlj/                       # LZLJ本地部署业务模块
+│   ├── cloud-account-lzlj-api/                # Feign接口定义
+│   │   └── cloud-account-lzlj-api-auth/
+│   ├── cloud-account-lzlj-biz/               # 业务实现
+│   │   ├── cloud-account-lzlj-auth/          # LZLJ 认证服务 (9294)
+│   │   └── cloud-account-lzlj-user/          # LZLJ用户服务 (9093)
+│   └── cloud-account-lzlj-entrance/
+│       └── cloud-account-lzlj-gateway/       # LZLJ网关 (28080)
+├── docs/                                      # 架构规范文档
+└── sql/                                       # SQL脚本
 ```
 
 ## 服务端口
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| Gateway | 18080 | API网关统一入口 |
-| User | 9092 | 用户服务 |
-| Goods | 9093 | 商品服务 |
+| 服务 | 端口 | Nacos服务名 | 说明 |
+|------|------|------------|------|
+| account-gateway (SaaS) | 18080 | account-gateway | SaaS网关统一入口 |
+| account-gateway-lzlj | 28080 | account-gateway-lzlj | LZLJ网关入口 |
+| saas-auth | 9092 | saas-auth | SaaS认证服务 |
+| lzlj-auth | 9294 | lzlj-auth | LZLJ认证服务 |
+| account-lzlj-user | 9093 | account-lzlj-user | LZLJ用户服务 |
 
 ## 快速开始
 
@@ -81,19 +101,23 @@ mvn clean install -DskipTests
 ### 4. 启动服务
 
 ```bash
-# 启动网关
-java -jar lzlj-gateway/target/lzlj-gateway.jar
+# 启动 LZLJ 网关
+java -jar cloud-account-lzlj/cloud-account-lzlj-entrance/cloud-account-lzlj-gateway/target/cloud-account-lzlj-gateway.jar
 
-# 启动用户服务
-java -jar lzlj-user/target/lzlj-user.jar
+# 启动 LZLJ 认证服务
+java -jar cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth/target/cloud-account-lzlj-auth.jar
+
+# 启动 LZLJ 用户服务
+java -jar cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-user/target/cloud-account-lzlj-user.jar
 
 # ... 其他服务类似
 ```
 
 ### 5. 访问
 
-- 网关地址: http://localhost:18080
-- Swagger文档: http://localhost:18080/swagger-ui.html
+- LZLJ网关地址: http://localhost:28080
+- LZLJ Swagger文档: http://localhost:28080/swagger-ui.html
+- SaaS网关地址: http://localhost:18080
 - Nacos控制台: http://localhost:8848/nacos (nacos/nacos)
 
 ## 架构特性
@@ -135,9 +159,8 @@ java -jar lzlj-user/target/lzlj-user.jar
 
 启动服务后访问Swagger UI:
 
-```
-http://localhost:18080/swagger-ui.html
-```
+- LZLJ网关: http://localhost:28080/swagger-ui.html
+- SaaS网关: http://localhost:18080/swagger-ui.html
 
 ## 监控
 
