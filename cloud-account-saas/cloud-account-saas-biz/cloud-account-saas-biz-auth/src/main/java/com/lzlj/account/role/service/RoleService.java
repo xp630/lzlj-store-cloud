@@ -45,6 +45,11 @@ public interface RoleService {
     List<MenuDTO> getRoleMenus(Long roleId);
 
     /**
+     * 获取角色已授权菜单（树形）
+     */
+    List<MenuDTO> getRoleMenusTree(Long roleId);
+
+    /**
      * 分配菜单权限
      */
     void assignMenus(Long roleId, RoleMenuDTO dto);

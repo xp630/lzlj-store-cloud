@@ -19,5 +19,6 @@ public class LzljMenuDTO {
     private String permission;
     private Integer status;
     private Long orgId;
+    private Boolean checked;
     private List<LzljMenuDTO> children;
 }

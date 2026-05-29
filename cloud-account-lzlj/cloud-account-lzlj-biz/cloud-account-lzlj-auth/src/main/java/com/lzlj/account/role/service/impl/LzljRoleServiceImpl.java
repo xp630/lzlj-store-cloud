@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -132,6 +134,34 @@ public class LzljRoleServiceImpl implements LzljRoleService {
     }
 
     @Override
+    public List<LzljMenuDTO> getRoleMenusTree(Long roleId) {
+        LzljRole role = roleDao.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        LambdaQueryWrapper<LzljRoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(LzljRoleMenu::getRoleId, roleId);
+        List<LzljRoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+
+        if (roleMenus.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<Long> menuIds = roleMenus.stream()
+                .map(LzljRoleMenu::getMenuId)
+                .collect(Collectors.toSet());
+
+        LambdaQueryWrapper<LzljMenu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(LzljMenu::getId, menuIds)
+                  .eq(LzljMenu::getStatus, 1)
+                  .orderByAsc(LzljMenu::getSort);
+        List<LzljMenu> menus = menuDao.selectList(menuWrapper);
+
+        return buildMenuTree(menus, 0L);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignMenus(Long roleId, LzljRoleMenuDTO dto) {
         LzljRole role = roleDao.selectById(roleId);
@@ -181,5 +211,16 @@ public class LzljRoleServiceImpl implements LzljRoleService {
         BeanUtils.copyProperties(menu, dto);
         dto.setChildren(new ArrayList<>());
         return dto;
+    }
+
+    private List<LzljMenuDTO> buildMenuTree(List<LzljMenu> menus, Long parentId) {
+        return menus.stream()
+                .filter(menu -> menu.getParentId().equals(parentId))
+                .map(menu -> {
+                    LzljMenuDTO dto = convertMenuToDTO(menu);
+                    dto.setChildren(buildMenuTree(menus, menu.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }

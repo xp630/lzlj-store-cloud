@@ -61,6 +61,11 @@ public class MenuDTO {
     private Integer status;
 
     /**
+     * 是否已授权（用于权限分配）
+     */
+    private Boolean checked;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

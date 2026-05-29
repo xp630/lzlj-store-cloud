@@ -28,11 +28,9 @@ import java.util.List;
  *
  * 流程：
  * 1. 检查白名单路径（放行）
- * 2. 检查环境（非prod/test跳过鉴权）
- * 3. 从 Authorization 头提取 JWT Token
- * 4. 验证 Token 签名
- * 5. 解析用户信息，传递给下游服务
- * 6. Token 无效或缺失，返回 401
+ * 2. 从 Authorization 头提取 JWT Token
+ * 3. 验证 Token 签名（无Token或无效时生成默认Token）
+ * 4. 解析用户信息，传递给下游服务
  */
 @Slf4j
 @Component
@@ -47,7 +45,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     /**
      * 需要鉴权的环境
-     * test 和 prod 环境需要 JWT 鉴权
+     * dev 环境：未提供 Token 时使用默认用户上下文
+     * test 和 prod 环境：未提供 Token 时返回 401
      */
     private static final List<String> AUTH_ENABLED_ENVIRONMENTS = Arrays.asList("test", "prod");
 
@@ -56,6 +55,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
      */
     @Value("${spring.profiles.active:dev}")
     private String activeProfile;
+
+    /**
+     * 默认用户ID（未登录用户使用，仅 dev 环境）
+     */
+    private static final Long DEFAULT_USER_ID = 0L;
+    private static final String DEFAULT_USERNAME = "anonymous";
+    private static final Long DEFAULT_TENANT_ID = 0L;
 
     /**
      * 白名单路径 - 不需要认证的路径
@@ -90,67 +96,64 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        // 2. 非 prod/test 环境，跳过鉴权
-        if (!AUTH_ENABLED_ENVIRONMENTS.contains(activeProfile)) {
-            log.debug("当前环境 [{}] 不需要鉴权，放行: {}", activeProfile, path);
-            return chain.filter(exchange);
-        }
-
-        // 3. 提取 Token
+        // 2. 提取 Token
         String authHeader = request.getHeaders().getFirst("Authorization");
         String token = extractToken(authHeader);
 
-        if (!StringUtils.hasText(token)) {
-            log.warn("路径需要认证，但未提供 Token: {}", path);
-            return unauthorized(exchange, "未提供认证 Token");
-        }
+        Long userId = DEFAULT_USER_ID;
+        Long tenantId = DEFAULT_TENANT_ID;
+        String username = DEFAULT_USERNAME;
 
-        // 3. 验证并解析 Token
-        try {
-            Claims claims = parseToken(token);
+        // dev 环境：无 Token 时使用默认上下文
+        boolean isDevEnvironment = !AUTH_ENABLED_ENVIRONMENTS.contains(activeProfile);
 
-            // 4. 提取用户信息
-            Long userId = claims.get("userId", Long.class);
-            Long tenantId = claims.get("tenantId", Long.class);
-            String username = claims.get("username", String.class);
-
-            if (userId == null) {
-                // 尝试从 subject 获取
-                String subject = claims.getSubject();
-                if (StringUtils.hasText(subject)) {
-                    userId = Long.parseLong(subject);
+        if (StringUtils.hasText(token)) {
+            // 3. 有 Token，验证并解析
+            try {
+                Claims claims = parseToken(token);
+                userId = claims.get("userId", Long.class);
+                if (userId == null) {
+                    String subject = claims.getSubject();
+                    if (StringUtils.hasText(subject)) {
+                        userId = Long.parseLong(subject);
+                    }
+                }
+                tenantId = claims.get("tenantId", Long.class);
+                username = claims.get("username", String.class);
+                if (username == null) {
+                    username = DEFAULT_USERNAME;
+                }
+                log.debug("JWT 认证成功: userId={}, username={}, path={}", userId, username, path);
+            } catch (Exception e) {
+                // Token 无效
+                if (isDevEnvironment) {
+                    log.warn("Token 解析失败，使用默认用户上下文: {}, error={}", path, e.getMessage());
+                } else {
+                    log.warn("Token 解析失败: {}, error={}", path, e.getMessage());
+                    return unauthorized(exchange, "Token 无效或已过期");
                 }
             }
-
-            if (userId == null) {
-                log.warn("Token 中缺少用户 ID");
-                return unauthorized(exchange, "无效的 Token");
+        } else {
+            // 无 Token
+            if (!isDevEnvironment) {
+                log.warn("路径需要认证，但未提供 Token: {}", path);
+                return unauthorized(exchange, "未提供认证 Token");
             }
-
-            // 5. 将用户信息写入请求头，传递给下游服务
-            ServerHttpRequest mutatedRequest = request.mutate()
-                    .header(HEADER_USER_ID, String.valueOf(userId))
-                    .header(HEADER_TENANT_ID, String.valueOf(tenantId != null ? tenantId : 0))
-                    .header(HEADER_USERNAME, username != null ? username : "")
-                    .build();
-
-            ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(mutatedRequest)
-                    .build();
-
-            log.debug("JWT 认证成功: userId={}, username={}, path={}", userId, username, path);
-            return chain.filter(mutatedExchange);
-
-        } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            log.warn("Token 已过期: {}", path);
-            return unauthorized(exchange, "Token 已过期");
-        } catch (io.jsonwebtoken.MalformedJwtException e) {
-            log.warn("Token 格式错误: {}", path);
-            return unauthorized(exchange, "Token 格式错误");
-        } catch (Exception e) {
-            log.warn("Token 验证失败: {}, error={}", path, e.getMessage());
-            return unauthorized(exchange, "Token 无效或已过期");
+            log.debug("未提供 Token，使用默认用户上下文: {}", path);
         }
+
+        // 4. 将用户信息写入请求头，传递给下游服务
+        ServerHttpRequest mutatedRequest = request.mutate()
+                .header(HEADER_USER_ID, String.valueOf(userId))
+                .header(HEADER_TENANT_ID, String.valueOf(tenantId != null ? tenantId : DEFAULT_TENANT_ID))
+                .header(HEADER_USERNAME, username != null ? username : DEFAULT_USERNAME)
+                .build();
+
+        ServerWebExchange mutatedExchange = exchange.mutate()
+                .request(mutatedRequest)
+                .build();
+
+        return chain.filter(mutatedExchange);
     }
 
     /**

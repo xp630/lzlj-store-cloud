@@ -45,4 +45,15 @@ public interface MenuService {
      * 获取父菜单下拉列表
      */
     List<MenuDTO> getParentMenuList();
+
+    /**
+     * 获取当前用户可访问的菜单
+     */
+    List<MenuDTO> getMyMenus();
+
+    /**
+     * 获取全部菜单（带授权状态）
+     * @param roleId 角色ID，null或0表示未选择角色，所有菜单checked=false
+     */
+    List<MenuDTO> getAllMenusWithChecked(Long roleId);
 }

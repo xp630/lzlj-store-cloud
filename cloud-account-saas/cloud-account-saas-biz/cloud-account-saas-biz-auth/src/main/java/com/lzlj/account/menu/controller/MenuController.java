@@ -71,4 +71,17 @@ public class MenuController {
     public Result<List<MenuDTO>> getParentMenuList() {
         return Result.success(menuService.getParentMenuList());
     }
+
+    @Operation(summary = "获取当前用户可访问的菜单")
+    @GetMapping("/my")
+    public Result<List<MenuDTO>> getMyMenus() {
+        return Result.success(menuService.getMyMenus());
+    }
+
+    @Operation(summary = "获取全部菜单（带授权状态）")
+    @GetMapping("/all")
+    public Result<List<MenuDTO>> getAllMenusWithChecked(
+            @RequestParam(required = false) Long roleId) {
+        return Result.success(menuService.getAllMenusWithChecked(roleId));
+    }
 }

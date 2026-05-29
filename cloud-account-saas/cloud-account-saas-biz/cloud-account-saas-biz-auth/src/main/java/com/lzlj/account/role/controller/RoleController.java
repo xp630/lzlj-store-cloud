@@ -73,6 +73,12 @@ public class RoleController {
         return Result.success(roleService.getRoleMenus(id));
     }
 
+    @Operation(summary = "获取角色已授权菜单（树形）")
+    @GetMapping("/{id}/menus/tree")
+    public Result<List<MenuDTO>> getRoleMenusTree(@PathVariable Long id) {
+        return Result.success(roleService.getRoleMenusTree(id));
+    }
+
     @Operation(summary = "分配菜单权限")
     @OperationLog(module = "role", operation = "GRANT", content = "分配菜单权限")
     @PutMapping("/{id}/menus")

@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,45 @@ public class RoleServiceImpl implements RoleService {
     private final RoleDao roleDao;
     private final RoleMenuDao roleMenuDao;
     private final MenuDao menuDao;
+
+    @Override
+    public List<MenuDTO> getRoleMenusTree(Long roleId) {
+        Role role = roleDao.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        LambdaQueryWrapper<RoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(RoleMenu::getRoleId, roleId);
+        List<RoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+
+        if (roleMenus.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<Long> menuIds = roleMenus.stream()
+                .map(RoleMenu::getMenuId)
+                .collect(Collectors.toSet());
+
+        LambdaQueryWrapper<Menu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(Menu::getId, menuIds)
+                  .eq(Menu::getStatus, 1)
+                  .orderByAsc(Menu::getSort);
+        List<Menu> menus = menuDao.selectList(menuWrapper);
+
+        return buildMenuTree(menus, 0L);
+    }
+
+    private List<MenuDTO> buildMenuTree(List<Menu> menus, Long parentId) {
+        return menus.stream()
+                .filter(menu -> menu.getParentId().equals(parentId))
+                .map(menu -> {
+                    MenuDTO dto = convertMenuToDTO(menu);
+                    dto.setChildren(buildMenuTree(menus, menu.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Long create(CreateRoleDTO dto) {
