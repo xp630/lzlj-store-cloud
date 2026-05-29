@@ -5,7 +5,6 @@ import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.common.oss.dto.PresignedUrlRequest;
 import com.lzlj.account.common.oss.dto.PresignedUrlResponse;
 import com.lzlj.account.common.oss.facade.OssUploadFacade;
-import com.lzlj.account.common.core.tenant.TenantContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ public class UploadController {
     @PostMapping("/presigned-url")
     public Result<PresignedUrlResponse> getPresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
         Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
-        Long tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : 0L;
-        return ossUploadFacade.generateUploadUrl(request, userId, tenantId);
+        return ossUploadFacade.generateUploadUrl(request, userId, 0L);
     }
 }
