@@ -12,9 +12,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
  */
 @EnableDiscoveryClient
 @EnableAsync
-@MapperScan({"com.lzlj.account.user.mapper", "com.lzlj.account.menu.mapper", "com.lzlj.account.role.mapper", "com.lzlj.account.log.mapper"})
+@MapperScan({"com.lzlj.account.**.mapper"})
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.lzlj.account", "com.lzlj.account"})
 public class LzljAuthApplication {
 
     public static void main(String[] args) {

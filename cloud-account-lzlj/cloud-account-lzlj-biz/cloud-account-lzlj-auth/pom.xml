@@ -139,6 +139,12 @@
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
         </dependency>
+
+        <!-- OSS Common Module -->
+        <dependency>
+            <groupId>com.lzlj.account</groupId>
+            <artifactId>cloud-account-common-oss</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

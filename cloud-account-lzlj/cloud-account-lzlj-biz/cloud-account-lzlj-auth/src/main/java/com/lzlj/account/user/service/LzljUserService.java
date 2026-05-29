@@ -59,4 +59,9 @@ public interface LzljUserService {
      * 修改状态
      */
     void changeStatus(Long userId, Integer status);
+
+    /**
+     * 更新用户头像
+     */
+    void updateAvatar(Long userId, String avatar);
 }

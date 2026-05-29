@@ -5,7 +5,7 @@
 
 spring:
   application:
-    name: account-gateway
+    name: saas-gateway
   config:
     import: optional:nacos:common-jwt.yml,optional:nacos:saas-gateway.yml
   autoconfigure:

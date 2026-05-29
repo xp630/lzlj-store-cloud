@@ -1,66 +1,34 @@
 # ============================================
-# account-gateway-lzlj 公共配置
+# account-gateway dev 环境配置
 # ============================================
 
-server:
-  port: 28080
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,gateway
-  endpoint:
-    health:
-      show-details: always
-    gateway:
-      enabled: true
-
-# 日志
-logging:
-  level:
-    com.lzlj.account.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-
-# 网关路由配置
 spring:
+  application:
+    name: lzlj-gateway
+  config:
+    import: optional:nacos:common-jwt.yml,optional:nacos:lzlj-gateway.yml
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   cloud:
-    gateway:
-      routes:
-        # LZLJ 用户服务
-        - id: lzlj-user
-          uri: lb://account-lzlj-user
-          predicates:
-            - Path=/api/lzlj/user/**
-          filters:
-            - StripPrefix=2
-        # LZLJ 商品服务
-        - id: lzlj-goods
-          uri: lb://account-biz-saas-goods
-          predicates:
-            - Path=/api/lzlj/goods/**
-          filters:
-            - StripPrefix=2
-        # SaaS 认证服务
-        - id: saas-auth
-          uri: lb://saas-auth
-          predicates:
-            - Path=/api/saas/auth/**
-          filters:
-            - StripPrefix=2
-        # SaaS 商品服务
-        - id: saas-goods
-          uri: lb://saas-goods
-          predicates:
-            - Path=/api/saas/goods/**
-          filters:
-            - StripPrefix=2
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: false
-            maxAge: 3600
+    nacos:
+      username: nacos
+      password: nacos
+      server-addr: 127.0.0.1:8848
+      config:
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
+        file-extension: yml
+        import-check:
+          enabled: false
+      discovery:
+        namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
+        group: DEFAULT_GROUP
+
+# API访问日志配置 (由 logback-spring.xml 管理滚动和清理)
+openapi:
+  access-log:
+    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/logs/lzlj
+  signature-expire-seconds: 300

@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * LZLJ 日志服务实现
  */
 @Slf4j
-@Service
+@Service("lzljLogServiceImpl")
 @RequiredArgsConstructor
 public class LzljLogServiceImpl implements LzljLogService {
 
