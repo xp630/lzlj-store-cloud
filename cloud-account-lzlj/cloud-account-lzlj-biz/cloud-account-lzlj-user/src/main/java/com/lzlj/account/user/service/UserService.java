@@ -66,4 +66,9 @@ public interface UserService {
      * 绑定微信
      */
     void bindWx(Long userId, String wxOpenid, String wxMaOpenid);
+
+    /**
+     * 更新用户头像
+     */
+    void updateAvatar(Long userId, String avatar);
 }

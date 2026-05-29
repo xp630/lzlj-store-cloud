@@ -51,6 +51,11 @@
             </dependency>
             <dependency>
                 <groupId>com.lzlj.account</groupId>
+                <artifactId>cloud-account-common-oss</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lzlj.account</groupId>
                 <artifactId>cloud-account-lzlj-api-auth</artifactId>
                 <version>${project.version}</version>
             </dependency>
