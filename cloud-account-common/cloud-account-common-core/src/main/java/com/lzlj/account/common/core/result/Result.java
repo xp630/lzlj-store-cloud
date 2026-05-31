@@ -1,5 +1,6 @@
 package com.lzlj.account.common.core.result;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
 
@@ -7,23 +8,24 @@ import java.io.Serializable;
  * 统一响应结果
  */
 @Data
+@Schema(description = "统一响应结构")
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 状态码 */
+    @Schema(description = "状态码，200表示成功，其他为业务异常码", example = "200")
     private Integer code;
 
-    /** 消息 */
+    @Schema(description = "状态描述信息", example = "操作成功")
     private String message;
 
-    /** 数据 */
+    @Schema(description = "响应数据体，类型由具体接口决定")
     private T data;
 
-    /** 时间戳 */
+    @Schema(description = "响应时间戳（毫秒）", example = "1780195205311")
     private Long timestamp;
 
-    /** 请求ID */
+    @Schema(description = "请求链路追踪ID", example = "075210b6-1")
     private String traceId;
 
     public Result() {

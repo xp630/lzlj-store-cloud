@@ -128,7 +128,7 @@ public class UserController {
         return Result.success(userRoleService.getUserRoles(id));
     }
 
-    @Operation(summary = "分配用户角色")
+    @Operation(summary = "分配用户角色（全量替换：传入的角色ID列表将替换用户当前所有角色）")
     @PutMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable Long id, @RequestBody UserRoleDTO dto) {
         userRoleService.assignRoles(id, dto);

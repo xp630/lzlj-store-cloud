@@ -12,9 +12,6 @@ spring:
     import: optional:nacos:common.yml,optional:nacos:common-jwt.yml,optional:nacos:saas-auth.yml
   autoconfigure:
     exclude:
-      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
-      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
-      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
   cloud:
     nacos:
       username: nacos
@@ -29,3 +26,11 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
+
+# Springdoc OpenAPI 配置（解决 Swagger UI 默认显示 Petstore 的问题）
+springdoc:
+  swagger-ui:
+    enabled: true
+    url: /v3/api-docs
+  api-docs:
+    enabled: true

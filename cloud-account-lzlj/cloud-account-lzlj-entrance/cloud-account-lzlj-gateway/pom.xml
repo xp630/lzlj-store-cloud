@@ -93,6 +93,13 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- OpenAPI / Swagger WebFlux UI -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-webflux-ui</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
         <!-- XXL-Job -->
         <dependency>
             <groupId>com.xuxueli</groupId>

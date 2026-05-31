@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 /**
  * Swagger 聚合控制器
- * 聚合各个微服务的 OpenAPI 3.0 文档
  */
 @Slf4j
 @RestController
@@ -32,14 +31,12 @@ public class SwaggerAggregatorController {
 
     /**
      * 获取指定服务的 OpenAPI 文档
-     * 通过网关现有路由 /api/{service}/** 转发到后端服务
      */
     @GetMapping("/{serviceName}")
     public Mono<Map<String, Object>> getApiDocs(@PathVariable String serviceName,
                                                ServerWebExchange exchange) {
         String serviceLower = serviceName.toLowerCase();
 
-        // 从请求 Header 动态获取 host，构造绝对 URL
         String host = exchange.getRequest().getHeaders().getFirst("Host");
         if (host == null || host.isEmpty()) {
             host = "localhost:18080";
@@ -87,7 +84,6 @@ public class SwaggerAggregatorController {
         }
         String baseUrl = scheme + "://" + exchange.getRequest().getHeaders().getFirst("Host");
 
-        // 聚合所有服务的文档
         List<Mono<Map<String, Object>>> docMonos = services.stream()
                 .map(serviceName -> getServiceDoc(serviceName, exchange))
                 .collect(Collectors.toList());
@@ -115,7 +111,6 @@ public class SwaggerAggregatorController {
             }
             merged.put("paths", allPaths);
 
-            // 收集所有服务信息
             Map<String, Object> servers = new HashMap<>();
             for (String service : services) {
                 servers.put(service, baseUrl + "/api/" + service.toLowerCase());
@@ -131,7 +126,7 @@ public class SwaggerAggregatorController {
     }
 
     /**
-     * 返回服务列表（供 Swagger UI 动态生成下拉框）
+     * 返回服务列表
      */
     @GetMapping("/services")
     public Mono<Map<String, Object>> getServices() {

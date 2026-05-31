@@ -117,10 +117,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        // 删除角色菜单关联
-        LambdaQueryWrapper<RoleMenu> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(RoleMenu::getRoleId, id);
-        roleMenuDao.delete(wrapper);
+        // 删除角色菜单关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        roleMenuDao.deleteByRoleIdHard(id);
 
         // 删除角色
         roleDao.deleteById(id);
@@ -187,10 +185,8 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        // 删除原有菜单关联
-        LambdaQueryWrapper<RoleMenu> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(RoleMenu::getRoleId, roleId);
-        roleMenuDao.delete(wrapper);
+        // 删除原有菜单关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        roleMenuDao.deleteByRoleIdHard(roleId);
 
         // 新增菜单关联
         if (dto.getMenuIds() != null && !dto.getMenuIds().isEmpty()) {

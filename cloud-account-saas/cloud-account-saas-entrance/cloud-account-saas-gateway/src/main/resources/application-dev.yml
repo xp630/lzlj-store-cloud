@@ -2,7 +2,6 @@
 # account-gateway dev 环境配置
 # ============================================
 
-
 spring:
   application:
     name: saas-gateway
@@ -26,9 +25,34 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: auth-api
+          uri: lb://saas-auth
+          predicates:
+            - Path=/api/saas-auth/**
+          filters:
+            - StripPrefix=2
+        - id: goods-api
+          uri: lb://saas-goods
+          predicates:
+            - Path=/api/saas-goods/**
+          filters:
+            - StripPrefix=2
 
-# API访问日志配置 (由 logback-spring.xml 管理滚动和清理)
-openapi:
-  access-log:
-    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/logs/saas
-  signature-expire-seconds: 300
+swagger:
+  services: saas-auth,saas-goods
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true

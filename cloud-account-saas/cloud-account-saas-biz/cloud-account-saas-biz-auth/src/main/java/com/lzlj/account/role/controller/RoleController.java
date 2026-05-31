@@ -79,7 +79,7 @@ public class RoleController {
         return Result.success(roleService.getRoleMenusTree(id));
     }
 
-    @Operation(summary = "分配菜单权限")
+    @Operation(summary = "分配菜单权限（全量替换：传入的菜单ID列表将替换角色当前所有菜单权限）")
     @OperationLog(module = "role", operation = "GRANT", content = "分配菜单权限")
     @PutMapping("/{id}/menus")
     public Result<Void> assignMenus(@PathVariable Long id, @RequestBody RoleMenuDTO dto) {

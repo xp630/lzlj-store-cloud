@@ -1,5 +1,6 @@
 package com.lzlj.account.common.core.domain;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
@@ -8,29 +9,30 @@ import java.util.List;
  * 分页结果
  */
 @Data
+@Schema(description = "分页响应结构")
 public class PageResult<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 当前页 */
+    @Schema(description = "当前页码", example = "1")
     private Long current;
 
-    /** 每页大小 */
+    @Schema(description = "每页记录数", example = "10")
     private Long size;
 
-    /** 总记录数 */
+    @Schema(description = "总记录数", example = "100")
     private Long total;
 
-    /** 总页数 */
+    @Schema(description = "总页数", example = "10")
     private Long pages;
 
-    /** 数据列表 */
+    @Schema(description = "当前页数据列表")
     private List<T> records;
 
-    /** 是否有上一页 */
+    @Schema(description = "是否有上一页", example = "false")
     private Boolean hasPrevious;
 
-    /** 是否有下一页 */
+    @Schema(description = "是否有下一页", example = "true")
     private Boolean hasNext;
 
     public PageResult() {

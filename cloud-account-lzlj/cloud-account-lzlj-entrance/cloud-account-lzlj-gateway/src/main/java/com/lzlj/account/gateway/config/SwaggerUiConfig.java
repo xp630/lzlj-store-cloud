@@ -9,7 +9,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 /**
  * Swagger UI 静态资源配置
- * 网关层提供 Swagger UI 页面（聚合逻辑由 SwaggerAggregatorController 处理）
  */
 @Configuration
 public class SwaggerUiConfig {
@@ -17,12 +16,10 @@ public class SwaggerUiConfig {
     @Bean
     public RouterFunction<ServerResponse> swaggerRouter() {
         return RouterFunctions.route()
-                // Swagger UI 主页面
                 .GET("/swagger-ui.html", request ->
                         ServerResponse.ok()
                                 .contentType(MediaType.TEXT_HTML)
                                 .bodyValue(getSwaggerUiHtml()))
-                // /doc.html 也指向 Swagger UI
                 .GET("/doc.html", request ->
                         ServerResponse.ok()
                                 .contentType(MediaType.TEXT_HTML)

@@ -11,7 +11,6 @@ import java.util.List;
 
 /**
  * Swagger 聚合配置
- * 网关统一聚合所有微服务的 API 文档
  */
 @Slf4j
 @Configuration

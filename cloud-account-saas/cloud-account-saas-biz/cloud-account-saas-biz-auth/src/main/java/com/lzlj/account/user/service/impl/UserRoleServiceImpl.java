@@ -69,10 +69,8 @@ public class UserRoleServiceImpl implements UserRoleService {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        // 删除原有角色关联
-        LambdaQueryWrapper<UserRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(UserRole::getUserId, userId);
-        userRoleDao.delete(wrapper);
+        // 删除原有角色关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        userRoleDao.deleteByUserIdHard(userId);
 
         // 新增角色关联
         if (dto.getRoleIds() != null && !dto.getRoleIds().isEmpty()) {

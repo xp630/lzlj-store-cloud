@@ -2,7 +2,6 @@
 # account-gateway dev 环境配置
 # ============================================
 
-
 spring:
   application:
     name: lzlj-gateway
@@ -26,9 +25,21 @@ spring:
       discovery:
         namespace: 6fcc6887-5cdd-47d0-aece-6387e527b368
         group: DEFAULT_GROUP
+    gateway:
+      routes:
+        - id: auth-api
+          uri: lb://lzlj-auth
+          predicates:
+            - Path=/api/lzlj-auth/**
+          filters:
+            - StripPrefix=2
 
-# API访问日志配置 (由 logback-spring.xml 管理滚动和清理)
-openapi:
-  access-log:
-    path: /Users/xp630/work/workspace/ai/claude/lzlj/lzlj-cloud-account/logs/lzlj
-  signature-expire-seconds: 300
+# Swagger 聚合服务配置
+swagger:
+  services: lzlj-auth
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
