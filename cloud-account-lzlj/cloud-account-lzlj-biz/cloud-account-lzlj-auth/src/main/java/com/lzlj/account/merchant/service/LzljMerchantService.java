@@ -11,9 +11,10 @@ import java.util.List;
 public interface LzljMerchantService {
 
     /**
-     * 网商同步商户（幂等）
+     * 同步商户（支持多种数据来源）
+     * 如果 dto 中有 merchantCode，自动从 SaaS 获取数据
      */
-    MerchantDTO syncFromWangshang(SyncMerchantDTO dto);
+    MerchantDTO syncMerchant(SyncMerchantDTO dto);
 
     /**
      * 创建商户
@@ -69,4 +70,11 @@ public interface LzljMerchantService {
      * 根据机构ID获取业务场景
      */
     List<Long> getScenarioIdsByOrgId(Long orgId);
+
+    /**
+     * 从 SaaS 批量同步所有母户
+     * @param keyword 关键字（可选，模糊搜索）
+     * @return 同步的商户数量
+     */
+    int syncAllFromSaas(String keyword);
 }

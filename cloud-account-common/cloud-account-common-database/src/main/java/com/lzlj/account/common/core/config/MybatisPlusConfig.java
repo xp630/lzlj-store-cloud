@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
+import com.lzlj.account.common.core.config.EntityTableScanner;
 import com.lzlj.account.common.core.tenant.TenantContext;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
@@ -62,8 +63,14 @@ public class MybatisPlusConfig {
 
                     @Override
                     public boolean ignoreInsert(java.util.List<net.sf.jsqlparser.schema.Column> columns, String tenantIdColumn) {
-                        // 忽略INSERT，由MetaObjectHandler自动填充租户ID
-                        return true;
+                        // 只有当 tenant_id 列已经在 columns 中时才忽略（避免重复插入）
+                        // 否则由 MetaObjectHandler 自动填充
+                        for (net.sf.jsqlparser.schema.Column col : columns) {
+                            if (tenantIdColumn.equals(col.getColumnName())) {
+                                return true;
+                            }
+                        }
+                        return false;
                     }
                 }
         );

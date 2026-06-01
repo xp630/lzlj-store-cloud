@@ -7,6 +7,7 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.domain.merchant.MerchantChannelAccountDTO;
 import com.lzlj.account.common.core.domain.merchant.MerchantLegalDTO;
 import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.merchant.dao.LzljMerchantChannelAccountDao;
 import com.lzlj.account.merchant.dao.LzljMerchantDao;
@@ -20,6 +21,7 @@ import com.lzlj.account.merchant.entity.LzljMerchantLegal;
 import com.lzlj.account.merchant.entity.LzljMerchantUser;
 import com.lzlj.account.merchant.entity.LzljSettlementInfo;
 import com.lzlj.account.merchant.service.LzljMerchantService;
+import com.lzlj.account.config.SaaSApiClient;
 import com.lzlj.account.scenario.dao.LzljScenarioDao;
 import com.lzlj.account.scenario.entity.LzljScenario;
 import com.lzlj.account.user.dao.LzljOrgDao;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +58,50 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     private final LzljOrgDao orgDao;
     private final LzljScenarioDao scenarioDao;
     private final LzljUserDao userDao;
+    private final SaaSApiClient saasApiClient;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public MerchantDTO syncFromWangshang(SyncMerchantDTO dto) {
+    public MerchantDTO syncMerchant(SyncMerchantDTO dto) {
+        // 如果有 merchantCode，先从 SaaS 获取最新数据
+        if (StringUtils.hasText(dto.getMerchantCode())) {
+            Result<MerchantDTO> saasResult = saasApiClient.getMerchantByCode(dto.getMerchantCode(), MerchantDTO.class);
+            if (saasResult.isSuccess() && saasResult.getData() != null) {
+                MerchantDTO saasData = saasResult.getData();
+                log.info("从 SaaS 获取商户成功: merchantCode={}, name={}",
+                        dto.getMerchantCode(), saasData.getMerchantName());
+                // 合并 SaaS 数据到 dto（保留 dto 中的 merchantType 等 LZLJ 特有字段）
+                if (StringUtils.hasText(saasData.getMerchantName())) {
+                    dto.setMerchantName(saasData.getMerchantName());
+                }
+                if (StringUtils.hasText(saasData.getShortName())) {
+                    dto.setShortName(saasData.getShortName());
+                }
+                if (saasData.getContact() != null) {
+                    dto.setContact(saasData.getContact());
+                }
+                if (saasData.getContactPhone() != null) {
+                    dto.setContactPhone(saasData.getContactPhone());
+                }
+                if (saasData.getContactEmail() != null) {
+                    dto.setContactEmail(saasData.getContactEmail());
+                }
+                if (StringUtils.hasText(saasData.getAddress())) {
+                    dto.setAddress(saasData.getAddress());
+                }
+                if (saasData.getLegal() != null) {
+                    dto.setLegal(saasData.getLegal());
+                }
+                if (saasData.getChannelAccounts() != null) {
+                    dto.setChannelAccounts(saasData.getChannelAccounts());
+                }
+            } else {
+                log.error("从 SaaS 获取商户失败: merchantCode={}, code={}, message={}",
+                        dto.getMerchantCode(), saasResult.getCode(), saasResult.getMessage());
+                throw new BusinessException(ResultCode.FAIL.getCode(), "从 SaaS 获取商户失败: " + saasResult.getMessage());
+            }
+        }
+
         // 检查是否已存在（根据 merchant_code）
         LambdaQueryWrapper<LzljMerchant> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LzljMerchant::getMerchantCode, dto.getMerchantCode())
@@ -450,6 +493,82 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         }
 
         return topOrg.getScenarioId() != null ? Collections.singletonList(topOrg.getScenarioId()) : new ArrayList<>();
+    }
+
+    @Override
+    public int syncAllFromSaas(String keyword) {
+        log.info("从 SaaS 批量同步母户: keyword={}", keyword);
+
+        int totalSynced = 0;
+        int pageNum = 1;
+        int pageSize = 100;
+
+        while (true) {
+            // 调用 SaaS 分页查询
+            Result<Map> pageResult = saasApiClient.getMerchants(pageNum, pageSize, keyword, 1);
+            if (!pageResult.isSuccess()) {
+                log.error("从 SaaS 查询商户失败: pageNum={}, error={}", pageNum, pageResult.getMessage());
+                break;
+            }
+
+            Map<String, Object> data = pageResult.getData();
+            if (data == null) {
+                break;
+            }
+
+            // 解析分页结果
+            Object recordsObj = data.get("records");
+            if (recordsObj == null) {
+                break;
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> records = (List<Map<String, Object>>) recordsObj;
+            if (records == null || records.isEmpty()) {
+                break;
+            }
+
+            log.info("从 SaaS 第 {} 页获取 {} 条商户", pageNum, records.size());
+
+            // 逐个同步
+            for (Map<String, Object> record : records) {
+                String merchantCode = (String) record.get("merchantCode");
+                if (merchantCode == null || merchantCode.isEmpty()) {
+                    continue;
+                }
+                try {
+                    SyncMerchantDTO syncDto = new SyncMerchantDTO();
+                    syncDto.setMerchantCode(merchantCode);
+                    syncDto.setMerchantType(1); // 母户
+                    syncMerchant(syncDto);
+                    totalSynced++;
+                } catch (Exception e) {
+                    log.error("同步商户失败: merchantCode={}", merchantCode, e);
+                }
+            }
+
+            // 检查是否还有下一页
+            Object totalObj = data.get("total");
+            Object currentObj = data.get("current");
+            Object sizeObj = data.get("size");
+
+            if (totalObj == null || currentObj == null || sizeObj == null) {
+                break;
+            }
+
+            long total = ((Number) totalObj).longValue();
+            long current = ((Number) currentObj).longValue();
+            long size = ((Number) sizeObj).longValue();
+
+            if (current * size >= total) {
+                break;
+            }
+
+            pageNum++;
+        }
+
+        log.info("从 SaaS 批量同步完成: 共同步 {} 条商户", totalSynced);
+        return totalSynced;
     }
 
     // ==================== 私有方法 ====================

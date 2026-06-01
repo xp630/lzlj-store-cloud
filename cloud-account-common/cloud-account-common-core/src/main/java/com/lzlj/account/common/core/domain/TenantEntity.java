@@ -21,9 +21,4 @@ public abstract class TenantEntity extends BaseEntity implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT)
     private Long tenantId;
-
-    /**
-     * 组织ID（经销商/门店所属组织）
-     */
-    private Long orgId;
 }

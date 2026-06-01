@@ -84,4 +84,6 @@ public class User extends TenantEntity {
     private String wxMaOpenid;
 
     private Long id;
+
+    private long orgId;
 }

@@ -123,7 +123,7 @@ public class UserServiceImpl implements UserService {
     public PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
         Page<User> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(orgId != null, User::getOrgId, orgId)
+        wrapper
                .like(keyword != null, User::getUsername, keyword)
                .eq(status != null, User::getStatus, status)
                .eq(User::getDeleted, 0)

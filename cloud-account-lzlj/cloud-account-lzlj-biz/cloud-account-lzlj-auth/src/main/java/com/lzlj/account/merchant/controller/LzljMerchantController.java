@@ -23,10 +23,10 @@ public class LzljMerchantController {
 
     private final LzljMerchantService merchantService;
 
-    @Operation(summary = "网商同步商户")
+    @Operation(summary = "同步商户")
     @PostMapping("/sync")
     public Result<MerchantDTO> syncMerchant(@RequestBody SyncMerchantDTO dto) {
-        return Result.success(merchantService.syncFromWangshang(dto));
+        return Result.success(merchantService.syncMerchant(dto));
     }
 
     @Operation(summary = "商户分页列表")
@@ -92,5 +92,11 @@ public class LzljMerchantController {
     public Result<Void> unbindUser(@PathVariable Long id, @PathVariable Long userId) {
         merchantService.unbindUser(id, userId);
         return Result.success();
+    }
+
+    @Operation(summary = "从 SaaS 批量同步所有母户")
+    @GetMapping("/sync/saas/all")
+    public Result<Integer> syncAllFromSaas(@RequestParam(required = false) String keyword) {
+        return Result.success(merchantService.syncAllFromSaas(keyword));
     }
 }
