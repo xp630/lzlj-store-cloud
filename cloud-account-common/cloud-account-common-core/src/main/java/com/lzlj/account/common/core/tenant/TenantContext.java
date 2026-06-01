@@ -19,7 +19,12 @@ public class TenantContext {
      * 获取当前租户ID
      */
     public static Long getTenantId() {
-        return TENANT_ID.get();
+        Long tenantId = TENANT_ID.get();
+        // dev环境如果没有租户ID，使用默认租户1
+        if (tenantId == null) {
+            return 1L;
+        }
+        return tenantId;
     }
 
     /**

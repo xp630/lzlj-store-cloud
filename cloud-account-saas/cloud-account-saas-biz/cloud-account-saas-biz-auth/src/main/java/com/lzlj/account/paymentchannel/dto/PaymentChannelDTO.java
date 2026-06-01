@@ -1,6 +1,5 @@
 package com.lzlj.account.paymentchannel.dto;
 
-import com.lzlj.account.common.core.domain.paymentchannel.PaymentChannelDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

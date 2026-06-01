@@ -62,8 +62,8 @@ public class MybatisPlusConfig {
 
                     @Override
                     public boolean ignoreInsert(java.util.List<net.sf.jsqlparser.schema.Column> columns, String tenantIdColumn) {
-                        // 不忽略INSERT，让MyBatis Plus自动处理租户ID填充
-                        return false;
+                        // 忽略INSERT，由MetaObjectHandler自动填充租户ID
+                        return true;
                     }
                 }
         );

@@ -17,7 +17,7 @@ public abstract class BaseEntity implements Serializable {
     /**
      * 主键ID
      */
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -50,11 +50,6 @@ public abstract class BaseEntity implements Serializable {
     @TableLogic
     @TableField(fill = FieldFill.INSERT)
     private Integer deleted;
-
-    /**
-     * 备注
-     */
-    private String remark;
 
     /**
      * 版本号（用于乐观锁）

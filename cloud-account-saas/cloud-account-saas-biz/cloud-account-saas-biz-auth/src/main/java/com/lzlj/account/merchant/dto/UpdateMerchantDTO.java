@@ -8,13 +8,13 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * LZLJ 更新商户DTO
+ * SaaS 更新商户DTO
  */
 @Data
 @Schema(description = "更新商户请求")
 public class UpdateMerchantDTO {
 
-    @Schema(description = "商户全称")
+    @Schema(description = "商户名称")
     private String merchantName;
 
     @Schema(description = "商户简称")
@@ -29,32 +29,14 @@ public class UpdateMerchantDTO {
     @Schema(description = "联系邮箱")
     private String contactEmail;
 
-    @Schema(description = "省代码")
-    private String provinceCode;
-
-    @Schema(description = "市代码")
-    private String cityCode;
-
-    @Schema(description = "区代码")
-    private String districtCode;
-
-    @Schema(description = "详细地址")
+    @Schema(description = "联系地址")
     private String address;
+
+    @Schema(description = "支付渠道账号")
+    private String wangshangAccount;
 
     @Schema(description = "状态 0禁用 1启用")
     private Integer status;
-
-    @Schema(description = "商户类型 1:母户 2:子户")
-    private Integer merchantType;
-
-    @Schema(description = "网商商户账号")
-    private String wangshangAccount;
-
-    @Schema(description = "业务场景代码列表（母户用）")
-    private List<String> scenarioCodes;
-
-    @Schema(description = "业务场景ID（子户用）")
-    private Long scenarioId;
 
     @Schema(description = "法人信息")
     private MerchantLegalDTO legal;

@@ -1,5 +1,7 @@
 package com.lzlj.account.merchant.dto;
 
+import com.lzlj.account.common.core.domain.merchant.MerchantChannelAccountDTO;
+import com.lzlj.account.common.core.domain.merchant.MerchantLegalDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotBlank;
 import lombok.Data;
@@ -45,18 +47,18 @@ public class SyncMerchantDTO {
     @Schema(description = "详细地址")
     private String address;
 
-    @Schema(description = "营业执照号")
-    private String licenseNo;
-
-    @Schema(description = "法人代表")
-    private String legalPerson;
-
     @Schema(description = "商户类型 1:母户 2:子户")
     private Integer merchantType;
 
     @Schema(description = "网商商户账号")
     private String wangshangAccount;
 
-    @Schema(description = "业务场景ID列表")
-    private List<Long> scenarios;
+    @Schema(description = "业务场景代码列表")
+    private List<String> scenarioCodes;
+
+    @Schema(description = "法人信息")
+    private MerchantLegalDTO legal;
+
+    @Schema(description = "银联账户列表")
+    private List<MerchantChannelAccountDTO> channelAccounts;
 }

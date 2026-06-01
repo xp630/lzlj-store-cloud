@@ -1,20 +1,27 @@
 package com.lzlj.account.merchant.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.merchant.MerchantChannelAccountDTO;
+import com.lzlj.account.common.core.domain.merchant.MerchantLegalDTO;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.merchant.dao.LzljMerchantChannelAccountDao;
 import com.lzlj.account.merchant.dao.LzljMerchantDao;
+import com.lzlj.account.merchant.dao.LzljMerchantLegalDao;
 import com.lzlj.account.merchant.dao.LzljMerchantUserDao;
 import com.lzlj.account.merchant.dao.LzljSettlementInfoDao;
 import com.lzlj.account.merchant.dto.*;
 import com.lzlj.account.merchant.entity.LzljMerchant;
+import com.lzlj.account.merchant.entity.LzljMerchantChannelAccount;
+import com.lzlj.account.merchant.entity.LzljMerchantLegal;
 import com.lzlj.account.merchant.entity.LzljMerchantUser;
 import com.lzlj.account.merchant.entity.LzljSettlementInfo;
 import com.lzlj.account.merchant.service.LzljMerchantService;
+import com.lzlj.account.scenario.dao.LzljScenarioDao;
+import com.lzlj.account.scenario.entity.LzljScenario;
 import com.lzlj.account.user.dao.LzljOrgDao;
 import com.lzlj.account.user.dao.LzljUserDao;
 import com.lzlj.account.user.entity.LzljOrg;
@@ -28,6 +35,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +50,10 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     private final LzljMerchantDao merchantDao;
     private final LzljSettlementInfoDao settlementDao;
     private final LzljMerchantUserDao merchantUserDao;
+    private final LzljMerchantLegalDao merchantLegalDao;
+    private final LzljMerchantChannelAccountDao merchantChannelAccountDao;
     private final LzljOrgDao orgDao;
+    private final LzljScenarioDao scenarioDao;
     private final LzljUserDao userDao;
 
     @Override
@@ -56,26 +67,31 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
 
         if (existMerchant != null) {
             // 更新
-            BeanUtils.copyProperties(dto, existMerchant);
-            existMerchant.setStatus(1);
+            updateMerchantFromSync(existMerchant, dto);
             merchantDao.updateById(existMerchant);
-
-            // 更新母户的业务场景
-            updateOrgScenarios(existMerchant.getId(), dto.getScenarios());
-
             return getById(existMerchant.getId());
         }
 
         // 创建商户
         LzljMerchant merchant = new LzljMerchant();
         BeanUtils.copyProperties(dto, merchant);
-        merchant.setMerchantCode(generateMerchantCode());
+        merchant.setMerchantCode(dto.getMerchantCode()); // 同步时使用传入的code
         merchant.setStatus(1);
         // 默认设置为母户类型
         if (merchant.getMerchantType() == null) {
             merchant.setMerchantType(1);
         }
+        // 设置场景codes
+        if (dto.getScenarioCodes() != null && !dto.getScenarioCodes().isEmpty()) {
+            merchant.setScenarioCodes(toJsonString(dto.getScenarioCodes()));
+        }
         merchantDao.insert(merchant);
+
+        // 创建法人信息
+        saveMerchantLegal(merchant.getId(), dto.getLegal());
+
+        // 创建银联账户
+        saveMerchantChannelAccounts(merchant.getId(), dto.getChannelAccounts());
 
         // 创建结算信息（空）
         LzljSettlementInfo settlement = new LzljSettlementInfo();
@@ -84,7 +100,7 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         settlementDao.insert(settlement);
 
         // 创建母户机构
-        LzljOrg org = createMerchantOrg(merchant, dto.getScenarios());
+        LzljOrg org = createMerchantOrg(merchant, null, null);
 
         MerchantDTO result = convertToMerchantDTO(merchant);
         result.setOrgId(org.getId());
@@ -94,15 +110,46 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public MerchantDTO create(CreateMerchantDTO dto) {
+        // 子户校验
+        if (dto.getMerchantType() != null && dto.getMerchantType() == 2) {
+            // 子户必须指定母户
+            if (dto.getParentId() == null) {
+                throw new BusinessException(ResultCode.FAIL.getCode(), "子户必须指定母户");
+            }
+            // 校验母户存在且为母户类型
+            LzljMerchant parentMerchant = merchantDao.selectById(dto.getParentId());
+            if (parentMerchant == null) {
+                throw new BusinessException(ResultCode.DATA_NOT_FOUND, "母户不存在");
+            }
+            if (parentMerchant.getMerchantType() == null || parentMerchant.getMerchantType() != 1) {
+                throw new BusinessException(ResultCode.FAIL.getCode(), "指定的母户不是母户类型");
+            }
+            // 子户必须指定场景
+            if (dto.getScenarioId() == null) {
+                throw new BusinessException(ResultCode.FAIL.getCode(), "子户必须指定业务场景");
+            }
+            // 校验场景存在
+            LzljScenario scenario = scenarioDao.selectById(dto.getScenarioId());
+            if (scenario == null) {
+                throw new BusinessException(ResultCode.DATA_NOT_FOUND, "业务场景不存在");
+            }
+        }
+
         LzljMerchant merchant = new LzljMerchant();
         BeanUtils.copyProperties(dto, merchant);
         merchant.setMerchantCode(generateMerchantCode());
         merchant.setStatus(1);
-        // 默认设置为母户类型
-        if (merchant.getMerchantType() == null) {
-            merchant.setMerchantType(1);
+        // 设置场景codes（母户）
+        if (dto.getScenarioCodes() != null && !dto.getScenarioCodes().isEmpty()) {
+            merchant.setScenarioCodes(toJsonString(dto.getScenarioCodes()));
         }
         merchantDao.insert(merchant);
+
+        // 保存法人信息
+        saveMerchantLegal(merchant.getId(), dto.getLegal());
+
+        // 保存银联账户
+        saveMerchantChannelAccounts(merchant.getId(), dto.getChannelAccounts());
 
         // 创建结算信息（空）
         LzljSettlementInfo settlement = new LzljSettlementInfo();
@@ -110,11 +157,15 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         settlement.setStatus(1);
         settlementDao.insert(settlement);
 
-        // 创建母户机构
-        LzljOrg org = createMerchantOrg(merchant, dto.getScenarioIds());
+        // 子户才创建机构
+        Long orgId = null;
+        if (merchant.getMerchantType() == 2) {
+            LzljOrg org = createMerchantOrg(merchant, dto.getParentId(), dto.getScenarioId());
+            orgId = org.getId();
+        }
 
         MerchantDTO result = convertToMerchantDTO(merchant);
-        result.setOrgId(org.getId());
+        result.setOrgId(orgId);
         return result;
     }
 
@@ -153,21 +204,30 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         if (dto.getAddress() != null) {
             merchant.setAddress(dto.getAddress());
         }
-        if (dto.getLicenseNo() != null) {
-            merchant.setLicenseNo(dto.getLicenseNo());
-        }
-        if (dto.getLegalPerson() != null) {
-            merchant.setLegalPerson(dto.getLegalPerson());
-        }
         if (dto.getStatus() != null) {
             merchant.setStatus(dto.getStatus());
+        }
+        if (dto.getScenarioCodes() != null) {
+            merchant.setScenarioCodes(toJsonString(dto.getScenarioCodes()));
+        }
+        if (dto.getScenarioId() != null) {
+            merchant.setScenarioId(dto.getScenarioId());
         }
 
         merchantDao.updateById(merchant);
 
-        // 更新业务场景
-        if (dto.getScenarioIds() != null) {
-            updateOrgScenarios(id, dto.getScenarioIds());
+        // 更新法人信息
+        if (dto.getLegal() != null) {
+            saveMerchantLegal(id, dto.getLegal());
+        }
+
+        // 更新银联账户
+        if (dto.getChannelAccounts() != null) {
+            // 先删除旧的，再保存新的
+            LambdaQueryWrapper<LzljMerchantChannelAccount> delWrapper = new LambdaQueryWrapper<>();
+            delWrapper.eq(LzljMerchantChannelAccount::getMerchantId, id);
+            merchantChannelAccountDao.delete(delWrapper);
+            saveMerchantChannelAccounts(id, dto.getChannelAccounts());
         }
     }
 
@@ -187,6 +247,16 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         settlementWrapper.eq(LzljSettlementInfo::getMerchantId, id);
         settlementDao.delete(settlementWrapper);
 
+        // 软删除法人信息
+        LambdaQueryWrapper<LzljMerchantLegal> legalWrapper = new LambdaQueryWrapper<>();
+        legalWrapper.eq(LzljMerchantLegal::getMerchantId, id);
+        merchantLegalDao.delete(legalWrapper);
+
+        // 软删除银联账户
+        LambdaQueryWrapper<LzljMerchantChannelAccount> channelWrapper = new LambdaQueryWrapper<>();
+        channelWrapper.eq(LzljMerchantChannelAccount::getMerchantId, id);
+        merchantChannelAccountDao.delete(channelWrapper);
+
         // 软删除商户用户关联
         LambdaQueryWrapper<LzljMerchantUser> userWrapper = new LambdaQueryWrapper<>();
         userWrapper.eq(LzljMerchantUser::getMerchantId, id);
@@ -202,15 +272,44 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
 
         MerchantDTO dto = convertToMerchantDTO(merchant);
 
-        // 查询母户机构
+        // 查询商户机构
         LambdaQueryWrapper<LzljOrg> orgWrapper = new LambdaQueryWrapper<>();
         orgWrapper.eq(LzljOrg::getMerchantId, id)
-                  .eq(LzljOrg::getOrgType, 1) // 母户
                   .eq(LzljOrg::getDeleted, 0);
         LzljOrg org = orgDao.selectOne(orgWrapper);
         if (org != null) {
             dto.setOrgId(org.getId());
-            dto.setScenarioIds(parseScenarioIds(org.getScenarioIds()));
+        }
+
+        // 查询法人信息
+        LambdaQueryWrapper<LzljMerchantLegal> legalWrapper = new LambdaQueryWrapper<>();
+        legalWrapper.eq(LzljMerchantLegal::getMerchantId, id)
+                   .eq(LzljMerchantLegal::getDeleted, 0);
+        LzljMerchantLegal legal = merchantLegalDao.selectOne(legalWrapper);
+        if (legal != null) {
+            MerchantLegalDTO legalDTO = new MerchantLegalDTO();
+            BeanUtils.copyProperties(legal, legalDTO);
+            dto.setLegal(legalDTO);
+        }
+
+        // 查询银联账户
+        LambdaQueryWrapper<LzljMerchantChannelAccount> channelWrapper = new LambdaQueryWrapper<>();
+        channelWrapper.eq(LzljMerchantChannelAccount::getMerchantId, id)
+                     .eq(LzljMerchantChannelAccount::getDeleted, 0);
+        List<LzljMerchantChannelAccount> channelAccounts = merchantChannelAccountDao.selectList(channelWrapper);
+        if (channelAccounts != null && !channelAccounts.isEmpty()) {
+            dto.setChannelAccounts(channelAccounts.stream().map(ca -> {
+                MerchantChannelAccountDTO caDTO = new MerchantChannelAccountDTO();
+                BeanUtils.copyProperties(ca, caDTO);
+                // 查询渠道名称
+                if (ca.getChannelId() != null) {
+                    LzljScenario channel = scenarioDao.selectById(ca.getChannelId());
+                    if (channel != null) {
+                        caDTO.setChannelName(channel.getScenarioName());
+                    }
+                }
+                return caDTO;
+            }).collect(Collectors.toList()));
         }
 
         return dto;
@@ -350,25 +449,111 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
             return new ArrayList<>();
         }
 
-        return parseScenarioIds(topOrg.getScenarioIds());
+        return topOrg.getScenarioId() != null ? Collections.singletonList(topOrg.getScenarioId()) : new ArrayList<>();
     }
 
     // ==================== 私有方法 ====================
 
     /**
+     * 保存商户法人信息
+     */
+    private void saveMerchantLegal(Long merchantId, MerchantLegalDTO legalDTO) {
+        if (legalDTO == null) {
+            return;
+        }
+        // 先删除旧的
+        LambdaQueryWrapper<LzljMerchantLegal> delWrapper = new LambdaQueryWrapper<>();
+        delWrapper.eq(LzljMerchantLegal::getMerchantId, merchantId);
+        merchantLegalDao.delete(delWrapper);
+
+        // 新增
+        LzljMerchantLegal legal = new LzljMerchantLegal();
+        BeanUtils.copyProperties(legalDTO, legal);
+        legal.setId(null); // 确保ID为null，由数据库生成
+        legal.setMerchantId(merchantId); // 在copyProperties之后设置
+        legal.setStatus(1);
+        merchantLegalDao.insert(legal);
+    }
+
+    /**
+     * 保存商户银联账户
+     */
+    private void saveMerchantChannelAccounts(Long merchantId, List<MerchantChannelAccountDTO> channelAccounts) {
+        if (channelAccounts == null || channelAccounts.isEmpty()) {
+            return;
+        }
+        // 先删除旧的
+        LambdaQueryWrapper<LzljMerchantChannelAccount> delWrapper = new LambdaQueryWrapper<>();
+        delWrapper.eq(LzljMerchantChannelAccount::getMerchantId, merchantId);
+        merchantChannelAccountDao.delete(delWrapper);
+
+        // 新增
+        for (MerchantChannelAccountDTO caDTO : channelAccounts) {
+            LzljMerchantChannelAccount ca = new LzljMerchantChannelAccount();
+            BeanUtils.copyProperties(caDTO, ca);
+            ca.setId(null); // 确保ID为null，由数据库生成
+            ca.setMerchantId(merchantId); // 在copyProperties之后设置
+            ca.setStatus(1);
+            merchantChannelAccountDao.insert(ca);
+        }
+    }
+
+    /**
+     * 从同步DTO更新商户
+     */
+    private void updateMerchantFromSync(LzljMerchant merchant, SyncMerchantDTO dto) {
+        if (StringUtils.hasText(dto.getMerchantName())) {
+            merchant.setMerchantName(dto.getMerchantName());
+        }
+        if (dto.getShortName() != null) {
+            merchant.setShortName(dto.getShortName());
+        }
+        if (dto.getContact() != null) {
+            merchant.setContact(dto.getContact());
+        }
+        if (dto.getContactPhone() != null) {
+            merchant.setContactPhone(dto.getContactPhone());
+        }
+        if (dto.getContactEmail() != null) {
+            merchant.setContactEmail(dto.getContactEmail());
+        }
+        if (dto.getProvinceCode() != null) {
+            merchant.setProvinceCode(dto.getProvinceCode());
+        }
+        if (dto.getCityCode() != null) {
+            merchant.setCityCode(dto.getCityCode());
+        }
+        if (dto.getDistrictCode() != null) {
+            merchant.setDistrictCode(dto.getDistrictCode());
+        }
+        if (dto.getAddress() != null) {
+            merchant.setAddress(dto.getAddress());
+        }
+        if (dto.getScenarioCodes() != null) {
+            merchant.setScenarioCodes(toJsonString(dto.getScenarioCodes()));
+        }
+        merchant.setStatus(1);
+
+        // 更新法人信息
+        saveMerchantLegal(merchant.getId(), dto.getLegal());
+
+        // 更新银联账户
+        if (dto.getChannelAccounts() != null) {
+            LambdaQueryWrapper<LzljMerchantChannelAccount> delWrapper = new LambdaQueryWrapper<>();
+            delWrapper.eq(LzljMerchantChannelAccount::getMerchantId, merchant.getId());
+            merchantChannelAccountDao.delete(delWrapper);
+            saveMerchantChannelAccounts(merchant.getId(), dto.getChannelAccounts());
+        }
+    }
+
+    /**
      * 创建商户对应的机构
      */
-    private LzljOrg createMerchantOrg(LzljMerchant merchant, List<Long> scenarioIds) {
+    private LzljOrg createMerchantOrg(LzljMerchant merchant, Long parentMerchantId, Long scenarioId) {
         LzljOrg org = new LzljOrg();
         org.setOrgCode("ORG-" + merchant.getMerchantCode());
         org.setOrgName(merchant.getMerchantName());
-        // 机构类型跟随商户类型：1=母户商户→母户机构, 2=子户商户→子户机构
-        org.setOrgType(merchant.getMerchantType() != null ? merchant.getMerchantType() : 1);
-        org.setParentId(0L);
-        org.setLevel(1);
-        org.setLevelPath("/");
         org.setMerchantId(merchant.getId());
-        org.setScenarioIds(JSON.toJSONString(scenarioIds));
         org.setProvinceCode(merchant.getProvinceCode());
         org.setCityCode(merchant.getCityCode());
         org.setDistrictCode(merchant.getDistrictCode());
@@ -377,28 +562,38 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         org.setContactPhone(merchant.getContactPhone());
         org.setStatus(1);
 
+        if (merchant.getMerchantType() == 1) {
+            // 母户：作为根节点
+            org.setOrgType(2);  // 账户级别
+            org.setParentId(0L);
+            org.setLevel(1);
+            org.setLevelPath("/");
+        } else {
+            // 子户：挂在场景机构下
+            org.setOrgType(2);  // 账户级别
+            org.setScenarioId(scenarioId);
+
+            // 查找场景机构作为父节点
+            LambdaQueryWrapper<LzljOrg> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(LzljOrg::getScenarioId, scenarioId)
+                   .eq(LzljOrg::getMerchantId, parentMerchantId)
+                   .eq(LzljOrg::getDeleted, 0);
+            LzljOrg parentOrg = orgDao.selectOne(wrapper);
+            if (parentOrg == null) {
+                throw new BusinessException(ResultCode.DATA_NOT_FOUND, "未找到对应的场景机构");
+            }
+            org.setParentId(parentOrg.getId());
+            org.setLevel(parentOrg.getLevel() + 1);
+            org.setLevelPath(parentOrg.getLevelPath());
+        }
+
         orgDao.insert(org);
 
         // 回填 level_path
-        org.setLevelPath("/" + org.getId() + "/");
+        org.setLevelPath(org.getLevelPath() + org.getId() + "/");
         orgDao.updateById(org);
 
         return org;
-    }
-
-    /**
-     * 更新母户机构的业务场景
-     */
-    private void updateOrgScenarios(Long merchantId, List<Long> scenarioIds) {
-        LambdaQueryWrapper<LzljOrg> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LzljOrg::getMerchantId, merchantId)
-               .eq(LzljOrg::getOrgType, 1)
-               .eq(LzljOrg::getDeleted, 0);
-        LzljOrg org = orgDao.selectOne(wrapper);
-        if (org != null) {
-            org.setScenarioIds(JSON.toJSONString(scenarioIds));
-            orgDao.updateById(org);
-        }
     }
 
     /**
@@ -427,24 +622,16 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         return org.getId();
     }
 
-    /**
-     * 解析场景ID列表
-     */
-    private List<Long> parseScenarioIds(String scenarioIds) {
-        if (!StringUtils.hasText(scenarioIds)) {
-            return new ArrayList<>();
-        }
-        try {
-            return JSON.parseArray(scenarioIds, Long.class);
-        } catch (Exception e) {
-            log.warn("解析scenario_ids失败: {}", scenarioIds);
-            return new ArrayList<>();
-        }
-    }
-
     private MerchantDTO convertToMerchantDTO(LzljMerchant merchant) {
         MerchantDTO dto = new MerchantDTO();
         BeanUtils.copyProperties(merchant, dto);
+
+        // 解析 scenarioCodes（存储为逗号分隔字符串）
+        if (StringUtils.hasText(merchant.getScenarioCodes())) {
+            List<String> scenarioCodes = Arrays.asList(merchant.getScenarioCodes().split(","));
+            dto.setScenarioCodes(scenarioCodes);
+        }
+
         return dto;
     }
 
@@ -452,5 +639,12 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
         SettlementInfoDTO dto = new SettlementInfoDTO();
         BeanUtils.copyProperties(settlement, dto);
         return dto;
+    }
+
+    private String toJsonString(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        return String.join(",", list);
     }
 }

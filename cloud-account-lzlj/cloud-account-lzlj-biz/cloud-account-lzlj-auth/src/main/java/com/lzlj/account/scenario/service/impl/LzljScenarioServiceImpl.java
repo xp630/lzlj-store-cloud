@@ -17,6 +17,8 @@ import com.lzlj.account.scenario.dto.UpdateScenarioDTO;
 import com.lzlj.account.scenario.entity.LzljScenario;
 import com.lzlj.account.scenario.entity.LzljScenarioChannel;
 import com.lzlj.account.scenario.service.LzljScenarioService;
+import com.lzlj.account.user.dao.LzljOrgDao;
+import com.lzlj.account.user.entity.LzljOrg;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +41,7 @@ public class LzljScenarioServiceImpl implements LzljScenarioService {
     private final LzljScenarioDao scenarioDao;
     private final LzljScenarioChannelDao scenarioChannelDao;
     private final LzljMerchantDao merchantDao;
+    private final LzljOrgDao orgDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -72,6 +75,37 @@ public class LzljScenarioServiceImpl implements LzljScenarioService {
         }
         scenarioDao.insert(scenario);
 
+        // 查找母户机构作为父节点
+        LambdaQueryWrapper<LzljOrg> orgWrapper = new LambdaQueryWrapper<>();
+        orgWrapper.eq(LzljOrg::getMerchantId, merchant.getId())
+                 .eq(LzljOrg::getDeleted, 0);
+        LzljOrg parentOrg = orgDao.selectOne(orgWrapper);
+
+        // 同步创建机构（挂在母户机构下）
+        LzljOrg org = new LzljOrg();
+        org.setOrgCode(scenario.getScenarioCode());
+        org.setOrgName(scenario.getScenarioName());
+        org.setOrgType(1);  // 1:总部级别（业务场景）
+        org.setMerchantId(merchant.getId());
+        org.setScenarioId(scenario.getId());
+        org.setStatus(1);
+        org.setSort(scenario.getSort());
+
+        if (parentOrg != null) {
+            org.setParentId(parentOrg.getId());
+            org.setLevel(parentOrg.getLevel() + 1);
+            org.setLevelPath(parentOrg.getLevelPath());
+        } else {
+            org.setParentId(0L);
+            org.setLevel(1);
+            org.setLevelPath("/");
+        }
+        orgDao.insert(org);
+
+        // 回填 level_path
+        org.setLevelPath(org.getLevelPath() + org.getId() + "/");
+        orgDao.updateById(org);
+
         // 保存场景与通道关联
         saveScenarioChannels(scenario.getId(), dto.getChannelIds());
 
@@ -102,6 +136,18 @@ public class LzljScenarioServiceImpl implements LzljScenarioService {
             scenario.setStatus(dto.getStatus());
         }
         scenarioDao.updateById(scenario);
+
+        // 同步更新机构名称
+        LambdaQueryWrapper<LzljOrg> orgWrapper = new LambdaQueryWrapper<>();
+        orgWrapper.eq(LzljOrg::getScenarioId, id);
+        LzljOrg org = orgDao.selectOne(orgWrapper);
+        if (org != null) {
+            if (StringUtils.hasText(dto.getScenarioName())) {
+                org.setOrgName(dto.getScenarioName());
+            }
+            org.setSort(scenario.getSort());
+            orgDao.updateById(org);
+        }
 
         // 更新场景与通道关联
         if (dto.getChannelIds() != null) {

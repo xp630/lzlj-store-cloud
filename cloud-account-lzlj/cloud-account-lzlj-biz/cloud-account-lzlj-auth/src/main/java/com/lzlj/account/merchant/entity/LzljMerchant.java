@@ -2,14 +2,16 @@ package com.lzlj.account.merchant.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.lzlj.account.common.core.domain.BaseEntity;
-import com.lzlj.account.common.core.enums.MerchantAccountStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("lzlj_auth_merchant")
-public class LzljMerchant extends  BaseEntity{
+public class LzljMerchant extends BaseEntity {
+
     /**
      * 商户编号 M-001
      */
@@ -61,16 +63,6 @@ public class LzljMerchant extends  BaseEntity{
     private String address;
 
     /**
-     * 营业执照号
-     */
-    private String licenseNo;
-
-    /**
-     * 法人代表
-     */
-    private String legalPerson;
-
-    /**
      * 状态 0:禁用 1:启用
      */
     private Integer status;
@@ -86,7 +78,22 @@ public class LzljMerchant extends  BaseEntity{
     private Integer merchantType;
 
     /**
+     * 母商户ID（子户时必填）
+     */
+    private Long parentId;
+
+    /**
      * 网商商户账号
      */
     private String wangshangAccount;
+
+    /**
+     * 业务场景代码列表（母户用，JSON数组）
+     */
+    private String scenarioCodes;
+
+    /**
+     * 业务场景ID（子户用）
+     */
+    private Long scenarioId;
 }

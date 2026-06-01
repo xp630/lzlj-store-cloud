@@ -32,9 +32,9 @@ public class LzljOrgDTO {
     private Long merchantId;
 
     /**
-     * 业务场景ID列表（从顶层母户继承）
+     * 业务场景ID
      */
-    private List<Long> scenarioIds;
+    private Long scenarioId;
 
     /**
      * 子机构列表（用于树形结构）

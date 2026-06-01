@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="drawio-skill" version="21.0.0" type="device">
+  <diagram name="Database ER Diagram" id="er-diagram">
+    <mxGraphModel dx="1800" dy="1200"
+                   grid="1" gridSize="10"
+                   guides="1" tooltips="1" connect="1"
+                   arrows="1" fold="1"
+                   page="1" pageScale="1"
+                   pageWidth="2200" pageHeight="1600"
+                   math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== TITLE ==================== -->
+        <mxCell id="title-1" value="SaaS Auth 数据库 E-R 图"
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#333333;"
+                vertex="1" parent="1">
+          <mxGeometry x="800" y="30" width="400" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== LEGEND ==================== -->
+        <mxCell id="legend-bg" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#cccccc;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-pk" value="PK - 主键"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;"
+                vertex="1" parent="1">
+          <mxGeometry x="75" y="100" width="80" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-fk" value="FK - 外键"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#0066cc;"
+                vertex="1" parent="1">
+          <mxGeometry x="75" y="125" width="80" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-line" value="— — —  多对一关系"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;"
+                vertex="1" parent="1">
+          <mxGeometry x="75" y="150" width="160" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SECTION: 认证核心 (左侧) ==================== -->
+        <!-- Section Label -->
+        <mxCell id="section-auth" value="认证核心"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;verticalAlign=middle;align=center;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="100" height="900" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SECTION: 业务扩展 (右侧) ==================== -->
+        <mxCell id="section-biz" value="业务扩展"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1;verticalAlign=middle;align=center;"
+                vertex="1" parent="1">
+          <mxGeometry x="1300" y="200" width="100" height="900" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SECTION: 日志 (中间) ==================== -->
+        <mxCell id="section-log" value="日志"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=16;fontStyle=1;verticalAlign=middle;align=center;"
+                vertex="1" parent="1">
+          <mxGeometry x="1100" y="200" width="100" height="500" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_tenant (租户表) ==================== -->
+        <mxCell id="table-tenant" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="180" y="220" width="220" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="table-tenant-header" value="saas_auth_tenant&#xa;租户表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="180" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-tenant-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-tenant-uk" value="UK  tenant_code (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="300" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-tenant-cols" value="tenant_name (VARCHAR)&#xa;tenant_desc (VARCHAR)&#xa;status (TINYINT)&#xa;expire_time (DATETIME)&#xa;contact (VARCHAR)&#xa;contact_phone (VARCHAR)&#xa;contact_email (VARCHAR)&#xa;package_id (BIGINT)&#xa;user_limit (INT)&#xa;logo (VARCHAR)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="325" width="210" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_user (用户表) ==================== -->
+        <mxCell id="table-user" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="180" y="580" width="220" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-header" value="saas_auth_user&#xa;用户表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="180" y="580" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="635" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-uk" value="UK  username (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="660" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-fk" value="FK  tenant_id (BIGINT) → tenant"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="685" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-cols" value="password, salt (VARCHAR)&#xa;real_name, phone, email&#xa;avatar, gender (TINYINT)&#xa;status, user_type&#xa;last_login_ip&#xa;last_login_time (BIGINT)&#xa;wx_openid, wx_ma_openid&#xa;org_id (BIGINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="185" y="710" width="210" height="165" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_role (角色表) ==================== -->
+        <mxCell id="table-role" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="480" y="220" width="220" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-header" value="saas_auth_role&#xa;角色表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="480" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-uk" value="UK  role_code (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="300" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-cols" value="role_name (VARCHAR)&#xa;description (VARCHAR)&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="325" width="210" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_menu (菜单表) ==================== -->
+        <mxCell id="table-menu" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="480" y="460" width="220" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="table-menu-header" value="saas_auth_menu&#xa;菜单表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="480" y="460" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-menu-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="515" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-menu-fk" value="FK  parent_id (BIGINT) → menu.id&#xa;     (自关联)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="540" width="210" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="table-menu-cols" value="name (VARCHAR)&#xa;path, component (VARCHAR)&#xa;icon (VARCHAR)&#xa;sort (INT)&#xa;type (TINYINT)&#xa;permission (VARCHAR)&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="485" y="575" width="210" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_user_role (用户角色关联表) ==================== -->
+        <mxCell id="table-user-role" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="780" y="220" width="220" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-role-header" value="saas_auth_user_role&#xa;用户角色关联表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="780" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-role-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-role-uk" value="UK  (user_id, role_id)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="300" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-role-fk" value="FK  user_id (BIGINT) → user&#xa;FK  role_id (BIGINT) → role"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="325" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="table-user-role-cols" value="create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="365" width="210" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_role_menu (角色菜单关联表) ==================== -->
+        <mxCell id="table-role-menu" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="780" y="440" width="220" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-menu-header" value="saas_auth_role_menu&#xa;角色菜单关联表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c8ebf;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="780" y="440" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-menu-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="495" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-menu-uk" value="UK  (role_id, menu_id)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="520" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-menu-fk" value="FK  role_id (BIGINT) → role&#xa;FK  menu_id (BIGINT) → menu"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="545" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="table-role-menu-cols" value="create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="785" y="585" width="210" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== LOG TABLES ==================== -->
+
+        <!-- ==================== TABLE: saas_auth_operation_log ==================== -->
+        <mxCell id="table-op-log" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1130" y="220" width="220" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="table-op-log-header" value="saas_auth_operation_log&#xa;操作日志表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6b656;strokeColor=#d6b656;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1130" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-op-log-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1135" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-op-log-cols" value="user_id (BIGINT)&#xa;tenant_id (BIGINT)&#xa;username (VARCHAR)&#xa;module (VARCHAR)&#xa;operation (VARCHAR)&#xa;content (VARCHAR)&#xa;biz_id (BIGINT)&#xa;ip (VARCHAR)&#xa;user_agent (VARCHAR)&#xa;create_time (DATETIME)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1135" y="300" width="210" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_api_log ==================== -->
+        <mxCell id="table-api-log" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1130" y="460" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-log-header" value="saas_auth_api_log&#xa;API访问日志表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d6b656;strokeColor=#d6b656;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1130" y="460" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-log-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1135" y="515" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-log-cols" value="api_key_id (BIGINT)&#xa;api_key (VARCHAR)&#xa;tenant_id (BIGINT)&#xa;method (VARCHAR)&#xa;path (VARCHAR)&#xa;request_body (TEXT)&#xa;response_body (TEXT)&#xa;status_code (INT)&#xa;duration (INT)&#xa;ip, user_agent&#xa;error_msg (VARCHAR)&#xa;create_time (DATETIME)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1135" y="540" width="210" height="155" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== BUSINESS TABLES ==================== -->
+
+        <!-- ==================== TABLE: saas_auth_api_key ==================== -->
+        <mxCell id="table-api-key" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="220" width="220" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-key-header" value="saas_auth_api_key&#xa;API密钥表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#82b366;strokeColor=#82b366;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-key-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-key-uk" value="UK  api_key (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="300" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-key-fk" value="FK  tenant_id (BIGINT) → tenant"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="325" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-api-key-cols" value="api_secret (VARCHAR)&#xa;name (VARCHAR)&#xa;description (VARCHAR)&#xa;status (TINYINT)&#xa;rate_limit (INT)&#xa;expires_time (DATETIME)&#xa;last_used_time&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="350" width="210" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_merchant_merchant ==================== -->
+        <mxCell id="table-merchant" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1700" y="220" width="220" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="table-merchant-header" value="saas_merchant_merchant&#xa;商户表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#82b366;strokeColor=#82b366;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1700" y="220" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-merchant-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="275" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-merchant-uk" value="UK  merchant_code (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="300" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-merchant-fk" value="FK  tenant_id (BIGINT) → tenant"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#0066cc;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="325" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-merchant-cols" value="org_id (BIGINT)&#xa;merchant_name (VARCHAR)&#xa;short_name (VARCHAR)&#xa;contact, contact_phone&#xa;contact_email, address&#xa;license_no, legal_person&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="350" width="210" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_payment_channel ==================== -->
+        <mxCell id="table-payment" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="490" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="table-payment-header" value="saas_auth_payment_channel&#xa;支付通道表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#82b366;strokeColor=#82b366;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="490" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-payment-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="545" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-payment-uk" value="UK  channel_code (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="570" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-payment-cols" value="channel_name (VARCHAR)&#xa;payment_method (VARCHAR)&#xa;cloud_account_fee&#xa;upstream_cost_fee&#xa;total_fee_cost&#xa;per_transaction_limit&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="595" width="210" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_data_dictionary ==================== -->
+        <mxCell id="table-dict" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1700" y="490" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="table-dict-header" value="saas_auth_data_dictionary&#xa;数据字典表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#82b366;strokeColor=#82b366;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1700" y="490" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-dict-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="545" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-dict-uk" value="UK  dict_code (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="570" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-dict-cols" value="dict_type (VARCHAR)&#xa;dict_label (VARCHAR)&#xa;dict_value (VARCHAR)&#xa;sort (INT)&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1705" y="595" width="210" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== TABLE: saas_auth_system_parameter ==================== -->
+        <mxCell id="table-sys-param" value=""
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;strokeWidth=2;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="750" width="220" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="table-sys-param-header" value="saas_auth_system_parameter&#xa;系统参数表"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#82b366;strokeColor=#82b366;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;fontColor=#ffffff;"
+                vertex="1" parent="1">
+          <mxGeometry x="1420" y="750" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="table-sys-param-pk" value="PK  id (BIGINT)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="805" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-sys-param-uk" value="UK  param_key (VARCHAR)"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="830" width="210" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="table-sys-param-cols" value="param_name (VARCHAR)&#xa;param_value (VARCHAR)&#xa;param_type (VARCHAR)&#xa;status (TINYINT)&#xa;create_time, update_time&#xa;deleted, remark, version"
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;spacingLeft=10;"
+                vertex="1" parent="1">
+          <mxGeometry x="1425" y="855" width="210" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== RELATIONSHIP LINES ==================== -->
+
+        <!-- User → Tenant (tenant_id) -->
+        <mxCell id="rel-user-tenant" value="N:1"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-user" target="table-tenant">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="170" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- UserRole → User (user_id) -->
+        <mxCell id="rel-ur-user" value=""
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-user-role" target="table-user">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- UserRole → Role (role_id) -->
+        <mxCell id="rel-ur-role" value=""
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-user-role" target="table-role">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RoleMenu → Role (role_id) -->
+        <mxCell id="rel-rm-role" value=""
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-role-menu" target="table-role">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RoleMenu → Menu (menu_id) -->
+        <mxCell id="rel-rm-menu" value=""
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-role-menu" target="table-menu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Menu self-reference (parent_id) -->
+        <mxCell id="rel-menu-self" value="自关联&#xa;parent_id → id"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-menu" target="table-menu">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="460" />
+              <mxPoint x="720" y="420" />
+              <mxPoint x="590" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ApiKey → Tenant (tenant_id) -->
+        <mxCell id="rel-apikey-tenant" value="N:1"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-api-key" target="table-tenant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Merchant → Tenant (tenant_id) -->
+        <mxCell id="rel-merchant-tenant" value="N:1"
+                style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;fontSize=11;fontColor=#0066cc;strokeColor=#0066cc;"
+                edge="1" parent="1" source="table-merchant" target="table-tenant">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1420" y="345" />
+              <mxPoint x="1420" y="500" />
+              <mxPoint x="400" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -24,7 +24,7 @@ public class LzljOrg extends BaseEntity {
     private String orgName;
 
     /**
-     * 组织类型 1:总代理 2:省代 3:市代 4:门店
+     * 组织类型 1:总部级别 2:账户级别
      */
     private Integer orgType;
 
@@ -89,7 +89,7 @@ public class LzljOrg extends BaseEntity {
     private Long merchantId;
 
     /**
-     * 业务场景ID列表 (JSON数组)
+     * 关联业务场景ID
      */
-    private String scenarioIds;
+    private Long scenarioId;
 }

@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("saas_merchant_merchant")
+@TableName("saas_auth_merchant")
 public class Merchant extends TenantEntity {
 
     /**
@@ -49,22 +49,12 @@ public class Merchant extends TenantEntity {
     private String address;
 
     /**
-     * 营业执照号
+     * 支付渠道账号
      */
-    private String licenseNo;
-
-    /**
-     * 法人代表
-     */
-    private String legalPerson;
+    private String wangshangAccount;
 
     /**
      * 状态 0:禁用 1:启用
      */
     private Integer status;
-
-    /**
-     * 备注
-     */
-    private String remark;
 }

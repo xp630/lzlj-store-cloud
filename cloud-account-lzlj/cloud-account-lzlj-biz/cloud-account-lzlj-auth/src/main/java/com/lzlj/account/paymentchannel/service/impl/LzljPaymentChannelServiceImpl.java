@@ -81,11 +81,13 @@ public class LzljPaymentChannelServiceImpl implements LzljPaymentChannelService 
 
     @Override
     public void syncFromExternal() {
-        // TODO: 从网商等外部系统同步支付通道数据
-        // 1. 调用外部API获取通道列表
+        // TODO: 从SaaS同步支付通道数据
+        // SaaS是支付通道配置的源头，LZLJ通过此方法同步
+        // 实现时需要：
+        // 1. 调用SaaS支付通道列表接口
         // 2. 遍历数据，根据channelCode判断是新增还是更新
         // 3. 幂等处理：已存在的根据channelCode更新，不存在的插入
-        log.info("同步支付通道数据（待实现）");
+        log.info("同步支付通道数据（待实现，需调用SaaS API）");
     }
 
     private LzljPaymentChannelDTO convertToDTO(LzljPaymentChannel channel) {
