@@ -27,6 +27,16 @@ public class LzljOrgDTO {
     private Integer sort;
 
     /**
+     * 关联商户ID
+     */
+    private Long merchantId;
+
+    /**
+     * 业务场景ID列表（从顶层母户继承）
+     */
+    private List<Long> scenarioIds;
+
+    /**
      * 子机构列表（用于树形结构）
      */
     private List<LzljOrgDTO> children;

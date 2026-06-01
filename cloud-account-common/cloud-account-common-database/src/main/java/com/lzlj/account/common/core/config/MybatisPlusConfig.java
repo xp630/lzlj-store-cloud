@@ -45,6 +45,15 @@ public class MybatisPlusConfig {
 
                     @Override
                     public boolean ignoreTable(String tableName) {
+                        // 硬编码忽略的表（这些表没有 tenant_id 列）
+                        if (tableName.startsWith("lzlj_auth_merchant") ||
+                            tableName.startsWith("lzlj_auth_org") ||
+                            tableName.startsWith("lzlj_auth_scenario") ||
+                            tableName.startsWith("lzlj_auth_payment_channel") ||
+                            tableName.equals("lzlj_auth_operation_log") ||
+                            tableName.equals("lzlj_auth_api_log")) {
+                            return true;
+                        }
                         // 使用 EntityTableScanner 判断表是否需要租户隔离
                         // 如果实体类继承 TenantEntity → 需要租户隔离
                         // 如果实体类只继承 BaseEntity（无 tenantId 字段）→ 跳过租户隔离

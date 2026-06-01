@@ -82,4 +82,14 @@ public class LzljOrg extends BaseEntity {
      * 排序
      */
     private Integer sort;
+
+    /**
+     * 关联商户ID
+     */
+    private Long merchantId;
+
+    /**
+     * 业务场景ID列表 (JSON数组)
+     */
+    private String scenarioIds;
 }

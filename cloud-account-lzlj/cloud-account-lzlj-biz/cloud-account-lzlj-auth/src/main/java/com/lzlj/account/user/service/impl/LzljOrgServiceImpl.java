@@ -1,5 +1,6 @@
 package com.lzlj.account.user.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
@@ -175,6 +176,45 @@ public class LzljOrgServiceImpl implements LzljOrgService {
     private LzljOrgDTO convertToDTO(LzljOrg org) {
         LzljOrgDTO dto = new LzljOrgDTO();
         BeanUtils.copyProperties(org, dto);
+
+        // 解析业务场景ID列表
+        if (StringUtils.hasText(org.getScenarioIds())) {
+            try {
+                dto.setScenarioIds(JSON.parseArray(org.getScenarioIds(), Long.class));
+            } catch (Exception e) {
+                log.warn("解析scenario_ids失败: {}", org.getScenarioIds());
+            }
+        }
+
+        // 如果是子机构，从顶层母户获取业务场景
+        if (org.getMerchantId() == null && org.getParentId() != null && org.getParentId() != 0) {
+            Long topOrgId = getTopOrgId(org);
+            if (!topOrgId.equals(org.getId())) {
+                LzljOrg topOrg = orgDao.selectById(topOrgId);
+                if (topOrg != null && StringUtils.hasText(topOrg.getScenarioIds())) {
+                    try {
+                        dto.setScenarioIds(JSON.parseArray(topOrg.getScenarioIds(), Long.class));
+                    } catch (Exception e) {
+                        log.warn("解析顶层母户scenario_ids失败: {}", topOrg.getScenarioIds());
+                    }
+                }
+            }
+        }
+
         return dto;
+    }
+
+    /**
+     * 获取顶层机构ID
+     */
+    private Long getTopOrgId(LzljOrg org) {
+        String path = org.getLevelPath();
+        if (StringUtils.hasText(path)) {
+            String[] parts = path.split("/");
+            if (parts.length > 1) {
+                return Long.parseLong(parts[1]);
+            }
+        }
+        return org.getId();
     }
 }
