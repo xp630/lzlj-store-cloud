@@ -49,7 +49,7 @@ LZLJ 需要通过 OpenAPI 调用 SaaS，但目前 OpenAPI 接口路径不完整�
 
 1. **创建 OpenAPI Controller** - 封装需要对外暴露的接口
 2. **验证租户隔离** - 确保 OpenAPI 调用时 tenantId 正确传递
-3. **修复 ignoreInsert 逻辑** - 解决 `tenant_id = tenant_id` 问题
+3. **~~修复 ignoreInsert 逻辑~~** ✅ 已修复 - `ignoreInsert` 返回 `true`，由 MetaObjectHandler 填充 tenant_id
 
 ## Related
 
