@@ -22,5 +22,6 @@
         <module>cloud-account-common-oss</module>
         <module>cloud-account-common-rpc</module>
         <module>cloud-account-common-redis</module>
+        <module>cloud-account-common-schedule</module>
     </modules>
 </project>
