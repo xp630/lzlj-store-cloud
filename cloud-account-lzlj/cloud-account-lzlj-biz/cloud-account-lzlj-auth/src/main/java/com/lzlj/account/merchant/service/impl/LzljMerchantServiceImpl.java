@@ -65,7 +65,7 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     public MerchantDTO syncMerchant(SyncMerchantDTO dto) {
         // 如果有 merchantCode，先从 SaaS 获取最新数据
         if (StringUtils.hasText(dto.getMerchantCode())) {
-            Result<MerchantDTO> saasResult = saasApiClient.getMerchantByCode(dto.getMerchantCode(), MerchantDTO.class);
+            Result<MerchantDTO> saasResult = saasApiClient.getMerchantByCode(dto.getMerchantCode());
             if (saasResult.isSuccess() && saasResult.getData() != null) {
                 MerchantDTO saasData = saasResult.getData();
                 log.info("从 SaaS 获取商户成功: merchantCode={}, name={}",
@@ -497,43 +497,106 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
 
     @Override
     public int syncAllFromSaas(String keyword) {
-        log.info("从 SaaS 批量同步母户: keyword={}", keyword);
+        log.info("从 SaaS 全量同步母户: keyword={}", keyword);
 
-        int totalSynced = 0;
+        // 1. 从 SaaS 获取所有母户（status=null 获取全部状态）
+        List<String> saasMerchantCodes = new ArrayList<>();
         int pageNum = 1;
         int pageSize = 100;
 
         while (true) {
-            // 调用 SaaS 分页查询
-            Result<Map> pageResult = saasApiClient.getMerchants(pageNum, pageSize, keyword, 1);
+            Result<PageResult<MerchantDTO>> pageResult = saasApiClient.getMerchants(pageNum, pageSize, keyword, null);
             if (!pageResult.isSuccess()) {
                 log.error("从 SaaS 查询商户失败: pageNum={}, error={}", pageNum, pageResult.getMessage());
                 break;
             }
 
-            Map<String, Object> data = pageResult.getData();
-            if (data == null) {
+            PageResult<MerchantDTO> pageData = pageResult.getData();
+            if (pageData == null || pageData.getRecords() == null || pageData.getRecords().isEmpty()) {
                 break;
             }
 
-            // 解析分页结果
-            Object recordsObj = data.get("records");
-            if (recordsObj == null) {
+            for (MerchantDTO record : pageData.getRecords()) {
+                if (StringUtils.hasText(record.getMerchantCode())) {
+                    saasMerchantCodes.add(record.getMerchantCode());
+                }
+            }
+
+            log.info("从 SaaS 第 {} 页获取 {} 条商户（累计 {} 条）", pageNum, pageData.getRecords().size(), saasMerchantCodes.size());
+
+            // 检查是否还有下一页
+            if (pageData.getCurrent() * pageData.getSize() >= pageData.getTotal()) {
+                break;
+            }
+            pageNum++;
+        }
+
+        log.info("从 SaaS 共获取 {} 个商户编码", saasMerchantCodes.size());
+
+        // 2. 查询本地所有未删除的母户
+        LambdaQueryWrapper<LzljMerchant> localWrapper = new LambdaQueryWrapper<>();
+        localWrapper.eq(LzljMerchant::getDeleted, 0)
+                    .eq(LzljMerchant::getMerchantType, 1); // 只同步母户
+        List<LzljMerchant> localMerchants = merchantDao.selectList(localWrapper);
+
+        // 3. 找出本地有但 SaaS 没有的商户，执行软删除
+        int deletedCount = 0;
+        for (LzljMerchant localMerchant : localMerchants) {
+            if (!saasMerchantCodes.contains(localMerchant.getMerchantCode())) {
+                log.info("删除商户（软删除）: merchantCode={}", localMerchant.getMerchantCode());
+                localMerchant.setDeleted(1);
+                merchantDao.updateById(localMerchant);
+
+                // 软删除关联的结算信息
+                LambdaQueryWrapper<LzljSettlementInfo> settlementWrapper = new LambdaQueryWrapper<>();
+                settlementWrapper.eq(LzljSettlementInfo::getMerchantId, localMerchant.getId());
+                List<LzljSettlementInfo> settlements = settlementDao.selectList(settlementWrapper);
+                for (LzljSettlementInfo s : settlements) {
+                    s.setDeleted(1);
+                    settlementDao.updateById(s);
+                }
+
+                // 软删除法人信息
+                LambdaQueryWrapper<LzljMerchantLegal> legalWrapper = new LambdaQueryWrapper<>();
+                legalWrapper.eq(LzljMerchantLegal::getMerchantId, localMerchant.getId());
+                List<LzljMerchantLegal> legals = merchantLegalDao.selectList(legalWrapper);
+                for (LzljMerchantLegal l : legals) {
+                    l.setDeleted(1);
+                    merchantLegalDao.updateById(l);
+                }
+
+                // 软删除银联账户
+                LambdaQueryWrapper<LzljMerchantChannelAccount> channelWrapper = new LambdaQueryWrapper<>();
+                channelWrapper.eq(LzljMerchantChannelAccount::getMerchantId, localMerchant.getId());
+                List<LzljMerchantChannelAccount> channels = merchantChannelAccountDao.selectList(channelWrapper);
+                for (LzljMerchantChannelAccount c : channels) {
+                    c.setDeleted(1);
+                    merchantChannelAccountDao.updateById(c);
+                }
+
+                deletedCount++;
+            }
+        }
+
+        // 4. 重新从 SaaS 获取数据进行 UPSERT
+        int upsertCount = 0;
+        pageNum = 1;
+
+        while (true) {
+            Result<PageResult<MerchantDTO>> pageResult = saasApiClient.getMerchants(pageNum, pageSize, keyword, null);
+            if (!pageResult.isSuccess()) {
+                log.error("从 SaaS 同步时查询商户失败: pageNum={}, error={}", pageNum, pageResult.getMessage());
                 break;
             }
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> records = (List<Map<String, Object>>) recordsObj;
-            if (records == null || records.isEmpty()) {
+            PageResult<MerchantDTO> pageData = pageResult.getData();
+            if (pageData == null || pageData.getRecords() == null || pageData.getRecords().isEmpty()) {
                 break;
             }
 
-            log.info("从 SaaS 第 {} 页获取 {} 条商户", pageNum, records.size());
-
-            // 逐个同步
-            for (Map<String, Object> record : records) {
-                String merchantCode = (String) record.get("merchantCode");
-                if (merchantCode == null || merchantCode.isEmpty()) {
+            for (MerchantDTO record : pageData.getRecords()) {
+                String merchantCode = record.getMerchantCode();
+                if (!StringUtils.hasText(merchantCode)) {
                     continue;
                 }
                 try {
@@ -541,34 +604,21 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
                     syncDto.setMerchantCode(merchantCode);
                     syncDto.setMerchantType(1); // 母户
                     syncMerchant(syncDto);
-                    totalSynced++;
+                    upsertCount++;
                 } catch (Exception e) {
                     log.error("同步商户失败: merchantCode={}", merchantCode, e);
                 }
             }
 
             // 检查是否还有下一页
-            Object totalObj = data.get("total");
-            Object currentObj = data.get("current");
-            Object sizeObj = data.get("size");
-
-            if (totalObj == null || currentObj == null || sizeObj == null) {
+            if (pageData.getCurrent() * pageData.getSize() >= pageData.getTotal()) {
                 break;
             }
-
-            long total = ((Number) totalObj).longValue();
-            long current = ((Number) currentObj).longValue();
-            long size = ((Number) sizeObj).longValue();
-
-            if (current * size >= total) {
-                break;
-            }
-
             pageNum++;
         }
 
-        log.info("从 SaaS 批量同步完成: 共同步 {} 条商户", totalSynced);
-        return totalSynced;
+        log.info("从 SaaS 全量同步完成: 新增/更新 {} 条, 删除 {} 条", upsertCount, deletedCount);
+        return upsertCount;
     }
 
     // ==================== 私有方法 ====================

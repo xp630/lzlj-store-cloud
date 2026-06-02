@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lzlj.account.common.core.config.EntityTableScanner;
 import com.lzlj.account.common.core.tenant.TenantContext;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.expression.LongValue;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +34,8 @@ public class MybatisPlusConfig {
                 new TenantLineHandler() {
                     @Override
                     public Expression getTenantId() {
-                        // 返回租户ID列表达式
-                        return new Column("tenant_id");
+                        // 返回租户ID值，而非列表达式
+                        return new LongValue(TenantContext.getTenantId());
                     }
 
                     @Override

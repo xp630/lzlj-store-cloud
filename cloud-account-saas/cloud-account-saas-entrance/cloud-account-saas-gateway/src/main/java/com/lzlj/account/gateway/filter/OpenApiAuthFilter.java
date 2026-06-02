@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -30,7 +31,7 @@ import java.util.Base64;
 public class OpenApiAuthFilter implements GlobalFilter, Ordered {
 
     private static final String OPENAPI_PATH_PREFIX = "/openapi/";
-    private static final String OPENAPI_BACKEND_PATH_PREFIX = "/openapi";
+    private static final String OPENAPI_BACKEND_PATH_PREFIX = "/openapi/saas-auth";
     private static final String HEADER_USER_ID = "X-User-Id";
     private static final String HEADER_TENANT_ID = "X-Tenant-Id";
     private static final String HEADER_USERNAME = "X-Username";
@@ -94,16 +95,28 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange, ctx, "认证服务不可用");
         }
 
-        // 6. 调用 auth 服务查询认证信息并验签
-        Mono<ApiKeyAuthInfo> authMono = fetchAuthInfo(authServiceUrl, apiKey);
-        return authMono
-                .flatMap(authInfo -> {
-                    if (authInfo == null) {
-                        return unauthorized(exchange, ctx, "API Key 无效");
-                    }
-                    return verifyAndForward(exchange, authInfo, timestamp, signature, ctx, authServiceUrl);
+        // 6. 读取请求体（用于验签）
+        return DataBufferUtils.join(exchange.getRequest().getBody())
+                .map(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    DataBufferUtils.release(dataBuffer);
+                    return new String(bytes, StandardCharsets.UTF_8);
                 })
-                .onErrorResume(e -> unauthorized(exchange, ctx, "API Key 无效"));
+                .defaultIfEmpty("")
+                .flatMap(body -> {
+                    ctx.body = body;
+                    // 调用 auth 服务查询认证信息并验签
+                    Mono<ApiKeyAuthInfo> authMono = fetchAuthInfo(authServiceUrl, apiKey);
+                    return authMono
+                            .flatMap(authInfo -> {
+                                if (authInfo == null) {
+                                    return unauthorized(exchange, ctx, "API Key 无效");
+                                }
+                                return verifyAndForward(exchange, authInfo, timestamp, signature, ctx, authServiceUrl);
+                            })
+                            .onErrorResume(e -> unauthorized(exchange, ctx, "API Key 无效"));
+                });
     }
 
     /**
@@ -134,8 +147,10 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         // 解密 secret 并验签
         try {
             String secret = new String(Base64.getDecoder().decode(authInfo.getApiSecret()));
+            log.info("DEBUG Gateway 验签: timestamp={}, method={}, path={}, body={}, secret={}, signature={}, expire={}",
+                    timestamp, ctx.method, ctx.path, ctx.body, secret, signature, signatureExpireSeconds);
             boolean verified = SignatureUtils.verify(
-                    timestamp, ctx.method, ctx.path, null, secret, signature, signatureExpireSeconds);
+                    timestamp, ctx.method, ctx.path, ctx.body, secret, signature, signatureExpireSeconds);
 
             if (!verified) {
                 log.warn("OpenAPI 签名验证失败: apiKey={}, path={}", authInfo.getApiKey(), ctx.path);
@@ -179,11 +194,15 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         forwardingHeaders.remove("X-Forwarded-Port");
         forwardingHeaders.remove("X-Forwarded-Proto");
 
+        // 构建请求体
+        byte[] bodyBytes = ctx.body != null ? ctx.body.getBytes(StandardCharsets.UTF_8) : new byte[0];
+
         // 发送请求
         return webClientBuilder.build()
                 .method(exchange.getRequest().getMethod())
                 .uri(authServiceUrl + backendPath)
                 .headers(h -> h.putAll(forwardingHeaders))
+                .bodyValue(bodyBytes)
                 .retrieve()
                 .bodyToMono(byte[].class)
                 .flatMap(body -> {
@@ -253,6 +272,7 @@ public class OpenApiAuthFilter implements GlobalFilter, Ordered {
         final String userAgent;
         final long startTime;
         String apiKey;
+        String body;
 
         RequestContext(String method, String path, String ip, String userAgent) {
             this.method = method;

@@ -19,9 +19,6 @@ public class LzljPaymentChannelQueryDTO extends PageQueryDTO {
     @Schema(description = "通道名称")
     private String channelName;
 
-    @Schema(description = "通道类型")
-    private String channelType;
-
     @Schema(description = "状态")
     private Integer status;
 }

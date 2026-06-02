@@ -7,9 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 统一支付通道DTO（适用于LZLJ和SaaS平台）
- * SaaS端管理完整的费率配置（cloudAccountFee, upstreamCostFee, totalFeeCost）
- * LZLJ端通过同步获取基础费率信息（feeRate, minAmount, maxAmount）
+ * 统一支付通道DTO
  */
 @Data
 @Schema(description = "支付通道响应")
@@ -27,17 +25,20 @@ public class PaymentChannelDTO {
     @Schema(description = "支付方式（逗号分隔，如 WECHAT,ALIPAY）")
     private String paymentMethod;
 
-    @Schema(description = "费率")
-    private BigDecimal feeRate;
-
-    @Schema(description = "最低交易金额")
-    private BigDecimal minAmount;
-
-    @Schema(description = "最高交易金额")
-    private BigDecimal maxAmount;
-
     @Schema(description = "状态（0:禁用 1:启用）")
     private Integer status;
+
+    @Schema(description = "云账户管理费率")
+    private BigDecimal cloudAccountFee;
+
+    @Schema(description = "上游成本费率")
+    private BigDecimal upstreamCostFee;
+
+    @Schema(description = "总费率成本（技术服务费）")
+    private BigDecimal totalFeeCost;
+
+    @Schema(description = "单笔限额")
+    private BigDecimal perTransactionLimit;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

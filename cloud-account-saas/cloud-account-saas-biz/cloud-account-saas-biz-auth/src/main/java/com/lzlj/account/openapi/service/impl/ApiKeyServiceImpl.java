@@ -151,11 +151,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     public ApiKeyAuthDTO getAuthInfoByApiKey(String apiKey) {
         log.debug("查询API密钥认证信息（DB）: apiKey={}", apiKey);
 
-        LambdaQueryWrapper<ApiKey> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ApiKey::getApiKey, apiKey)
-               .eq(ApiKey::getStatus, 1)
-               .eq(ApiKey::getDeleted, 0);
-        ApiKey existKey = apiKeyDao.selectOne(wrapper);
+        // 使用绕过租户拦截的查询方法
+        ApiKey existKey = apiKeyDao.selectByApiKeyWithoutTenant(apiKey);
         if (existKey == null) {
             return null;
         }

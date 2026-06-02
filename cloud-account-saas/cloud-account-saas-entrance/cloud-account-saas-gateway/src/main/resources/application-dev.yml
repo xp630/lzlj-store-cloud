@@ -36,6 +36,12 @@ spring:
             - Path=/api/saas-auth/**
           filters:
             - StripPrefix=2
+        - id: auth-api-openapi
+          uri: lb://saas-auth
+          predicates:
+            - Path=/openapi/saas-auth/**
+          filters:
+            - StripPrefix=2
         - id: goods-api
           uri: lb://saas-goods
           predicates:

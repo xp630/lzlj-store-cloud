@@ -27,7 +27,8 @@ public interface LzljPaymentChannelService {
     List<LzljPaymentChannelDTO> listEnabled();
 
     /**
-     * 同步支付通道（从网商等外部系统同步）
+     * 同步支付通道（从 SaaS）
+     * @return 同步的记录数
      */
-    void syncFromExternal();
+    int syncFromSaas();
 }

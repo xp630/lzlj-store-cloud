@@ -41,10 +41,10 @@ public class LzljPaymentChannelController {
         return Result.success(paymentChannelService.listEnabled());
     }
 
-    @Operation(summary = "同步支付通道（从外部系统）")
+    @Operation(summary = "同步支付通道（从 SaaS）")
     @PostMapping("/sync")
-    public Result<Void> sync() {
-        paymentChannelService.syncFromExternal();
-        return Result.success();
+    public Result<Integer> sync() {
+        int count = paymentChannelService.syncFromSaas();
+        return Result.success(count);
     }
 }

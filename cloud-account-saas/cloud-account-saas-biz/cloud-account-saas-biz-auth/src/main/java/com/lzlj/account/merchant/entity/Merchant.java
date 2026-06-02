@@ -57,4 +57,8 @@ public class Merchant extends TenantEntity {
      * 状态 0:禁用 1:启用
      */
     private Integer status;
+    /**
+     * 0 母户，1 子户
+     */
+    private  Integer merchantType;
 }

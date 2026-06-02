@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.paymentchannel.PaymentChannelDTO;
+import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.config.SaaSApiClient;
 import com.lzlj.account.paymentchannel.dao.LzljPaymentChannelDao;
 import com.lzlj.account.paymentchannel.dto.LzljPaymentChannelDTO;
 import com.lzlj.account.paymentchannel.dto.LzljPaymentChannelQueryDTO;
@@ -15,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 public class LzljPaymentChannelServiceImpl implements LzljPaymentChannelService {
 
     private final LzljPaymentChannelDao paymentChannelDao;
+    private final SaaSApiClient saasApiClient;
 
     @Override
     public LzljPaymentChannelDTO getById(Long id) {
@@ -45,9 +50,6 @@ public class LzljPaymentChannelServiceImpl implements LzljPaymentChannelService 
         }
         if (StringUtils.hasText(query.getChannelName())) {
             wrapper.like(LzljPaymentChannel::getChannelName, query.getChannelName());
-        }
-        if (StringUtils.hasText(query.getChannelType())) {
-            wrapper.eq(LzljPaymentChannel::getChannelType, query.getChannelType());
         }
         if (query.getStatus() != null) {
             wrapper.eq(LzljPaymentChannel::getStatus, query.getStatus());
@@ -80,14 +82,97 @@ public class LzljPaymentChannelServiceImpl implements LzljPaymentChannelService 
     }
 
     @Override
-    public void syncFromExternal() {
-        // TODO: 从SaaS同步支付通道数据
-        // SaaS是支付通道配置的源头，LZLJ通过此方法同步
-        // 实现时需要：
-        // 1. 调用SaaS支付通道列表接口
-        // 2. 遍历数据，根据channelCode判断是新增还是更新
-        // 3. 幂等处理：已存在的根据channelCode更新，不存在的插入
-        log.info("同步支付通道数据（待实现，需调用SaaS API）");
+    public int syncFromSaas() {
+        log.info("从 SaaS 同步支付通道开始");
+
+        // 调用 SaaS 获取所有支付通道（不限制状态，获取全部）
+        Result<List<PaymentChannelDTO>> result = saasApiClient.listPaymentChannels(null);
+        if (!result.isSuccess()) {
+            log.error("从 SaaS 获取支付通道列表失败: code={}, message={}", result.getCode(), result.getMessage());
+            return 0;
+        }
+
+        List<PaymentChannelDTO> saasChannels = result.getData();
+        if (saasChannels == null) {
+            saasChannels = new ArrayList<>();
+        }
+
+        log.info("从 SaaS 获取到 {} 条支付通道", saasChannels.size());
+
+        // 1. 获取 SaaS 返回的所有 channelCode
+        List<String> saasChannelCodes = saasChannels.stream()
+                .map(PaymentChannelDTO::getChannelCode)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+
+        // 2. 查询本地所有未删除的通道
+        LambdaQueryWrapper<LzljPaymentChannel> localWrapper = new LambdaQueryWrapper<>();
+        localWrapper.eq(LzljPaymentChannel::getDeleted, 0);
+        List<LzljPaymentChannel> localChannels = paymentChannelDao.selectList(localWrapper);
+
+        // 3. 找出本地有但 SaaS 没有的通道，执行软删除
+        List<String> localChannelCodes = localChannels.stream()
+                .map(LzljPaymentChannel::getChannelCode)
+                .collect(Collectors.toList());
+        List<String> toDeleteCodes = localChannelCodes.stream()
+                .filter(code -> !saasChannelCodes.contains(code))
+                .collect(Collectors.toList());
+
+        int deletedCount = 0;
+        for (String deleteCode : toDeleteCodes) {
+            LambdaQueryWrapper<LzljPaymentChannel> delWrapper = new LambdaQueryWrapper<>();
+            delWrapper.eq(LzljPaymentChannel::getChannelCode, deleteCode)
+                      .eq(LzljPaymentChannel::getDeleted, 0);
+            LzljPaymentChannel toDelete = paymentChannelDao.selectOne(delWrapper);
+            if (toDelete != null) {
+                toDelete.setDeleted(1);
+                paymentChannelDao.updateById(toDelete);
+                log.info("删除支付通道（软删除）: channelCode={}", deleteCode);
+                deletedCount++;
+            }
+        }
+
+        // 4. UPSERT：存在则更新，不存在则新增
+        int upsertCount = 0;
+        for (PaymentChannelDTO saasChannel : saasChannels) {
+            String channelCode = saasChannel.getChannelCode();
+            if (!StringUtils.hasText(channelCode)) {
+                continue;
+            }
+
+            LambdaQueryWrapper<LzljPaymentChannel> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(LzljPaymentChannel::getChannelCode, channelCode)
+                   .eq(LzljPaymentChannel::getDeleted, 0);
+            LzljPaymentChannel existChannel = paymentChannelDao.selectOne(wrapper);
+
+            if (existChannel != null) {
+                // 更新
+                updateFromSaasData(existChannel, saasChannel);
+                paymentChannelDao.updateById(existChannel);
+                log.debug("更新支付通道: channelCode={}", channelCode);
+            } else {
+                // 新增
+                LzljPaymentChannel newChannel = new LzljPaymentChannel();
+                updateFromSaasData(newChannel, saasChannel);
+                paymentChannelDao.insert(newChannel);
+                log.debug("新增支付通道: channelCode={}", channelCode);
+            }
+            upsertCount++;
+        }
+
+        log.info("从 SaaS 同步支付通道完成: 新增/更新 {} 条, 删除 {} 条", upsertCount, deletedCount);
+        return upsertCount;
+    }
+
+    private void updateFromSaasData(LzljPaymentChannel channel, PaymentChannelDTO saasData) {
+        channel.setChannelCode(saasData.getChannelCode());
+        channel.setChannelName(saasData.getChannelName());
+        channel.setPaymentMethod(saasData.getPaymentMethod());
+        channel.setStatus(saasData.getStatus());
+        channel.setCloudAccountFee(saasData.getCloudAccountFee());
+        channel.setUpstreamCostFee(saasData.getUpstreamCostFee());
+        channel.setTotalFeeCost(saasData.getTotalFeeCost());
+        channel.setPerTransactionLimit(saasData.getPerTransactionLimit());
     }
 
     private LzljPaymentChannelDTO convertToDTO(LzljPaymentChannel channel) {

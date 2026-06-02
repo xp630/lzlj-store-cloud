@@ -6,16 +6,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * LZLJ 支付通道DTO
+ * LZLJ 支付通道DTO（复用 common-core 统一 DTO）
+ * @deprecated 直接使用 {@link PaymentChannelDTO}
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "支付通道详情")
 public class LzljPaymentChannelDTO extends PaymentChannelDTO {
-
-    @Schema(description = "通道类型")
-    private String channelType;
-
-    @Schema(description = "描述")
-    private String description;
+    // 字段已迁移至 common-core 的 PaymentChannelDTO，此 DTO 仅用于兼容
 }

@@ -1,11 +1,15 @@
 package com.lzlj.account.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.paymentchannel.PaymentChannelDTO;
 import com.lzlj.account.common.core.result.Result;
-import com.lzlj.account.common.core.util.CryptoUtils;
+import com.lzlj.account.common.core.utils.SignatureUtils;
+import com.lzlj.account.merchant.dto.MerchantDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -13,11 +17,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * SaaS 服务 HTTP 客户端
  * 用于 LZLJ 调用 SaaS 服务的 OpenAPI
+ * 统一使用 POST + JSON Body
  */
 @Slf4j
 @Component
@@ -35,46 +43,116 @@ public class SaaSApiClient {
     private static final String HEADER_TIMESTAMP = "X-Timestamp";
     private static final String HEADER_SIGNATURE = "X-Signature";
 
+    // ==================== 商户接口 ====================
+
     /**
-     * GET 请求
+     * 获取商户详情（ID）
      */
-    public <T> Result<T> get(String path, Class<T> responseType) {
-        return request(path, null, HttpMethod.GET, responseType);
+    public Result<MerchantDTO> getMerchantById(Long id) {
+        Map<String,Long> param = new HashMap<>();
+        param.put("id",id);
+        return post("/merchant/getById", param, MerchantDTO.class);
     }
 
     /**
-     * POST 请求
+     * 获取商户详情（编码）
      */
-    public <T> Result<T> post(String path, Object body, Class<T> responseType) {
-        return request(path, body, HttpMethod.POST, responseType);
+    public Result<MerchantDTO> getMerchantByCode(String merchantCode) {
+        Map<String,String> param = new HashMap<>();
+        param.put("merchantCode",merchantCode);
+        return post("/merchant/getByCode", param, MerchantDTO.class);
     }
 
     /**
-     * PUT 请求
+     * 分页查询商户
      */
-    public <T> Result<T> put(String path, Object body, Class<T> responseType) {
-        return request(path, body, HttpMethod.PUT, responseType);
+    public Result<PageResult<MerchantDTO>> getMerchants(Integer pageNum, Integer pageSize, String keyword, Integer status) {
+        Map<String, Object> body = buildMerchantPageBody(pageNum, pageSize, keyword, status);
+        return post("/merchant/page", body, new TypeReference<PageResult<MerchantDTO>>() {});
+    }
+
+    // ==================== 支付通道接口 ====================
+
+    /**
+     * 获取支付通道详情（ID）
+     */
+    public Result<PaymentChannelDTO> getPaymentChannelById(Long id) {
+        Map<String,Long> param = new HashMap<>();
+        param.put("id",id);
+        return post("/paymentChannel/getById", param, PaymentChannelDTO.class);
     }
 
     /**
-     * DELETE 请求
+     * 分页查询支付通道
      */
-    public <T> Result<T> delete(String path, Class<T> responseType) {
-        return request(path, null, HttpMethod.DELETE, responseType);
+    public Result<PageResult<PaymentChannelDTO>> getPaymentChannels(Integer pageNum, Integer pageSize, String channelName, Integer status) {
+        Map<String, Object> body = buildPaymentChannelPageBody(pageNum, pageSize, channelName, status);
+        return post("/paymentChannel/page", body, new TypeReference<PageResult<PaymentChannelDTO>>() {});
     }
 
     /**
-     * 通用请求方法
+     * 查询支付通道列表
      */
-    @SuppressWarnings("unchecked")
-    private <T> Result<T> request(String path, Object body, HttpMethod method, Class<T> responseType) {
+    public Result<List<PaymentChannelDTO>> listPaymentChannels(Integer status) {
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        if (status != null) {
+            body.put("status", status);
+        }
+        return post("/paymentChannel/list", body, new TypeReference<List<PaymentChannelDTO>>() {});
+    }
+
+    // ==================== 内部方法 ====================
+
+    private Map<String, Object> buildMerchantPageBody(Integer pageNum, Integer pageSize, String keyword, Integer status) {
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("pageNum", pageNum);
+        body.put("pageSize", pageSize);
+        if (keyword != null && !keyword.isEmpty()) {
+            body.put("keyword", keyword);
+        }
+        if (status != null) {
+            body.put("status", status);
+        }
+        return body;
+    }
+
+    private Map<String, Object> buildPaymentChannelPageBody(Integer pageNum, Integer pageSize, String channelName, Integer status) {
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("pageNum", pageNum);
+        body.put("pageSize", pageSize);
+        if (channelName != null && !channelName.isEmpty()) {
+            body.put("channelName", channelName);
+        }
+        if (status != null) {
+            body.put("status", status);
+        }
+        return body;
+    }
+
+    /**
+     * POST 请求（支持 Class 类型）
+     */
+    private <T> Result<T> post(String path, Object body, Class<T> responseType) {
+        return post(path, body, new TypeReference<T>() {
+            @Override
+            public java.lang.reflect.Type getType() {
+                return responseType;
+            }
+        });
+    }
+
+    /**
+     * POST 请求（支持 TypeReference 类型）
+     */
+    private <T> Result<T> post(String path, Object body, TypeReference<T> typeRef) {
         if (!config.isEnabled()) {
             log.warn("SaaS API 调用已禁用");
             return Result.fail("SaaS 服务未启用");
         }
 
-        String url = config.getBaseUrl() + "/saas-auth/openapi" + path;
-        log.info("调用 SaaS API: {} {}", method, url);
+        String url = config.getBaseUrl() + "/openapi/saas-auth/openapi" + path;
+        String fullPath = "/openapi/saas-auth/openapi" + path;
+        log.info("调用 SaaS API: POST {}", url);
 
         // 构建 headers
         HttpHeaders headers = new HttpHeaders();
@@ -82,7 +160,9 @@ public class SaaSApiClient {
 
         // 添加鉴权信息
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String signature = generateSignature(method.name(), path, timestamp);
+        String bodyStr = serializeBody(body);
+        String signature = generateSignature(fullPath, timestamp, bodyStr);
+        log.info("DEBUG 签名: path={}, timestamp={}, body={}, signature={}", fullPath, timestamp, bodyStr, signature);
 
         headers.add(HEADER_API_KEY, config.getApiKey());
         headers.add(HEADER_TIMESTAMP, timestamp);
@@ -93,7 +173,7 @@ public class SaaSApiClient {
         try {
             ResponseEntity<String> response = restTemplate.exchange(
                     url,
-                    method,
+                    HttpMethod.POST,
                     entity,
                     String.class
             );
@@ -112,8 +192,8 @@ public class SaaSApiClient {
 
             if (code != null && code == 200) {
                 // 成功响应，反序列化 data 字段
-                if (data != null && responseType != null) {
-                    T resultData = objectMapper.convertValue(data, responseType);
+                if (data != null) {
+                    T resultData = objectMapper.convertValue(data, typeRef);
                     return Result.success(message, resultData);
                 }
                 return Result.success(message, null);
@@ -122,45 +202,31 @@ public class SaaSApiClient {
             }
 
         } catch (RestClientException e) {
-            log.error("调用 SaaS API 网络异常: {} {}", method, url, e);
+            log.error("调用 SaaS API 网络异常: POST {}", url, e);
             return Result.fail("调用 SaaS 服务网络异常: " + e.getMessage());
         } catch (Exception e) {
-            log.error("调用 SaaS API 失败: {} {}", method, url, e);
+            log.error("调用 SaaS API 失败: POST {}", url, e);
             return Result.fail("调用 SaaS 服务异常: " + e.getMessage());
+        }
+    }
+
+    private String serializeBody(Object body) {
+        if (body == null) {
+            return "";
+        }
+        try {
+            return objectMapper.writeValueAsString(body);
+        } catch (Exception e) {
+            log.warn("序列化请求体失败", e);
+            return "";
         }
     }
 
     /**
      * 生成签名
-     * 签名算法：SHA256(apiKey + timestamp + secret)
      */
-    private String generateSignature(String method, String path, String timestamp) {
-        return CryptoUtils.generateSignature(config.getApiKey(), timestamp, config.getApiSecret());
-    }
-
-    /**
-     * 获取商户详情（根据编码）
-     */
-    public <T> Result<T> getMerchantByCode(String merchantCode, Class<T> responseType) {
-        return get("/merchant/code/" + merchantCode, responseType);
-    }
-
-    /**
-     * 分页查询商户
-     * @param pageNum 页码
-     * @param pageSize 每页数量
-     * @param keyword 关键字（可选，模糊搜索商户名称或编码）
-     * @param status 商户状态（可选）
-     */
-    @SuppressWarnings("unchecked")
-    public Result<Map> getMerchants(Integer pageNum, Integer pageSize, String keyword, Integer status) {
-        StringBuilder path = new StringBuilder("/merchant/page?pageNum=").append(pageNum).append("&pageSize=").append(pageSize);
-        if (keyword != null && !keyword.isEmpty()) {
-            path.append("&keyword=").append(keyword);
-        }
-        if (status != null) {
-            path.append("&status=").append(status);
-        }
-        return (Result<Map>) get(path.toString(), Map.class);
+    private String generateSignature(String path, String timestamp, String body) {
+        String secret = new String(Base64.getDecoder().decode(config.getApiSecret()));
+        return SignatureUtils.sign(Long.parseLong(timestamp), "POST", path, body, secret);
     }
 }
