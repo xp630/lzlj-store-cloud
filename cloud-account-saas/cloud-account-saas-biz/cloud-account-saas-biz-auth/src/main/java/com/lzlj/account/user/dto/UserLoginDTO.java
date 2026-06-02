@@ -22,6 +22,9 @@ public class UserLoginDTO {
     @Schema(description = "验证码（图片验证码模式必填）", example = "abcd")
     private String verifyCode;
 
+    @Schema(description = "短信验证码（双重验证模式必填）", example = "123456")
+    private String smsCode;
+
     @Schema(description = "租户ID（多租户模式必填）", example = "1")
     private Long tenantId;
 

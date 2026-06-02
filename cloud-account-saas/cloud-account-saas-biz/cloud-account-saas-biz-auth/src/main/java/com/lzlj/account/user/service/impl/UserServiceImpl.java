@@ -8,6 +8,9 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.sms.service.SmsCodeService;
+import com.lzlj.account.systemparameter.dto.SystemParameterDTO;
+import com.lzlj.account.systemparameter.service.SystemParameterService;
 import com.lzlj.account.user.dao.UserDao;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.User;
@@ -25,6 +28,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,6 +44,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final SmsCodeService smsCodeService;
+    private final SystemParameterService systemParameterService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -49,10 +55,12 @@ public class UserServiceImpl implements UserService {
 
     private static final String TOKEN_PREFIX = "token:";
     private static final String USER_INFO_PREFIX = "user:info:";
+    private static final String SMS_LOGIN_WHITELIST_KEY = "sms_login_whitelist";
+    private static final String BYPASS_CODE = "0000";
 
     @Override
     public String login(UserLoginDTO loginDTO) {
-        // 1. 查询用户
+        // 1. 查询用户 (username = phone)
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, loginDTO.getUsername())
                .eq(User::getDeleted, 0);
@@ -73,21 +81,48 @@ public class UserServiceImpl implements UserService {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // 4. 生成Token
+        // 4. 短信验证码双重验证
+        if (loginDTO.getSmsCode() != null && !loginDTO.getSmsCode().isEmpty()) {
+            // 检查是否在白名单中且使用绕过码
+            if (!isInWhitelist(user.getUsername()) || !BYPASS_CODE.equals(loginDTO.getSmsCode())) {
+                // 需要验证短信验证码
+                smsCodeService.verifyCode(user.getUsername(), loginDTO.getSmsCode(), "login");
+                // 验证通过，标记验证码已使用
+                smsCodeService.markAsUsed(user.getUsername(), loginDTO.getSmsCode(), "login");
+            }
+        }
+
+        // 5. 生成Token
         String token = generateToken(user);
 
-        // 5. 设置用户上下文
+        // 6. 设置用户上下文
         UserContext.setUserId(user.getId());
         UserContext.setUsername(user.getUsername());
 
-        // 6. 更新登录信息
+        // 7. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
         userDao.updateById(user);
 
-        // 6. 缓存用户信息
+        // 8. 缓存用户信息
         cacheUserInfo(user);
 
         return token;
+    }
+
+    /**
+     * 检查手机号是否在白名单中
+     */
+    private boolean isInWhitelist(String phone) {
+        try {
+            SystemParameterDTO param = systemParameterService.getByKey(SMS_LOGIN_WHITELIST_KEY);
+            if (param != null && param.getParamValue() != null && !param.getParamValue().isEmpty()) {
+                String[] whitelist = param.getParamValue().split(",");
+                return Arrays.asList(whitelist).contains(phone);
+            }
+        } catch (Exception e) {
+            log.warn("获取短信登录白名单失败: {}", e.getMessage());
+        }
+        return false;
     }
 
     @Override

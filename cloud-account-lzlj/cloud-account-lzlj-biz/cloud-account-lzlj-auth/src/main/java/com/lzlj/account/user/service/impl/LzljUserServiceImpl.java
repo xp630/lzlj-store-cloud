@@ -8,6 +8,9 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.sms.service.LzljSmsCodeService;
+import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
+import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
@@ -25,6 +28,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +44,8 @@ public class LzljUserServiceImpl implements LzljUserService {
 
     private final LzljUserDao userDao;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final LzljSmsCodeService smsCodeService;
+    private final LzljSystemParameterService systemParameterService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -49,6 +55,8 @@ public class LzljUserServiceImpl implements LzljUserService {
 
     private static final String TOKEN_PREFIX = "lzlj:token:";
     private static final String USER_INFO_PREFIX = "lzlj:user:info:";
+    private static final String SMS_LOGIN_WHITELIST_KEY = "sms_login_whitelist";
+    private static final String BYPASS_CODE = "0000";
 
     @Override
     public String login(LzljUserLoginDTO loginDTO) {
@@ -73,18 +81,27 @@ public class LzljUserServiceImpl implements LzljUserService {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // 4. 生成Token
+        // 4. 短信验证码二次验证
+        if (loginDTO.getSmsCode() != null && !loginDTO.getSmsCode().isEmpty()) {
+            // 白名单用户且验证码为0000时跳过验证
+            if (!isInWhitelist(user.getUsername()) || !BYPASS_CODE.equals(loginDTO.getSmsCode())) {
+                smsCodeService.verifyCode(user.getUsername(), loginDTO.getSmsCode(), "login");
+                smsCodeService.markAsUsed(user.getUsername(), loginDTO.getSmsCode(), "login");
+            }
+        }
+
+        // 5. 生成Token
         String token = generateToken(user);
 
-        // 5. 设置用户上下文
+        // 6. 设置用户上下文
         UserContext.setUserId(user.getId());
         UserContext.setUsername(user.getUsername());
 
-        // 6. 更新登录信息
+        // 7. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
         userDao.updateById(user);
 
-        // 7. 缓存用户信息
+        // 8. 缓存用户信息
         cacheUserInfo(user);
 
         return token;
@@ -286,5 +303,21 @@ public class LzljUserServiceImpl implements LzljUserService {
 
     private Long getCurrentUserId() {
         return UserContext.getUserId();
+    }
+
+    /**
+     * 检查手机号是否在短信登录白名单中
+     */
+    private boolean isInWhitelist(String phone) {
+        try {
+            LzljSystemParameterDTO param = systemParameterService.getByKey(SMS_LOGIN_WHITELIST_KEY);
+            if (param != null && param.getParamValue() != null && !param.getParamValue().isEmpty()) {
+                String[] whitelist = param.getParamValue().split(",");
+                return Arrays.asList(whitelist).contains(phone);
+            }
+        } catch (Exception e) {
+            log.warn("获取短信登录白名单失败: {}", e.getMessage());
+        }
+        return false;
     }
 }
