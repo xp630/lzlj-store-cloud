@@ -138,6 +138,7 @@
         <dependency>
             <groupId>com.lzlj.account</groupId>
             <artifactId>cloud-account-common-schedule</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Alibaba Cloud OSS -->
