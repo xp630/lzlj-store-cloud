@@ -49,11 +49,14 @@ public class SwaggerUiConfig {
 "    <script src=\"https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js\"></script>\n" +
 "    <script src=\"https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js\"></script>\n" +
 "    <script>\n" +
+"        // 获取当前页面的 origin\n" +
+"        var currentOrigin = window.location.origin;\n" +
+"        \n" +
 "        fetch('/v3/api-docs/services')\n" +
 "            .then(function(res){ return res.json(); })\n" +
 "            .then(function(data){\n" +
 "                var urls = data.services.map(function(s){\n" +
-"                    return { url: '/v3/api-docs/' + s, name: s };\n" +
+"                    return { url: currentOrigin + '/v3/api-docs/' + s, name: s };\n" +
 "                });\n" +
 "                window.ui = SwaggerUIBundle({\n" +
 "                    urls: urls,\n" +
@@ -70,7 +73,15 @@ public class SwaggerUiConfig {
 "                    docExpansion: \"list\",\n" +
 "                    filter: true,\n" +
 "                    showExtensions: true,\n" +
-"                    showCommonExtensions: true\n" +
+"                    showCommonExtensions: true,\n" +
+"                    // 请求拦截器，强制所有请求使用当前 origin\n" +
+"                    requestInterceptor: function(request) {\n" +
+"                        // 如果请求 URL 指向 localhost，替换为当前 origin\n" +
+"                        if (request.url.indexOf('localhost') !== -1) {\n" +
+"                            request.url = request.url.replace(/http:\\/\\/localhost:\\d+/, currentOrigin);\n" +
+"                        }\n" +
+"                        return request;\n" +
+"                    }\n" +
 "                });\n" +
 "            });\n" +
 "    </script>\n" +

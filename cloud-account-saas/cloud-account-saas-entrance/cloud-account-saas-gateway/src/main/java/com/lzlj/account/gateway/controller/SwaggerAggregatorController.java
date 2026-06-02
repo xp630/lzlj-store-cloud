@@ -48,7 +48,9 @@ public class SwaggerAggregatorController {
         if (scheme == null) {
             scheme = "http";
         }
-        String targetUrl = scheme + "://" + host + "/api/" + serviceLower + "/v3/api-docs";
+        String baseUrl = scheme + "://" + host;
+        String targetUrl = baseUrl + "/api/" + serviceLower + "/v3/api-docs";
+        String serverUrl = baseUrl + "/api/" + serviceLower;
 
         log.debug("获取 API Docs: service={}, url={}", serviceName, targetUrl);
 
@@ -59,8 +61,11 @@ public class SwaggerAggregatorController {
                 .bodyToMono(Map.class)
                 .flatMap(doc -> {
                     Map<String, Object> result = new HashMap<>(doc);
-                    result.put("paths", doc.get("paths"));
-                    result.remove("server");
+                    // 设置 servers 为网关地址数组（OpenAPI 3.0 规范）
+                    Map<String, Object> serverObj = new HashMap<>();
+                    serverObj.put("url", serverUrl);
+                    serverObj.put("description", "Gateway");
+                    result.put("servers", Collections.singletonList(serverObj));
                     return Mono.just(result);
                 })
                 .onErrorResume(e -> {
@@ -72,6 +77,10 @@ public class SwaggerAggregatorController {
                     info.put("description", "Service unavailable: " + e.getMessage());
                     emptyDoc.put("info", info);
                     emptyDoc.put("paths", Collections.emptyMap());
+                    Map<String, Object> serverObj = new HashMap<>();
+                    serverObj.put("url", serverUrl);
+                    serverObj.put("description", "Gateway");
+                    emptyDoc.put("servers", Collections.singletonList(serverObj));
                     return Mono.just(emptyDoc);
                 });
     }
@@ -115,12 +124,8 @@ public class SwaggerAggregatorController {
             }
             merged.put("paths", allPaths);
 
-            // 收集所有服务信息
-            Map<String, Object> servers = new HashMap<>();
-            for (String service : services) {
-                servers.put(service, baseUrl + "/api/" + service.toLowerCase());
-            }
-            merged.put("servers", servers);
+            // 设置 servers 为网关地址
+            merged.put("server", baseUrl);
 
             return merged;
         });
