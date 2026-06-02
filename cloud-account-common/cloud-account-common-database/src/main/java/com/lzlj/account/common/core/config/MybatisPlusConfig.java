@@ -61,12 +61,6 @@ public class MybatisPlusConfig {
                         return !EntityTableScanner.needTenant(tableName);
                     }
 
-                    @Override
-                    public boolean ignoreInsert(java.util.List<net.sf.jsqlparser.schema.Column> columns, String tenantIdColumn) {
-                        // 忽略INSERT，由MetaObjectHandler自动填充租户ID
-                        // MyBatis-Plus不会在INSERT语句中添加tenant_id列
-                        return true;
-                    }
                 }
         );
         interceptor.addInnerInterceptor(tenantInterceptor);

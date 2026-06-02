@@ -2,6 +2,8 @@ package com.lzlj.account.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.common.core.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,9 @@ public class SaaSApiClient {
     private final SaaSApiConfig config;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            .registerModule(new JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     private static final String HEADER_API_KEY = "X-API-Key";
     private static final String HEADER_TIMESTAMP = "X-Timestamp";
@@ -69,7 +73,7 @@ public class SaaSApiClient {
             return Result.fail("SaaS 服务未启用");
         }
 
-        String url = config.getBaseUrl() + "/openapi" + path;
+        String url = config.getBaseUrl() + "/saas-auth/openapi" + path;
         log.info("调用 SaaS API: {} {}", method, url);
 
         // 构建 headers

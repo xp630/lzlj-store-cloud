@@ -11,9 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class SaaSApiConfig {
 
     /**
-     * SaaS 服务基础地址（如：http://localhost:9092）
+     * SaaS 服务基础地址（通过网关调用）
      */
-    private String baseUrl;
+    private String baseUrl = "http://localhost:18080";
 
     /**
      * API Key（用于调用 SaaS OpenAPI）
