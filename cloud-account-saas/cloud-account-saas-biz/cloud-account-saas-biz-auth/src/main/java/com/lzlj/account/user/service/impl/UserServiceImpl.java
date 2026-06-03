@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
     private static final String TOKEN_PREFIX = "token:";
     private static final String USER_INFO_PREFIX = "user:info:";
     private static final String SMS_LOGIN_WHITELIST_KEY = "sms_login_whitelist";
-    private static final String BYPASS_CODE = "0000";
+    private static final String BYPASS_CODE = "000000";
 
     @Override
     public String login(UserLoginDTO loginDTO) {

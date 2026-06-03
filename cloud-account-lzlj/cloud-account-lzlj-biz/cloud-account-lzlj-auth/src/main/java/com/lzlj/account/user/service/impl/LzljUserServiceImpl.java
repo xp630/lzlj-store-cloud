@@ -56,7 +56,7 @@ public class LzljUserServiceImpl implements LzljUserService {
     private static final String TOKEN_PREFIX = "lzlj:token:";
     private static final String USER_INFO_PREFIX = "lzlj:user:info:";
     private static final String SMS_LOGIN_WHITELIST_KEY = "sms_login_whitelist";
-    private static final String BYPASS_CODE = "0000";
+    private static final String BYPASS_CODE = "000000";
 
     @Override
     public String login(LzljUserLoginDTO loginDTO) {
@@ -69,6 +69,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         if (user == null) {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
+
 
         // 2. 验证密码
         String encryptPassword = encryptPassword(loginDTO.getPassword(), user.getSalt());

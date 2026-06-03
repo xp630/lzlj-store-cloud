@@ -6,11 +6,14 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.sms.dao.LzljSmsCodeDao;
 import com.lzlj.account.sms.entity.LzljSmsCode;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
+import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
+import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Random;
 
 /**
@@ -22,6 +25,7 @@ import java.util.Random;
 public class LzljSmsCodeServiceImpl implements LzljSmsCodeService {
 
     private final LzljSmsCodeDao smsCodeDao;
+    private final LzljSystemParameterService systemParameterService;
 
     /**
      * 验证码有效期：5分钟
@@ -33,8 +37,21 @@ public class LzljSmsCodeServiceImpl implements LzljSmsCodeService {
      */
     private static final int CODE_LENGTH = 6;
 
+    /**
+     * 每日发送次数限制参数key
+     */
+    private static final String SMS_DAILY_LIMIT_KEY = "sms_send_daily_limit";
+
+    /**
+     * 默认每日限制次数
+     */
+    private static final int DEFAULT_DAILY_LIMIT = 5;
+
     @Override
     public String sendCode(String phone, String type) {
+        // 检查每日发送次数限制
+        checkDailyLimit(phone);
+
         // 生成6位数字验证码
         String code = generateCode();
         LocalDateTime now = LocalDateTime.now();
@@ -54,6 +71,41 @@ public class LzljSmsCodeServiceImpl implements LzljSmsCodeService {
 
         // TODO: 实际发送短信逻辑由第三方处理，这里仅记录验证码
         return code;
+    }
+
+    /**
+     * 检查每日发送次数限制
+     */
+    private void checkDailyLimit(String phone) {
+        int dailyLimit = getDailyLimit();
+        LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
+        LocalDateTime endOfDay = LocalDateTime.now().with(LocalTime.MAX);
+
+        LambdaQueryWrapper<LzljSmsCode> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(LzljSmsCode::getPhone, phone)
+               .eq(LzljSmsCode::getType, "login")
+               .ge(LzljSmsCode::getCreatedAt, startOfDay)
+               .le(LzljSmsCode::getCreatedAt, endOfDay);
+
+        long count = smsCodeDao.selectCount(wrapper);
+        if (count >= dailyLimit) {
+            throw new BusinessException(ResultCode.SMS_DAILY_LIMIT_EXCEEDED);
+        }
+    }
+
+    /**
+     * 获取每日发送次数限制
+     */
+    private int getDailyLimit() {
+        try {
+            LzljSystemParameterDTO param = systemParameterService.getByKey(SMS_DAILY_LIMIT_KEY);
+            if (param != null && param.getParamValue() != null && !param.getParamValue().isEmpty()) {
+                return Integer.parseInt(param.getParamValue());
+            }
+        } catch (Exception e) {
+            log.warn("获取短信每日发送限制失败，使用默认值: {}", e.getMessage());
+        }
+        return DEFAULT_DAILY_LIMIT;
     }
 
     @Override

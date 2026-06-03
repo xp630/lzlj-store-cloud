@@ -30,6 +30,7 @@ public enum ResultCode {
     DATA_ALREADY_EXISTS(1003, "数据已存在"),
     VERIFY_CODE_ERROR(1004, "验证码错误"),
     VERIFY_CODE_EXPIRED(1005, "验证码已过期"),
+    SMS_DAILY_LIMIT_EXCEEDED(1006, "今日发送次数已用完"),
 
     // 认证错误 2xxx
     TOKEN_INVALID(2001, "Token无效"),
