@@ -52,9 +52,9 @@ public class OssUploadService {
             throw new BusinessException(ResultCode.PARAM_ERROR, "文件大小超出限制");
         }
 
-        // 3. 生成文件路径: {type}/{tenantId}/{userId}/{uuid}.{ext}
+        // 3. 生成文件路径: {bizType}/{tenantId}/{userId}/{uuid}.{ext}
         String ext = getExtension(request.getFilename());
-        String objectName = buildObjectName(request.getType(), tenantId, userId, ext);
+        String objectName = buildObjectName(request.getBizType(), tenantId, userId, ext);
 
         // 4. 生成预签名URL
         String endpoint = props.getEndpoint().replace("https://", "").replace("http://", "");
@@ -90,14 +90,15 @@ public class OssUploadService {
     }
 
     /**
-     * 构建对象存储路径: {type}/{tenantId}/{userId}/{uuid}.{ext}
+     * 构建对象存储路径: {tenantId}/{bizType}/{yyyyMMdd}/{uuid}.{ext}
      */
-    private String buildObjectName(String type, Long tenantId, Long userId, String ext) {
+    private String buildObjectName(String bizType, Long tenantId, Long userId, String ext) {
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        return String.format("%s/%d/%d/%s.%s",
-                type != null ? type : "file",
+        String dateStr = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        return String.format("%d/%s/%s/%s.%s",
                 tenantId != null ? tenantId : 0,
-                userId != null ? userId : 0,
+                bizType != null ? bizType : "other",
+                dateStr,
                 uuid,
                 ext);
     }

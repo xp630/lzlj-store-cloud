@@ -28,8 +28,8 @@ public class UserAvatarController {
     @Operation(summary = "获取头像预签名上传URL")
     @PostMapping("/presigned-url")
     public Result<PresignedUrlResponse> getAvatarPresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
-        // 设置类型为 avatar
-        request.setType("avatar");
+        // 设置业务类型为头像
+        request.setBizType("avatar");
         Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
         return ossUploadFacade.generateUploadUrl(request, userId, 0L);
     }

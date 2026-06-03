@@ -6,7 +6,7 @@ import com.lzlj.account.common.oss.dto.PresignedUrlRequest;
 import com.lzlj.account.common.oss.dto.PresignedUrlResponse;
 import com.lzlj.account.common.oss.facade.OssUploadFacade;
 import com.lzlj.account.common.core.tenant.TenantContext;
-import com.lzlj.account.user.service.UserService;
+import com.lzlj.account.user.service.SaasUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +24,13 @@ import javax.validation.Valid;
 public class UserAvatarController {
 
     private final OssUploadFacade ossUploadFacade;
-    private final UserService userService;
+    private final SaasUserService userService;
 
     @Operation(summary = "获取头像预签名上传URL")
     @PostMapping("/presigned-url")
     public Result<PresignedUrlResponse> getAvatarPresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
-        // 设置类型为 avatar
-        request.setType("avatar");
+        // 设置业务类型为头像
+        request.setBizType("avatar");
         Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
         Long tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : 0L;
         return ossUploadFacade.generateUploadUrl(request, userId, tenantId);

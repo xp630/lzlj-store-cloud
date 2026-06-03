@@ -11,7 +11,6 @@ import com.lzlj.account.user.dto.UserRoleDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.service.SaasUserService;
 import com.lzlj.account.user.service.UserRoleService;
-import com.lzlj.account.user.service.UserService;
 import com.lzlj.account.user.service.impl.UserCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-public class UserController {
+public class SaasUserController {
 
     private final SaasUserService userService;
     private final UserRoleService userRoleService;

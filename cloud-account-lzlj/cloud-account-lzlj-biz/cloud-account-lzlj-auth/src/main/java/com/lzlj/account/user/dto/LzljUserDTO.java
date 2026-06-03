@@ -1,6 +1,7 @@
 package com.lzlj.account.user.dto;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 /**
  * LZLJ 用户DTO
@@ -18,4 +19,5 @@ public class LzljUserDTO {
     private Integer userType;
     private Long orgId;
     private Long lastLoginTime;
+    private LocalDateTime createTime;
 }

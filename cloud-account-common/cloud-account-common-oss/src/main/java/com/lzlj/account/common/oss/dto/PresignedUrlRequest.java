@@ -25,6 +25,6 @@ public class PresignedUrlRequest {
     @Schema(description = "文件大小（字节）")
     private Long size;
 
-    @Schema(description = "文件类型（avatar/file/goods）", example = "avatar")
-    private String type = "file";
+    @Schema(description = "业务类型：avatar=头像, license=营业执照, id_card=身份证, other=其他", example = "avatar")
+    private String bizType = "other";
 }
