@@ -28,9 +28,12 @@ public class LzljUserController {
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
-    public Result<Map<String, String>> login(@Valid @RequestBody LzljUserLoginDTO loginDTO) {
+    public Result<Map<String, Object>> login(@Valid @RequestBody LzljUserLoginDTO loginDTO) {
         String token = userService.login(loginDTO);
-        return Result.success(java.util.Collections.singletonMap("token", token));
+        Map<String, Object> data = new java.util.HashMap<>();
+        data.put("token", token);
+        data.put("loginType", loginDTO.getLoginType() == null ? 1 : loginDTO.getLoginType());
+        return Result.success(data);
     }
 
     @Operation(summary = "获取当前用户信息")

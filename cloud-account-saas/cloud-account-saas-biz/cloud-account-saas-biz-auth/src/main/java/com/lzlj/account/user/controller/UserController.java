@@ -8,7 +8,8 @@ import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.dto.UserRoleDTO;
-import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.entity.SaasUser;
+import com.lzlj.account.user.service.SaasUserService;
 import com.lzlj.account.user.service.UserRoleService;
 import com.lzlj.account.user.service.UserService;
 import com.lzlj.account.user.service.impl.UserCacheService;
@@ -30,15 +31,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final SaasUserService userService;
     private final UserRoleService userRoleService;
     private final UserCacheService userCacheService;
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
-    public Result<Map<String, String>> login(@Valid @RequestBody UserLoginDTO loginDTO) {
+    public Result<Map<String, Object>> login(@Valid @RequestBody UserLoginDTO loginDTO) {
         String token = userService.login(loginDTO);
-        return Result.success(java.util.Collections.singletonMap("token", token));
+        Map<String, Object> data = new java.util.HashMap<>();
+        data.put("token", token);
+        data.put("loginType", loginDTO.getLoginType() == null ? 1 : loginDTO.getLoginType());
+        return Result.success(data);
     }
 
     @Operation(summary = "获取当前用户信息")
@@ -65,13 +69,13 @@ public class UserController {
 
     @Operation(summary = "创建用户")
     @PostMapping
-    public Result<Long> create(@Valid @RequestBody User user) {
+    public Result<Long> create(@Valid @RequestBody SaasUser user) {
         return Result.success(userService.create(user));
     }
 
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody User user) {
+    public Result<Void> update(@PathVariable Long id, @RequestBody SaasUser user) {
         user.setId(id);
         userService.update(user);
         return Result.success();

@@ -60,16 +60,26 @@ public class LzljUserServiceImpl implements LzljUserService {
 
     @Override
     public String login(LzljUserLoginDTO loginDTO) {
-        // 1. 查询用户
-        LambdaQueryWrapper<LzljUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LzljUser::getUsername, loginDTO.getUsername())
-               .eq(LzljUser::getDeleted, 0);
-        LzljUser user = userDao.selectOne(wrapper);
+        LzljUser user;
 
-        if (user == null) {
-            throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+        // 1. 根据 loginType 判断登录方式
+        // loginType = 2 → 用户：手机号 + 密码 + 验证码
+        // 其他 → 管理员：用户名 + 密码
+        if (loginDTO.getLoginType() != null && loginDTO.getLoginType() == 2) {
+            // 普通用户：手机号 + 密码 + 短信验证码
+            user = userDao.selectByPhoneWithoutTenant(loginDTO.getUsername());
+            if (user == null) {
+                throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+            }
+            // 验证短信验证码
+            verifySmsCode(user.getPhone(), loginDTO.getSmsCode());
+        } else {
+            // 管理员：用户名 + 密码
+            user = userDao.selectByUsernameWithoutTenant(loginDTO.getUsername());
+            if (user == null) {
+                throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+            }
         }
-
 
         // 2. 验证密码
         String encryptPassword = encryptPassword(loginDTO.getPassword(), user.getSalt());
@@ -82,30 +92,38 @@ public class LzljUserServiceImpl implements LzljUserService {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // 4. 短信验证码二次验证
-        if (loginDTO.getSmsCode() != null && !loginDTO.getSmsCode().isEmpty()) {
-            // 白名单用户且验证码为0000时跳过验证
-            if (!isInWhitelist(user.getUsername()) || !BYPASS_CODE.equals(loginDTO.getSmsCode())) {
-                smsCodeService.verifyCode(user.getUsername(), loginDTO.getSmsCode(), "login");
-                smsCodeService.markAsUsed(user.getUsername(), loginDTO.getSmsCode(), "login");
-            }
-        }
-
-        // 5. 生成Token
+        // 4. 生成Token
         String token = generateToken(user);
 
-        // 6. 设置用户上下文
+        // 5. 设置用户上下文
         UserContext.setUserId(user.getId());
         UserContext.setUsername(user.getUsername());
 
-        // 7. 更新登录信息
+        // 6. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
         userDao.updateById(user);
 
-        // 8. 缓存用户信息
+        // 7. 缓存用户信息
         cacheUserInfo(user);
 
         return token;
+    }
+
+    /**
+     * 验证短信验证码（支持白名单绕过）
+     */
+    private void verifySmsCode(String phone, String smsCode) {
+        // 空验证码直接校验失败
+        if (smsCode == null || smsCode.isEmpty()) {
+            throw new AuthException(ResultCode.VERIFY_CODE_ERROR);
+        }
+        // 检查是否在白名单中且使用绕过码
+        if (!isInWhitelist(phone) || !BYPASS_CODE.equals(smsCode)) {
+            // 需要验证短信验证码
+            smsCodeService.verifyCode(phone, smsCode, "login");
+            // 验证通过，标记验证码已使用
+            smsCodeService.markAsUsed(phone, smsCode, "login");
+        }
     }
 
     @Override

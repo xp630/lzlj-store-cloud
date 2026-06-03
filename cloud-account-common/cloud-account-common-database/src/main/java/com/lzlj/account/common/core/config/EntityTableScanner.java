@@ -50,6 +50,10 @@ public class EntityTableScanner {
     private boolean isTenantEntity(Class<? extends BaseEntity> clazz) {
         // 检查是否继承自 TenantEntity
         if (TenantEntity.class.isAssignableFrom(clazz)) {
+            // 如果实体类有 @InterceptorIgnore 注解，则不需要租户隔离
+            if (clazz.isAnnotationPresent(com.baomidou.mybatisplus.annotation.InterceptorIgnore.class)) {
+                return false;
+            }
             return true;
         }
         // 备用：检查是否有 tenantId 字段
@@ -65,8 +69,11 @@ public class EntityTableScanner {
      * 判断表是否需要租户隔离
      */
     public static boolean needTenant(String tableName) {
-        // 未注册的表默认需要租户隔离（安全考虑）
-        return TABLE_NEED_TENANT.getOrDefault(tableName, true);
+        // 未注册的表默认不需要租户隔离（避免系统表被错误拦截）
+        if (!TABLE_NEED_TENANT.containsKey(tableName)) {
+            return false;
+        }
+        return TABLE_NEED_TENANT.get(tableName);
     }
 
     /**

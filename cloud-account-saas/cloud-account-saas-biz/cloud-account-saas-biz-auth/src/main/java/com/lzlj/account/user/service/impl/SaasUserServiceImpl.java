@@ -11,10 +11,10 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.sms.service.SmsCodeService;
 import com.lzlj.account.systemparameter.dto.SystemParameterDTO;
 import com.lzlj.account.systemparameter.service.SystemParameterService;
-import com.lzlj.account.user.dao.UserDao;
+import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dto.UserLoginDTO;
-import com.lzlj.account.user.entity.User;
-import com.lzlj.account.user.service.UserService;
+import com.lzlj.account.user.entity.SaasUser;
+import com.lzlj.account.user.service.SaasUserService;
 import com.lzlj.account.user.dto.UserDTO;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -40,9 +40,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class SaasUserServiceImpl implements SaasUserService {
 
-    private final UserDao userDao;
+    private final SaasUserDao userDao;
     private final RedisTemplate<String, Object> redisTemplate;
     private final SmsCodeService smsCodeService;
     private final SystemParameterService systemParameterService;
@@ -60,14 +60,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String login(UserLoginDTO loginDTO) {
-        // 1. 查询用户 (username = phone)
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, loginDTO.getUsername())
-               .eq(User::getDeleted, 0);
-        User user = userDao.selectOne(wrapper);
+        SaasUser user;
 
-        if (user == null) {
-            throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+        // 1. 根据 loginType 判断登录方式
+        // loginType = 1 → 管理员：用户名 + 密码
+        // loginType = 2 → 用户：手机号 + 密码 + 验证码
+        if (loginDTO.getLoginType() != null && loginDTO.getLoginType() == 2) {
+            // 普通用户：手机号 + 密码 + 短信验证码
+            user = userDao.selectByPhoneWithoutTenant(loginDTO.getUsername());
+            if (user == null) {
+                throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+            }
+            // 验证短信验证码
+            verifySmsCode(user.getPhone(), loginDTO.getSmsCode());
+        } else {
+            // 管理员：用户名 + 密码
+            user = userDao.selectByUsernameWithoutTenant(loginDTO.getUsername());
+            if (user == null) {
+                throw new AuthException(ResultCode.ACCOUNT_DISABLED);
+            }
         }
 
         // 2. 验证密码
@@ -81,18 +92,7 @@ public class UserServiceImpl implements UserService {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // 4. 短信验证码双重验证
-        if (loginDTO.getSmsCode() != null && !loginDTO.getSmsCode().isEmpty()) {
-            // 检查是否在白名单中且使用绕过码
-            if (!isInWhitelist(user.getUsername()) || !BYPASS_CODE.equals(loginDTO.getSmsCode())) {
-                // 需要验证短信验证码
-                smsCodeService.verifyCode(user.getUsername(), loginDTO.getSmsCode(), "login");
-                // 验证通过，标记验证码已使用
-                smsCodeService.markAsUsed(user.getUsername(), loginDTO.getSmsCode(), "login");
-            }
-        }
-
-        // 5. 生成Token
+        // 4. 生成Token
         String token = generateToken(user);
 
         // 6. 设置用户上下文
@@ -107,6 +107,23 @@ public class UserServiceImpl implements UserService {
         cacheUserInfo(user);
 
         return token;
+    }
+
+    /**
+     * 验证短信验证码（支持白名单绕过）
+     */
+    private void verifySmsCode(String phone, String smsCode) {
+        // 空验证码直接校验失败
+        if (smsCode == null || smsCode.isEmpty()) {
+            throw new AuthException(ResultCode.VERIFY_CODE_ERROR);
+        }
+        // 检查是否在白名单中且使用绕过码
+        if (!isInWhitelist(phone) || !BYPASS_CODE.equals(smsCode)) {
+            // 需要验证短信验证码
+            smsCodeService.verifyCode(phone, smsCode, "login");
+            // 验证通过，标记验证码已使用
+            smsCodeService.markAsUsed(phone, smsCode, "login");
+        }
     }
 
     /**
@@ -141,7 +158,7 @@ public class UserServiceImpl implements UserService {
             return cachedUser;
         }
 
-        User user = userDao.selectById(id);
+        SaasUser user = userDao.selectById(id);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -156,15 +173,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<User> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        Page<SaasUser> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
         wrapper
-               .like(keyword != null, User::getUsername, keyword)
-               .eq(status != null, User::getStatus, status)
-               .eq(User::getDeleted, 0)
-               .orderByDesc(User::getCreateTime);
+               .like(keyword != null, SaasUser::getUsername, keyword)
+               .eq(status != null, SaasUser::getStatus, status)
+               .eq(SaasUser::getDeleted, 0)
+               .orderByDesc(SaasUser::getCreateTime);
 
-        IPage<User> resultPage = userDao.selectPage(page, wrapper);
+        IPage<SaasUser> resultPage = userDao.selectPage(page, wrapper);
 
         return new PageResult<>(
                 resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
@@ -175,11 +192,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Long create(User user) {
+    public Long create(SaasUser user) {
         // 检查用户名唯一性
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, user.getUsername())
-               .eq(User::getDeleted, 0);
+        LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasUser::getUsername, user.getUsername())
+               .eq(SaasUser::getDeleted, 0);
         if (userDao.selectCount(wrapper) > 0) {
             throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS);
         }
@@ -195,8 +212,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void update(User user) {
-        User existUser = userDao.selectById(user.getId());
+    public void update(SaasUser user) {
+        SaasUser existUser = userDao.selectById(user.getId());
         if (existUser == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -210,7 +227,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
-        User user = userDao.selectById(id);
+        SaasUser user = userDao.selectById(id);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -222,7 +239,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -243,7 +260,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void resetPassword(Long userId, String newPassword) {
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -258,7 +275,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changeStatus(Long userId, Integer status) {
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -270,7 +287,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void bindWx(Long userId, String wxOpenid, String wxMaOpenid) {
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -283,7 +300,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateAvatar(Long userId, String avatar) {
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -295,7 +312,7 @@ public class UserServiceImpl implements UserService {
 
     // ========== 私有方法 ==========
 
-    private String generateToken(User user) {
+    private String generateToken(SaasUser user) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Date now = new Date();
         Date expiration = new Date(now.getTime() + jwtExpiration);
@@ -316,13 +333,13 @@ public class UserServiceImpl implements UserService {
         return token;
     }
 
-    private void cacheUserInfo(User user) {
+    private void cacheUserInfo(SaasUser user) {
         String cacheKey = USER_INFO_PREFIX + user.getId();
         UserDTO userVO = convertToDTO(user);
         redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
     }
 
-    private UserDTO convertToDTO(User user) {
+    private UserDTO convertToDTO(SaasUser user) {
         UserDTO vo = new UserDTO();
         BeanUtils.copyProperties(user, vo);
         return vo;

@@ -2,7 +2,7 @@ package com.lzlj.account.user.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.user.dto.UserLoginDTO;
-import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.dto.UserDTO;
 
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 用户服务接口
  */
-public interface UserService {
+public interface SaasUserService {
 
     /**
      * 用户登录
@@ -35,12 +35,12 @@ public interface UserService {
     /**
      * 创建用户
      */
-    Long create(User user);
+    Long create(SaasUser user);
 
     /**
      * 更新用户
      */
-    void update(User user);
+    void update(SaasUser user);
 
     /**
      * 删除用户
