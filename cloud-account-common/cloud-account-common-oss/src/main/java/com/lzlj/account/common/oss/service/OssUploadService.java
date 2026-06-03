@@ -90,17 +90,22 @@ public class OssUploadService {
     }
 
     /**
-     * 构建对象存储路径: {tenantId}/{bizType}/{yyyyMMdd}/{uuid}.{ext}
+     * 构建对象存储路径
+     * - tenantId > 0 时（SaaS）: {tenantId}/{bizType}/{yyyyMMdd}/{uuid}.{ext}
+     * - tenantId <= 0 时（LZLJ）: lzlj/{bizType}/{yyyyMMdd}/{uuid}.{ext}
      */
     private String buildObjectName(String bizType, Long tenantId, Long userId, String ext) {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String dateStr = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-        return String.format("%d/%s/%s/%s.%s",
-                tenantId != null ? tenantId : 0,
-                bizType != null ? bizType : "other",
-                dateStr,
-                uuid,
-                ext);
+        String bizTypePath = bizType != null ? bizType : "avatar";
+
+        if (tenantId != null && tenantId > 0) {
+            // SaaS: 租户隔离
+            return String.format("%d/%s/%s/%s.%s", tenantId, bizTypePath, dateStr, uuid, ext);
+        } else {
+            // LZLJ: 默认 lzlj 前缀
+            return String.format("lzlj/%s/%s/%s.%s", bizTypePath, dateStr, uuid, ext);
+        }
     }
 
     /**
