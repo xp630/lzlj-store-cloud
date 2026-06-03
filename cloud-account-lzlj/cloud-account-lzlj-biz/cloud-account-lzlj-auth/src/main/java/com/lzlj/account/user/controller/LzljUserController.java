@@ -26,7 +26,7 @@ public class LzljUserController {
 
     private final LzljUserService userService;
 
-    @Operation(summary = "用户登录")
+    @Operation(summary = "用户登录（loginType=1管理员/username，loginType=2用户/手机号+smsCode）")
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@Valid @RequestBody LzljUserLoginDTO loginDTO) {
         String token = userService.login(loginDTO);
