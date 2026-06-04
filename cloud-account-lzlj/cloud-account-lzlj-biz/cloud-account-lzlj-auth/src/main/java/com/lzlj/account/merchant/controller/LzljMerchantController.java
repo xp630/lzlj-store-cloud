@@ -1,5 +1,6 @@
 package com.lzlj.account.merchant.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.merchant.dto.*;
@@ -23,30 +24,35 @@ public class LzljMerchantController {
 
     private final LzljMerchantService merchantService;
 
+    @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "同步商户")
     @PostMapping("/sync")
     public Result<MerchantDTO> syncMerchant(@RequestBody SyncMerchantDTO dto) {
         return Result.success(merchantService.syncMerchant(dto));
     }
 
+    @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "商户分页列表")
     @GetMapping("/page")
     public Result<PageResult<MerchantDTO>> page(MerchantQueryDTO query) {
         return Result.success(merchantService.page(query));
     }
 
+    @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "获取商户详情")
     @GetMapping("/{id}")
     public Result<MerchantDTO> getById(@PathVariable Long id) {
         return Result.success(merchantService.getById(id));
     }
 
+    @SaCheckPermission("lzlj:merchant:create")
     @Operation(summary = "创建商户")
     @PostMapping
     public Result<MerchantDTO> create(@RequestBody @Valid CreateMerchantDTO dto) {
         return Result.success(merchantService.create(dto));
     }
 
+    @SaCheckPermission("lzlj:merchant:update")
     @Operation(summary = "更新商户")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody UpdateMerchantDTO dto) {
@@ -54,6 +60,7 @@ public class LzljMerchantController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:merchant:delete")
     @Operation(summary = "删除商户")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -61,12 +68,14 @@ public class LzljMerchantController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "获取结算信息")
     @GetMapping("/{id}/settlement")
     public Result<SettlementInfoDTO> getSettlement(@PathVariable Long id) {
         return Result.success(merchantService.getSettlement(id));
     }
 
+    @SaCheckPermission("lzlj:merchant:update")
     @Operation(summary = "更新结算信息")
     @PutMapping("/{id}/settlement")
     public Result<Void> updateSettlement(@PathVariable Long id, @RequestBody SettlementInfoDTO dto) {
@@ -74,12 +83,14 @@ public class LzljMerchantController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "获取商户账号列表")
     @GetMapping("/{id}/users")
     public Result<List<MerchantUserDTO>> getUsers(@PathVariable Long id) {
         return Result.success(merchantService.getUsers(id));
     }
 
+    @SaCheckPermission("lzlj:merchant:update")
     @Operation(summary = "关联用户到商户")
     @PostMapping("/{id}/users")
     public Result<Void> assignUser(@PathVariable Long id, @RequestBody @Valid AssignMerchantUserDTO dto) {
@@ -87,6 +98,7 @@ public class LzljMerchantController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:merchant:update")
     @Operation(summary = "解绑商户用户")
     @DeleteMapping("/{id}/users/{userId}")
     public Result<Void> unbindUser(@PathVariable Long id, @PathVariable Long userId) {
@@ -94,6 +106,7 @@ public class LzljMerchantController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:merchant:create")
     @Operation(summary = "从 SaaS 批量同步所有母户")
     @GetMapping("/sync/saas/all")
     public Result<Integer> syncAllFromSaas(@RequestParam(required = false) String keyword) {

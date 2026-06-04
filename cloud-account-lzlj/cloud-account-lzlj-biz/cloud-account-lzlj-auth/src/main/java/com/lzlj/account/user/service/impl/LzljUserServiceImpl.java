@@ -1,5 +1,6 @@
 package com.lzlj.account.user.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,6 +10,8 @@ import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.helper.RedisHelper;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.config.LzljSaTokenConfig;
+import com.lzlj.account.permission.service.LzljPermissionService;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
 import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
 import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
@@ -46,6 +49,8 @@ public class LzljUserServiceImpl implements LzljUserService {
     private final RedisHelper redisHelper;
     private final LzljSmsCodeService smsCodeService;
     private final LzljSystemParameterService systemParameterService;
+    private final LzljPermissionService permissionService;
+    private final LzljSaTokenConfig saTokenConfig;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -92,21 +97,29 @@ public class LzljUserServiceImpl implements LzljUserService {
             throw new AuthException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // 4. 生成Token
-        String token = generateToken(user);
+        // 4. Sa-Token 登录
+        StpUtil.login(user.getId());
 
-        // 5. 设置用户上下文
+        // 5. 加载并缓存用户权限
+        java.util.Set<String> permissions = permissionService.getUserPermissions(user.getId());
+        saTokenConfig.cacheUserPermissions(user.getId(), permissions);
+
+        // 6. 生成 JWT Token（用于 Gateway 验证）
+        String jwtToken = generateToken(user);
+
+        // 7. 设置用户上下文
         UserContext.setUserId(user.getId());
         UserContext.setUsername(user.getUsername());
 
-        // 6. 更新登录信息
+        // 8. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
         userDao.updateById(user);
 
-        // 7. 缓存用户信息
+        // 9. 缓存用户信息
         cacheUserInfo(user);
 
-        return token;
+        // 10. 返回 JWT Token（Gateway 验证用）
+        return jwtToken;
     }
 
     /**

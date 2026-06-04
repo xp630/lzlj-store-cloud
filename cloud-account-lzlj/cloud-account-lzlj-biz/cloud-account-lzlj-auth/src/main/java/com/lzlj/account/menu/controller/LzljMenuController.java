@@ -1,5 +1,6 @@
 package com.lzlj.account.menu.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.menu.dto.LzljCreateMenuDTO;
@@ -16,6 +17,12 @@ import java.util.List;
 
 /**
  * LZLJ 菜单管理控制器
+ * <p>
+ * 权限说明：
+ * - lzlj:menu:create - 创建菜单
+ * - lzlj:menu:update - 更新菜单
+ * - lzlj:menu:delete - 删除菜单
+ * - lzlj:menu:list - 查看菜单列表/详情/树形
  */
 @Tag(name = "LZLJ菜单管理")
 @RestController
@@ -25,14 +32,16 @@ public class LzljMenuController {
 
     private final LzljMenuService menuService;
 
-    @Operation(summary = "创建菜单")
+    @SaCheckPermission("lzlj:menu:create")
+    @Operation(summary = "创建菜单", description = "需要权限: lzlj:menu:create")
     @OperationLog(module = "menu", operation = "CREATE", content = "创建菜单")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody LzljCreateMenuDTO dto) {
         return Result.success(menuService.create(dto));
     }
 
-    @Operation(summary = "更新菜单")
+    @SaCheckPermission("lzlj:menu:update")
+    @Operation(summary = "更新菜单", description = "需要权限: lzlj:menu:update")
     @OperationLog(module = "menu", operation = "UPDATE", content = "更新菜单")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody LzljUpdateMenuDTO dto) {
@@ -40,7 +49,8 @@ public class LzljMenuController {
         return Result.success();
     }
 
-    @Operation(summary = "删除菜单")
+    @SaCheckPermission("lzlj:menu:delete")
+    @Operation(summary = "删除菜单", description = "需要权限: lzlj:menu:delete")
     @OperationLog(module = "menu", operation = "DELETE", content = "删除菜单")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -48,25 +58,29 @@ public class LzljMenuController {
         return Result.success();
     }
 
-    @Operation(summary = "获取菜单详情")
+    @SaCheckPermission("lzlj:menu:list")
+    @Operation(summary = "获取菜单详情", description = "需要权限: lzlj:menu:list")
     @GetMapping("/{id}")
     public Result<LzljMenuDTO> getById(@PathVariable Long id) {
         return Result.success(menuService.getById(id));
     }
 
-    @Operation(summary = "获取菜单树")
+    @SaCheckPermission("lzlj:menu:list")
+    @Operation(summary = "获取菜单树", description = "需要权限: lzlj:menu:list")
     @GetMapping("/tree")
     public Result<List<LzljMenuDTO>> getTree() {
         return Result.success(menuService.getTree());
     }
 
-    @Operation(summary = "获取菜单列表（平铺）")
+    @SaCheckPermission("lzlj:menu:list")
+    @Operation(summary = "获取菜单列表（平铺）", description = "需要权限: lzlj:menu:list")
     @GetMapping("/list")
     public Result<List<LzljMenuDTO>> getList() {
         return Result.success(menuService.getList());
     }
 
-    @Operation(summary = "获取父菜单下拉列表")
+    @SaCheckPermission("lzlj:menu:list")
+    @Operation(summary = "获取父菜单下拉列表", description = "需要权限: lzlj:menu:list")
     @GetMapping("/parent")
     public Result<List<LzljMenuDTO>> getParentMenuList() {
         return Result.success(menuService.getParentMenuList());
@@ -78,7 +92,8 @@ public class LzljMenuController {
         return Result.success(menuService.getMyMenus());
     }
 
-    @Operation(summary = "获取全部菜单（带授权状态）")
+    @SaCheckPermission("lzlj:menu:list")
+    @Operation(summary = "获取全部菜单（带授权状态）", description = "需要权限: lzlj:menu:list")
     @GetMapping("/all")
     public Result<List<LzljMenuDTO>> getAllMenusWithChecked(
             @RequestParam(required = false) Long roleId) {

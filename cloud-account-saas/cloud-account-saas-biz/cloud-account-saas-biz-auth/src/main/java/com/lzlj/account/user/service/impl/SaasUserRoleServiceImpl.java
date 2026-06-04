@@ -3,6 +3,7 @@ package com.lzlj.account.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.common.core.tenant.TenantContext;
 import com.lzlj.account.role.dao.SaasRoleDao;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.entity.SaasRole;
@@ -36,28 +37,26 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
 
     @Override
     public List<RoleDTO> getUserRoles(Long userId) {
-        // 检查用户是否存在
-        SaasUser user = userDao.selectById(userId);
-        if (user == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        // 临时忽略租户隔离，获取用户的角色（不受到当前租户限制）
+        TenantContext.setIgnoreTenant(true);
+        try {
+            // 获取用户角色关联
+            LambdaQueryWrapper<SaasUserRole> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SaasUserRole::getUserId, userId);
+            List<SaasUserRole> userRoles = userRoleDao.selectList(wrapper);
+
+            if (userRoles.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            // 获取角色列表
+            List<Long> roleIds = userRoles.stream().map(SaasUserRole::getRoleId).collect(Collectors.toList());
+            List<SaasRole> roles = roleDao.selectBatchIds(roleIds);
+
+            return roles.stream().map(this::convertToDTO).collect(Collectors.toList());
+        } finally {
+            TenantContext.setIgnoreTenant(false);
         }
-
-        // 获取用户角色关联
-        LambdaQueryWrapper<SaasUserRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SaasUserRole::getUserId, userId);
-        List<SaasUserRole> userRoles = userRoleDao.selectList(wrapper);
-
-        if (userRoles.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        // 获取角色列表
-        List<Long> roleIds = userRoles.stream().map(SaasUserRole::getRoleId).collect(Collectors.toList());
-        LambdaQueryWrapper<SaasRole> roleWrapper = new LambdaQueryWrapper<>();
-        roleWrapper.in(SaasRole::getId, roleIds);
-        List<SaasRole> roles = roleDao.selectList(roleWrapper);
-
-        return roles.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     @Override

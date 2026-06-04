@@ -26,4 +26,12 @@ public interface SaasUserDao extends BaseMapper<SaasUser> {
     @InterceptorIgnore(tenantLine = "true")
     @Select("SELECT * FROM saas_auth_user WHERE phone = #{phone} AND deleted = 0 LIMIT 1")
     SaasUser selectByPhoneWithoutTenant(@Param("phone") String phone);
+
+
+    /**
+     * 根据id查询
+     */
+    @InterceptorIgnore(tenantLine = "true")
+    @Select("SELECT * FROM saas_auth_user WHERE id = #{id} AND deleted = 0 LIMIT 1")
+    SaasUser selectByIdWithoutTenant(@Param("id") Long id);
 }

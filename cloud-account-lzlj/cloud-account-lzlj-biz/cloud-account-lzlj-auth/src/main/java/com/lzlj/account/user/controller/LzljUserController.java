@@ -1,5 +1,6 @@
 package com.lzlj.account.user.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -42,12 +43,14 @@ public class LzljUserController {
         return Result.success(userService.getCurrentUser());
     }
 
+    @SaCheckPermission("lzlj:user:list")
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public Result<LzljUserDTO> getById(@PathVariable Long id) {
         return Result.success(userService.getById(id));
     }
 
+    @SaCheckPermission("lzlj:user:list")
     @Operation(summary = "分页查询用户")
     @GetMapping("/page")
     public Result<PageResult<LzljUserDTO>> page(
@@ -58,12 +61,14 @@ public class LzljUserController {
         return Result.success(userService.page(orgId, keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
+    @SaCheckPermission("lzlj:user:create")
     @Operation(summary = "创建用户")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody LzljUser user) {
         return Result.success(userService.create(user));
     }
 
+    @SaCheckPermission("lzlj:user:update")
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody LzljUser user) {
@@ -72,6 +77,7 @@ public class LzljUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:user:delete")
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -79,6 +85,7 @@ public class LzljUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:user:password")
     @Operation(summary = "修改密码")
     @PostMapping("/password")
     public Result<Void> changePassword(
@@ -89,6 +96,7 @@ public class LzljUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:user:password")
     @Operation(summary = "重置密码")
     @PostMapping("/password/reset")
     public Result<Void> resetPassword(
@@ -98,6 +106,7 @@ public class LzljUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("lzlj:user:update")
     @Operation(summary = "修改状态")
     @PostMapping("/status")
     public Result<Void> changeStatus(

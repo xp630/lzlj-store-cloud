@@ -1,6 +1,7 @@
 
 package com.lzlj.account.user.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -50,12 +51,14 @@ public class SaasUserController {
         return Result.success(userService.getCurrentUser());
     }
 
+    @SaCheckPermission("saas:user:list")
     @Operation(summary = "获取用户详情")
     @GetMapping("/{id}")
     public Result<UserDTO> getById(@PathVariable Long id) {
         return Result.success(userService.getById(id));
     }
 
+    @SaCheckPermission("saas:user:list")
     @Operation(summary = "分页查询用户")
     @GetMapping("/page")
     public Result<PageResult<UserDTO>> page(
@@ -66,12 +69,14 @@ public class SaasUserController {
         return Result.success(userService.page(orgId, keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
+    @SaCheckPermission("saas:user:create")
     @Operation(summary = "创建用户")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody SaasUser user) {
         return Result.success(userService.create(user));
     }
 
+    @SaCheckPermission("saas:user:update")
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody SaasUser user) {
@@ -80,6 +85,7 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:delete")
     @Operation(summary = "删除用户")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
@@ -87,6 +93,7 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:password")
     @Operation(summary = "修改密码")
     @PostMapping("/password")
     public Result<Void> changePassword(
@@ -97,6 +104,7 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:password")
     @Operation(summary = "重置密码")
     @PostMapping("/password/reset")
     public Result<Void> resetPassword(
@@ -106,6 +114,7 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:update")
     @Operation(summary = "修改状态")
     @PostMapping("/status")
     public Result<Void> changeStatus(
@@ -115,6 +124,7 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:bind")
     @Operation(summary = "绑定微信")
     @PostMapping("/bind/wx")
     public Result<Void> bindWx(
@@ -125,12 +135,14 @@ public class SaasUserController {
         return Result.success();
     }
 
+    @SaCheckPermission("saas:user:roles")
     @Operation(summary = "获取用户角色")
     @GetMapping("/{id}/roles")
     public Result<List<RoleDTO>> getUserRoles(@PathVariable Long id) {
         return Result.success(userRoleService.getUserRoles(id));
     }
 
+    @SaCheckPermission("saas:user:roles")
     @Operation(summary = "分配用户角色（全量替换：传入的角色ID列表将替换用户当前所有角色）")
     @PutMapping("/{id}/roles")
     public Result<Void> assignRoles(@PathVariable Long id, @RequestBody UserRoleDTO dto) {

@@ -46,9 +46,13 @@ public class MybatisPlusConfig {
 
                     @Override
                     public boolean ignoreTable(String tableName) {
-                        // 使用 EntityTableScanner 判断表是否需要租户隔离
+                        // 1. TenantContext 强制标志优先（最高优先级）
+                        if (TenantContext.isIgnoreTenant() != null && TenantContext.isIgnoreTenant()) {
+                            return true;
+                        }
+                        // 2. 否则使用 EntityTableScanner 判断表是否需要租户隔离
                         // 如果实体类继承 TenantEntity → 需要租户隔离
-                        // 如果实体类只继承 BaseEntity（无 tenantId 字段）→ 跳过租户隔离
+                        // 如果实体类只继承 BaseEntity（无 tenantId 字段） → 跳过租户隔离
                         // 未注册的表默认忽略（安全考虑，避免查询失败）
                         return !EntityTableScanner.needTenant(tableName);
                     }
