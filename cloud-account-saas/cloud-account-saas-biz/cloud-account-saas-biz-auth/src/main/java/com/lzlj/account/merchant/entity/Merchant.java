@@ -66,4 +66,14 @@ public class Merchant extends TenantEntity {
      * 经营类型 1:个人 2:企业经营 3:个体经营
      */
     private Integer businessType;
+
+    /**
+     * 母商户ID（子户时必填）
+     */
+    private Long pid;
+
+    /**
+     * 开户状态 0:未开户 1:开户中 2:已开户 3:开户失败
+     */
+    private Integer accountStatus;
 }

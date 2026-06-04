@@ -5,7 +5,7 @@ import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.menu.dto.CreateMenuDTO;
 import com.lzlj.account.menu.dto.MenuDTO;
 import com.lzlj.account.menu.dto.UpdateMenuDTO;
-import com.lzlj.account.menu.service.MenuService;
+import com.lzlj.account.menu.service.SaasMenuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuController {
 
-    private final MenuService menuService;
+    private final SaasMenuService menuService;
 
     @Operation(summary = "创建菜单")
     @OperationLog(module = "menu", operation = "CREATE", content = "创建菜单")

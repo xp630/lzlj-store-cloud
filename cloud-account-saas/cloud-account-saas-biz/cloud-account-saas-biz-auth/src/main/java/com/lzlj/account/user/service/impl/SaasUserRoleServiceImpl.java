@@ -3,9 +3,9 @@ package com.lzlj.account.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
-import com.lzlj.account.role.dao.RoleDao;
+import com.lzlj.account.role.dao.SaasRoleDao;
 import com.lzlj.account.role.dto.RoleDTO;
-import com.lzlj.account.role.entity.Role;
+import com.lzlj.account.role.entity.SaasRole;
 import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dao.SaasUserRoleDao;
 import com.lzlj.account.user.dto.UserRoleDTO;
@@ -32,7 +32,7 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
 
     private final SaasUserDao userDao;
     private final SaasUserRoleDao userRoleDao;
-    private final RoleDao roleDao;
+    private final SaasRoleDao roleDao;
 
     @Override
     public List<RoleDTO> getUserRoles(Long userId) {
@@ -53,9 +53,9 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
 
         // 获取角色列表
         List<Long> roleIds = userRoles.stream().map(SaasUserRole::getRoleId).collect(Collectors.toList());
-        LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
-        roleWrapper.in(Role::getId, roleIds);
-        List<Role> roles = roleDao.selectList(roleWrapper);
+        LambdaQueryWrapper<SaasRole> roleWrapper = new LambdaQueryWrapper<>();
+        roleWrapper.in(SaasRole::getId, roleIds);
+        List<SaasRole> roles = roleDao.selectList(roleWrapper);
 
         return roles.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
@@ -89,7 +89,7 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
         log.info("分配用户角色成功: userId={}, roleIds={}", userId, dto.getRoleIds());
     }
 
-    private RoleDTO convertToDTO(Role role) {
+    private RoleDTO convertToDTO(SaasRole role) {
         RoleDTO dto = new RoleDTO();
         BeanUtils.copyProperties(role, dto);
         return dto;

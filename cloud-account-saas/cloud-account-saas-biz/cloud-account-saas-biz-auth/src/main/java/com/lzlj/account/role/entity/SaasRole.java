@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("saas_auth_role")
-public class Role extends BaseEntity {
+public class SaasRole extends BaseEntity {
 
     /**
      * 角色名称

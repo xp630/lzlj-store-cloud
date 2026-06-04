@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 菜单服务接口
  */
-public interface MenuService {
+public interface SaasMenuService {
 
     /**
      * 创建菜单

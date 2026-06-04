@@ -57,6 +57,9 @@ public class CreateMerchantDTO {
     @Schema(description = "母商户ID（子户时必填）")
     private Long parentId;
 
+    @Schema(description = "开户状态 0:未开户 1:开户中 2:已开户 3:开户失败")
+    private Integer accountStatus;
+
     @Schema(description = "业务场景代码列表（母户用）")
     private List<String> scenarioCodes;
 

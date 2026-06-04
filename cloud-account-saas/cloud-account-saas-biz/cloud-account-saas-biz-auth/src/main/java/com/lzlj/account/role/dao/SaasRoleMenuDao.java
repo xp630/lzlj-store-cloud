@@ -1,7 +1,8 @@
 package com.lzlj.account.role.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lzlj.account.role.entity.RoleMenu;
+import com.lzlj.account.role.entity.SaasRoleMenu;
+import com.lzlj.account.role.entity.SaasRoleMenu;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
@@ -10,7 +11,7 @@ import org.apache.ibatis.annotations.Update;
  * 角色菜单关联 Mapper
  */
 @Mapper
-public interface RoleMenuDao extends BaseMapper<RoleMenu> {
+public interface SaasRoleMenuDao extends BaseMapper<SaasRoleMenu> {
 
     /**
      * 硬删除角色的所有菜单关联（不走 @TableLogic 软删）

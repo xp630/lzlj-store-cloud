@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("saas_auth_menu")
-public class Menu extends BaseEntity {
+public class SaasMenu extends BaseEntity {
 
     /**
      * 父菜单ID（顶级为0）

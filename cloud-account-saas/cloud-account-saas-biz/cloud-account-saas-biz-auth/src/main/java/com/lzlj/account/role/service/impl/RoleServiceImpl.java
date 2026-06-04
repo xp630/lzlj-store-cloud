@@ -7,17 +7,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
-import com.lzlj.account.menu.dao.MenuDao;
+import com.lzlj.account.menu.dao.SaasMenuDao;
 import com.lzlj.account.menu.dto.MenuDTO;
-import com.lzlj.account.menu.entity.Menu;
-import com.lzlj.account.role.dao.RoleDao;
-import com.lzlj.account.role.dao.RoleMenuDao;
+import com.lzlj.account.menu.entity.SaasMenu;
+import com.lzlj.account.role.dao.SaasRoleDao;
+import com.lzlj.account.role.dao.SaasRoleMenuDao;
 import com.lzlj.account.role.dto.CreateRoleDTO;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.dto.RoleMenuDTO;
 import com.lzlj.account.role.dto.UpdateRoleDTO;
-import com.lzlj.account.role.entity.Role;
-import com.lzlj.account.role.entity.RoleMenu;
+import com.lzlj.account.role.entity.SaasRole;
+import com.lzlj.account.role.entity.SaasRoleMenu;
 import com.lzlj.account.role.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,39 +41,39 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
 
-    private final RoleDao roleDao;
-    private final RoleMenuDao roleMenuDao;
-    private final MenuDao menuDao;
+    private final SaasRoleDao roleDao;
+    private final SaasRoleMenuDao roleMenuDao;
+    private final SaasMenuDao menuDao;
 
     @Override
     public List<MenuDTO> getRoleMenusTree(Long roleId) {
-        Role role = roleDao.selectById(roleId);
+        SaasRole role = roleDao.selectById(roleId);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        LambdaQueryWrapper<RoleMenu> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(RoleMenu::getRoleId, roleId);
-        List<RoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+        LambdaQueryWrapper<SaasRoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRoleMenu::getRoleId, roleId);
+        List<SaasRoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
 
         if (roleMenus.isEmpty()) {
             return new ArrayList<>();
         }
 
         Set<Long> menuIds = roleMenus.stream()
-                .map(RoleMenu::getMenuId)
+                .map(SaasRoleMenu::getMenuId)
                 .collect(Collectors.toSet());
 
-        LambdaQueryWrapper<Menu> menuWrapper = new LambdaQueryWrapper<>();
-        menuWrapper.in(Menu::getId, menuIds)
-                  .eq(Menu::getStatus, 1)
-                  .orderByAsc(Menu::getSort);
-        List<Menu> menus = menuDao.selectList(menuWrapper);
+        LambdaQueryWrapper<SaasMenu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(SaasMenu::getId, menuIds)
+                  .eq(SaasMenu::getStatus, 1)
+                  .orderByAsc(SaasMenu::getSort);
+        List<SaasMenu> menus = menuDao.selectList(menuWrapper);
 
         return buildMenuTree(menus, 0L);
     }
 
-    private List<MenuDTO> buildMenuTree(List<Menu> menus, Long parentId) {
+    private List<MenuDTO> buildMenuTree(List<SaasMenu> menus, Long parentId) {
         return menus.stream()
                 .filter(menu -> menu.getParentId().equals(parentId))
                 .map(menu -> {
@@ -90,7 +91,7 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "角色编码已存在");
         }
 
-        Role role = new Role();
+        SaasRole role = new SaasRole();
         BeanUtils.copyProperties(dto, role);
         role.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
         roleDao.insert(role);
@@ -100,7 +101,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void update(Long id, UpdateRoleDTO dto) {
-        Role existRole = roleDao.selectById(id);
+        SaasRole existRole = roleDao.selectById(id);
         if (existRole == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -112,7 +113,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void delete(Long id) {
-        Role role = roleDao.selectById(id);
+        SaasRole role = roleDao.selectById(id);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -127,7 +128,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleDTO getById(Long id) {
-        Role role = roleDao.selectById(id);
+        SaasRole role = roleDao.selectById(id);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -136,13 +137,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public PageResult<RoleDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<Role> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(keyword), Role::getRoleName, keyword)
-               .eq(status != null, Role::getStatus, status)
-               .orderByDesc(Role::getCreateTime);
+        Page<SaasRole> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.hasText(keyword), SaasRole::getRoleName, keyword)
+               .eq(status != null, SaasRole::getStatus, status)
+               .orderByDesc(SaasRole::getCreateTime);
 
-        IPage<Role> resultPage = roleDao.selectPage(page, wrapper);
+        IPage<SaasRole> resultPage = roleDao.selectPage(page, wrapper);
 
         return new PageResult<>(
                 resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
@@ -154,25 +155,25 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<MenuDTO> getRoleMenus(Long roleId) {
-        Role role = roleDao.selectById(roleId);
+        SaasRole role = roleDao.selectById(roleId);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
         // 获取角色菜单关联
-        LambdaQueryWrapper<RoleMenu> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(RoleMenu::getRoleId, roleId);
-        List<RoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+        LambdaQueryWrapper<SaasRoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRoleMenu::getRoleId, roleId);
+        List<SaasRoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
 
         if (roleMenus.isEmpty()) {
             return new ArrayList<>();
         }
 
         // 获取菜单列表
-        List<Long> menuIds = roleMenus.stream().map(RoleMenu::getMenuId).collect(Collectors.toList());
-        LambdaQueryWrapper<Menu> menuWrapper = new LambdaQueryWrapper<>();
-        menuWrapper.in(Menu::getId, menuIds);
-        List<Menu> menus = menuDao.selectList(menuWrapper);
+        List<Long> menuIds = roleMenus.stream().map(SaasRoleMenu::getMenuId).collect(Collectors.toList());
+        LambdaQueryWrapper<SaasMenu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(SaasMenu::getId, menuIds);
+        List<SaasMenu> menus = menuDao.selectList(menuWrapper);
 
         return menus.stream().map(this::convertMenuToDTO).collect(Collectors.toList());
     }
@@ -180,7 +181,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignMenus(Long roleId, RoleMenuDTO dto) {
-        Role role = roleDao.selectById(roleId);
+        SaasRole role = roleDao.selectById(roleId);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -190,15 +191,15 @@ public class RoleServiceImpl implements RoleService {
 
         // 新增菜单关联
         if (dto.getMenuIds() != null && !dto.getMenuIds().isEmpty()) {
-            List<RoleMenu> roleMenus = dto.getMenuIds().stream().map(menuId -> {
-                RoleMenu roleMenu = new RoleMenu();
+            List<SaasRoleMenu> roleMenus = dto.getMenuIds().stream().map(menuId -> {
+                SaasRoleMenu roleMenu = new SaasRoleMenu();
                 roleMenu.setRoleId(roleId);
                 roleMenu.setMenuId(menuId);
                 return roleMenu;
             }).collect(Collectors.toList());
 
             // 批量插入
-            for (RoleMenu roleMenu : roleMenus) {
+            for (SaasRoleMenu roleMenu : roleMenus) {
                 roleMenuDao.insert(roleMenu);
             }
         }
@@ -207,21 +208,21 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private boolean checkCodeExists(String roleCode, Long excludeId) {
-        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Role::getRoleCode, roleCode);
+        LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRole::getRoleCode, roleCode);
         if (excludeId != null) {
-            wrapper.ne(Role::getId, excludeId);
+            wrapper.ne(SaasRole::getId, excludeId);
         }
         return roleDao.selectCount(wrapper) > 0;
     }
 
-    private RoleDTO convertToDTO(Role role) {
+    private RoleDTO convertToDTO(SaasRole role) {
         RoleDTO dto = new RoleDTO();
         BeanUtils.copyProperties(role, dto);
         return dto;
     }
 
-    private MenuDTO convertMenuToDTO(Menu menu) {
+    private MenuDTO convertMenuToDTO(SaasMenu menu) {
         MenuDTO dto = new MenuDTO();
         BeanUtils.copyProperties(menu, dto);
         dto.setChildren(new ArrayList<>());
