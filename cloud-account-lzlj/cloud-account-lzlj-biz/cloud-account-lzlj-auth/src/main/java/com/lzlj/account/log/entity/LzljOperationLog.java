@@ -57,4 +57,19 @@ public class LzljOperationLog extends BaseEntity {
      * 组织ID
      */
     private Long orgId;
+
+    /**
+     * 组织名称
+     */
+    private String orgName;
+
+    /**
+     * 功能角色列表（角色名称逗号分隔）
+     */
+    private String functionalRoles;
+
+    /**
+     * 数据角色列表（角色名称逗号分隔）
+     */
+    private String dataRoles;
 }

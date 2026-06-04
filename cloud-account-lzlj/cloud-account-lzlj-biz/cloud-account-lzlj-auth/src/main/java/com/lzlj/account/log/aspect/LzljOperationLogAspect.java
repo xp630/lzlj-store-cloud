@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 
 /**
  * LZLJ 操作日志切面
+ * 用户信息（机构、角色等）从 UserContext 获取，避免每次操作都查询数据库
  */
 @Slf4j
 @Aspect
@@ -32,10 +33,14 @@ public class LzljOperationLogAspect {
         Method method = signature.getMethod();
         OperationLog annotation = method.getAnnotation(OperationLog.class);
 
-        // 在主线程中捕获上下文（避免 ThreadLocal 在异步方法中丢失）
+        // 从 UserContext 获取用户信息（登录时已设置）
         Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
-        Long orgId = 0L; // LZLJ 使用固定 orgId，暂用 0
+        Long orgId = UserContext.getOrgId() != null ? UserContext.getOrgId() : 0L;
         String username = UserContext.getUsername();
+        String orgName = UserContext.getOrgName();
+        String functionalRoles = UserContext.getFunctionalRoles();
+        String dataRoles = UserContext.getDataRoles();
+
         String ip = ServletUtils.getClientIp();
         String userAgent = ServletUtils.getUserAgent();
 
@@ -55,7 +60,8 @@ public class LzljOperationLogAspect {
                 }
                 eventPublisher.publishEvent(new LzljOperationLogEvent(
                         userId, orgId, username, annotation.module(),
-                        annotation.operation(), content, extractBizId(result), ip, userAgent
+                        annotation.operation(), content, extractBizId(result), ip, userAgent,
+                        orgName != null ? orgName : "", functionalRoles != null ? functionalRoles : "", dataRoles != null ? dataRoles : ""
                 ));
             } catch (Exception e) {
                 log.error("发布操作日志事件失败", e);

@@ -30,7 +30,10 @@ public class LzljOperationLogEventListener {
                     event.getContent(),
                     event.getBizId(),
                     event.getIp(),
-                    event.getUserAgent()
+                    event.getUserAgent(),
+                    event.getOrgName(),
+                    event.getFunctionalRoles(),
+                    event.getDataRoles()
             );
         } catch (Exception e) {
             log.error("处理操作日志事件失败", e);

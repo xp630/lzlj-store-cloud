@@ -5,7 +5,7 @@
 
 -- 用户角色关联表
 CREATE TABLE IF NOT EXISTS `saas_auth_user_role` (
-    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `role_id` BIGINT NOT NULL COMMENT '角色ID',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

@@ -17,7 +17,7 @@ import javax.validation.Valid;
 /**
  * 租户管理控制器
  */
-@Tag(name = "租户管理")
+@Tag(name = "客户管理")
 @RestController
 @RequestMapping("/tenant")
 @RequiredArgsConstructor

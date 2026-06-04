@@ -15,7 +15,8 @@ public interface LzljLogService {
      * 记录操作日志
      */
     void logOperation(Long userId, Long orgId, String username, String module,
-                     String operation, String content, Long bizId, String ip, String userAgent);
+                     String operation, String content, Long bizId, String ip, String userAgent,
+                     String orgName, String functionalRoles, String dataRoles);
 
     /**
      * 记录API访问日志

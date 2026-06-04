@@ -83,7 +83,7 @@ public class SaasUser extends TenantEntity {
      */
     private String wxMaOpenid;
 
-    private Long id;
-
     private long orgId;
+
+    private  String remark;
 }

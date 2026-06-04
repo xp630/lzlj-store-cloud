@@ -16,6 +16,11 @@ public interface AdminTenantService {
     List<AdminTenantDTO> getAdminTenants(Long adminUserId);
 
     /**
+     * 获取管理员可管理的租户ID列表
+     */
+    List<Long> getAdminTenantIds(Long adminUserId);
+
+    /**
      * 分配管理员可管理的租户
      */
     void assignTenants(Long adminUserId, AssignTenantDTO dto);

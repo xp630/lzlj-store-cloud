@@ -1,8 +1,6 @@
 package com.lzlj.account.tenant.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.lzlj.account.common.core.exception.BusinessException;
-import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.tenant.dao.AdminTenantDao;
 import com.lzlj.account.tenant.dao.TenantDao;
 import com.lzlj.account.tenant.dto.AdminTenantDTO;
@@ -16,9 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +35,7 @@ public class AdminTenantServiceImpl implements AdminTenantService {
     public List<AdminTenantDTO> getAdminTenants(Long adminUserId) {
         // 获取管理员关联的租户ID列表
         LambdaQueryWrapper<AdminTenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AdminTenant::getUserId, adminUserId);
+        wrapper.eq(AdminTenant::getAdminUserId, adminUserId);
         List<AdminTenant> adminTenants = adminTenantDao.selectList(wrapper);
 
         List<Long> tenantIds;
@@ -77,16 +73,14 @@ public class AdminTenantServiceImpl implements AdminTenantService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignTenants(Long adminUserId, AssignTenantDTO dto) {
-        // 删除原有关联
-        LambdaQueryWrapper<AdminTenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AdminTenant::getUserId, adminUserId);
-        adminTenantDao.delete(wrapper);
+        // 硬删除原有关联（避免 @TableLogic + 唯一键 冲突）
+        adminTenantDao.deleteByUserIdHard(adminUserId);
 
         // 新增关联
         if (dto.getTenantIds() != null && !dto.getTenantIds().isEmpty()) {
             List<AdminTenant> adminTenants = dto.getTenantIds().stream().map(tenantId -> {
                 AdminTenant adminTenant = new AdminTenant();
-                adminTenant.setUserId(adminUserId);
+                adminTenant.setAdminUserId(adminUserId);
                 adminTenant.setTenantId(tenantId);
                 return adminTenant;
             }).collect(Collectors.toList());
@@ -97,5 +91,21 @@ public class AdminTenantServiceImpl implements AdminTenantService {
         }
 
         log.info("分配管理员可管理租户成功: adminUserId={}, tenantIds={}", adminUserId, dto.getTenantIds());
+    }
+
+    @Override
+    public List<Long> getAdminTenantIds(Long adminUserId) {
+        // 获取管理员关联的租户ID列表
+        LambdaQueryWrapper<AdminTenant> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AdminTenant::getAdminUserId, adminUserId);
+        List<AdminTenant> adminTenants = adminTenantDao.selectList(wrapper);
+
+        if (adminTenants.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return adminTenants.stream()
+                .map(AdminTenant::getTenantId)
+                .collect(Collectors.toList());
     }
 }

@@ -29,7 +29,8 @@ public class LzljLogServiceImpl implements LzljLogService {
     @Override
     @Async
     public void logOperation(Long userId, Long orgId, String username, String module,
-                           String operation, String content, Long bizId, String ip, String userAgent) {
+                           String operation, String content, Long bizId, String ip, String userAgent,
+                           String orgName, String functionalRoles, String dataRoles) {
         try {
             LzljOperationLog operationLog = new LzljOperationLog();
             operationLog.setUserId(userId);
@@ -41,6 +42,9 @@ public class LzljLogServiceImpl implements LzljLogService {
             operationLog.setBizId(bizId != null ? String.valueOf(bizId) : null);
             operationLog.setIp(ip);
             operationLog.setUserAgent(userAgent);
+            operationLog.setOrgName(orgName);
+            operationLog.setFunctionalRoles(functionalRoles);
+            operationLog.setDataRoles(dataRoles);
             operationLog.setCreateTime(LocalDateTime.now());
 
             operationLogDao.insert(operationLog);

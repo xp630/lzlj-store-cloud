@@ -18,4 +18,7 @@ public class LzljOperationLogEvent {
     private Long bizId;
     private String ip;
     private String userAgent;
+    private String orgName;
+    private String functionalRoles;
+    private String dataRoles;
 }

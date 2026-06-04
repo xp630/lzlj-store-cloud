@@ -1,7 +1,13 @@
 package com.lzlj.account.log.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.log.dao.ApiLogDao;
 import com.lzlj.account.log.dao.SaasOperationLogDao;
+import com.lzlj.account.log.dto.OperationLogDTO;
+import com.lzlj.account.log.dto.OperationLogQueryDTO;
 import com.lzlj.account.log.entity.ApiLog;
 import com.lzlj.account.log.entity.SaasOperationLog;
 import com.lzlj.account.log.service.SaasLogService;
@@ -9,8 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 日志服务实现
@@ -44,6 +53,37 @@ public class SaasLogServiceImpl implements SaasLogService {
         } catch (Exception e) {
             log.error("记录操作日志失败: userId={}, module={}, operation={}", userId, module, operation, e);
         }
+    }
+
+    @Override
+    public PageResult<OperationLogDTO> pageOperationLog(OperationLogQueryDTO query) {
+        Page<SaasOperationLog> page = new Page<>(query.getPageNum(), query.getPageSize());
+        LambdaQueryWrapper<SaasOperationLog> wrapper = new LambdaQueryWrapper<>();
+        wrapper.like(StringUtils.hasText(query.getUsername()), SaasOperationLog::getUsername, query.getUsername())
+               .like(StringUtils.hasText(query.getModule()), SaasOperationLog::getModule, query.getModule())
+               .eq(StringUtils.hasText(query.getOperation()), SaasOperationLog::getOperation, query.getOperation())
+               .ge(query.getStartTime() != null, SaasOperationLog::getCreateTime, query.getStartTime())
+               .le(query.getEndTime() != null, SaasOperationLog::getCreateTime, query.getEndTime())
+               .orderByDesc(SaasOperationLog::getCreateTime);
+
+        IPage<SaasOperationLog> resultPage = operationLogDao.selectPage(page, wrapper);
+
+        List<OperationLogDTO> list = resultPage.getRecords().stream().map(log -> {
+            OperationLogDTO dto = new OperationLogDTO();
+            dto.setId(log.getId());
+            dto.setUserId(log.getUserId());
+            dto.setUsername(log.getUsername());
+            dto.setModule(log.getModule());
+            dto.setOperation(log.getOperation());
+            dto.setContent(log.getContent());
+            dto.setBizId(log.getBizId());
+            dto.setIp(log.getIp());
+            dto.setUserAgent(log.getUserAgent());
+            dto.setCreateTime(log.getCreateTime());
+            return dto;
+        }).collect(Collectors.toList());
+
+        return new PageResult<>(list, resultPage.getTotal(), resultPage.getCurrent(), resultPage.getSize());
     }
 
     @Override

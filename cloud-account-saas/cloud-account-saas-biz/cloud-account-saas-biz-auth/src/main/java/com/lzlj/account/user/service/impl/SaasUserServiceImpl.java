@@ -21,6 +21,7 @@ import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dto.CreateUserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.dto.UpdateUserDTO;
+import com.lzlj.account.user.dto.UserQueryDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.service.SaasUserRoleService;
 import com.lzlj.account.user.service.SaasUserService;
@@ -33,6 +34,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -176,6 +178,9 @@ public class SaasUserServiceImpl implements SaasUserService {
         String cacheKey = USER_INFO_PREFIX + id;
         UserDTO cached = redisHelper.get(cacheKey, UserDTO.class);
         if (cached != null) {
+            // 缓存中补充角色和租户信息
+            cached.setRoles(userRoleService.getUserRoles(id));
+            cached.setTenantIds(adminTenantService.getAdminTenantIds(id));
             return cached;
         }
 
@@ -185,6 +190,8 @@ public class SaasUserServiceImpl implements SaasUserService {
         }
 
         UserDTO userVO = convertToDTO(user);
+        userVO.setRoles(userRoleService.getUserRoles(id));
+        userVO.setTenantIds(adminTenantService.getAdminTenantIds(id));
 
         // 缓存用户信息
         redisHelper.set(cacheKey, userVO, 30, TimeUnit.MINUTES);
@@ -193,12 +200,17 @@ public class SaasUserServiceImpl implements SaasUserService {
     }
 
     @Override
-    public PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<SaasUser> page = new Page<>(pageNum, pageSize);
+    public PageResult<UserDTO> page(UserQueryDTO query) {
+        Page<SaasUser> page = new Page<>(query.getPageNum(), query.getPageSize());
         LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper
-               .like(keyword != null, SaasUser::getUsername, keyword)
-               .eq(status != null, SaasUser::getStatus, status)
+        String key = query.getKeyWord();
+        String phone = query.getPhone();
+        // 用户名同时模糊匹配 username 和 realName
+        if (StringUtils.hasText(key)) {
+            wrapper.and(w -> w.like(SaasUser::getUsername, key).or().like(SaasUser::getRealName, key));
+        }
+        wrapper.like(StringUtils.hasText(phone), SaasUser::getPhone, phone)
+               .eq(query.getStatus() != null, SaasUser::getStatus, query.getStatus())
                .eq(SaasUser::getDeleted, 0)
                .orderByDesc(SaasUser::getCreateTime);
 
@@ -207,6 +219,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         List<UserDTO> list = resultPage.getRecords().stream().map(user -> {
             UserDTO dto = convertToDTO(user);
             dto.setRoles(userRoleService.getUserRoles(user.getId()));
+            dto.setTenantIds(adminTenantService.getAdminTenantIds(user.getId()));
             return dto;
         }).collect(Collectors.toList());
 
@@ -237,8 +250,8 @@ public class SaasUserServiceImpl implements SaasUserService {
         user.setAvatar(createUserDTO.getAvatar());
         user.setGender(createUserDTO.getGender());
         user.setUserType(createUserDTO.getUserType());
-        user.setOrgId(createUserDTO.getOrgId());
         user.setStatus(createUserDTO.getStatus() != null ? createUserDTO.getStatus() : 1);
+        user.setRemark(createUserDTO.getRemark());
 
         // 加密密码
         String salt = UUID.randomUUID().toString().substring(0, 8);
@@ -284,6 +297,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         if (updateUserDTO.getStatus() != null) {
             existUser.setStatus(updateUserDTO.getStatus());
         }
+        existUser.setRemark(updateUserDTO.getRemark());
         userDao.updateById(existUser);
 
         // 更新角色

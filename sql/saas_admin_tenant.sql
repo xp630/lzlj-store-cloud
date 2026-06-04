@@ -4,7 +4,7 @@
 
 -- 管理员租户关联表（支持一个管理员管理多个租户）
 CREATE TABLE IF NOT EXISTS `saas_auth_admin_tenant` (
-    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
     `admin_user_id` BIGINT NOT NULL COMMENT '管理员用户ID',
     `tenant_id` BIGINT NOT NULL COMMENT '可管理的租户ID',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

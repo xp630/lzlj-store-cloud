@@ -2,14 +2,17 @@
 package com.lzlj.account.user.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.role.dto.RoleDTO;
+import com.lzlj.account.user.dto.ChangePasswordDTO;
+import com.lzlj.account.user.dto.ChangeStatusDTO;
 import com.lzlj.account.user.dto.CreateUserDTO;
+import com.lzlj.account.user.dto.ResetPasswordDTO;
 import com.lzlj.account.user.dto.UpdateUserDTO;
 import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
+import com.lzlj.account.user.dto.UserQueryDTO;
 import com.lzlj.account.user.dto.UserRoleDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.service.SaasUserRoleService;
@@ -61,14 +64,10 @@ public class SaasUserController {
     }
 
     @SaCheckPermission("saas:user:list")
-    @Operation(summary = "分页查询用户")
+    @Operation(summary = "分页查询用户", description = "支持按用户名、手机号、状态模糊搜索，分页参数pageNum从1开始")
     @GetMapping("/page")
-    public Result<PageResult<UserDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) Long orgId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(userService.page(orgId, keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    public Result<PageResult<UserDTO>> page(UserQueryDTO query) {
+        return Result.success(userService.page(query));
     }
 
     @SaCheckPermission("saas:user:create")
@@ -98,31 +97,24 @@ public class SaasUserController {
     @SaCheckPermission("saas:user:password")
     @Operation(summary = "修改密码")
     @PostMapping("/password")
-    public Result<Void> changePassword(
-            @RequestParam Long userId,
-            @RequestParam String oldPassword,
-            @RequestParam String newPassword) {
-        userService.changePassword(userId, oldPassword, newPassword);
+    public Result<Void> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
+        userService.changePassword(dto.getUserId(), dto.getOldPassword(), dto.getNewPassword());
         return Result.success();
     }
 
     @SaCheckPermission("saas:user:password")
     @Operation(summary = "重置密码")
     @PostMapping("/password/reset")
-    public Result<Void> resetPassword(
-            @RequestParam Long userId,
-            @RequestParam String newPassword) {
-        userService.resetPassword(userId, newPassword);
+    public Result<Void> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
+        userService.resetPassword(dto.getUserId(), dto.getNewPassword());
         return Result.success();
     }
 
     @SaCheckPermission("saas:user:update")
     @Operation(summary = "修改状态")
     @PostMapping("/status")
-    public Result<Void> changeStatus(
-            @RequestParam Long userId,
-            @RequestParam Integer status) {
-        userService.changeStatus(userId, status);
+    public Result<Void> changeStatus(@Valid @RequestBody ChangeStatusDTO dto) {
+        userService.changeStatus(dto.getUserId(), dto.getStatus());
         return Result.success();
     }
 

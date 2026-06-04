@@ -1,5 +1,9 @@
 package com.lzlj.account.log.service;
 
+import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.log.dto.OperationLogDTO;
+import com.lzlj.account.log.dto.OperationLogQueryDTO;
+
 /**
  * 日志服务接口
  */
@@ -20,6 +24,14 @@ public interface SaasLogService {
      */
     void logOperation(Long userId, Long tenantId, String username, String module,
                      String operation, String content, Long bizId, String ip, String userAgent);
+
+    /**
+     * 分页查询操作日志
+     *
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    PageResult<OperationLogDTO> pageOperationLog(OperationLogQueryDTO query);
 
     /**
      * 记录API访问日志

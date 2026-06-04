@@ -4,6 +4,7 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.user.dto.CreateUserDTO;
 import com.lzlj.account.user.dto.UpdateUserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
+import com.lzlj.account.user.dto.UserQueryDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.dto.UserDTO;
 
@@ -32,7 +33,7 @@ public interface SaasUserService {
     /**
      * 分页查询用户
      */
-    PageResult<UserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<UserDTO> page(UserQueryDTO query);
 
     /**
      * 创建用户

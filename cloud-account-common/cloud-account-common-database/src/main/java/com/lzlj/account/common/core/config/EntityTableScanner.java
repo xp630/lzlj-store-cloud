@@ -46,23 +46,16 @@ public class EntityTableScanner {
 
     /**
      * 判断实体类是否需要租户隔离
+     * 只有继承 TenantEntity 且没有 @InterceptorIgnore 注解的实体才需要租户隔离
      */
     private boolean isTenantEntity(Class<? extends BaseEntity> clazz) {
-        // 检查是否继承自 TenantEntity
         if (TenantEntity.class.isAssignableFrom(clazz)) {
-            // 如果实体类有 @InterceptorIgnore 注解，则不需要租户隔离
             if (clazz.isAnnotationPresent(com.baomidou.mybatisplus.annotation.InterceptorIgnore.class)) {
                 return false;
             }
             return true;
         }
-        // 备用：检查是否有 tenantId 字段
-        try {
-            Field tenantIdField = clazz.getDeclaredField("tenantId");
-            return tenantIdField != null;
-        } catch (NoSuchFieldException e) {
-            return false;
-        }
+        return false;
     }
 
     /**

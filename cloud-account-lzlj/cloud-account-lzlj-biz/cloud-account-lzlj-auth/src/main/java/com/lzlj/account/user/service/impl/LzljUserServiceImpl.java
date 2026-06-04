@@ -11,16 +11,20 @@ import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.helper.RedisHelper;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.config.LzljSaTokenConfig;
+import com.lzlj.account.datarole.dto.DataRoleDTO;
+import com.lzlj.account.datarole.service.DataRoleService;
 import com.lzlj.account.permission.service.LzljPermissionService;
 import com.lzlj.account.role.dto.LzljRoleDTO;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
 import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
 import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
 import com.lzlj.account.user.dto.CreateLzljUserDTO;
+import com.lzlj.account.user.dto.LzljOrgDTO;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.dao.LzljUserDao;
+import com.lzlj.account.user.service.LzljOrgService;
 import com.lzlj.account.user.service.LzljUserRoleService;
 import com.lzlj.account.user.service.LzljUserService;
 import io.jsonwebtoken.Jwts;
@@ -56,6 +60,8 @@ public class LzljUserServiceImpl implements LzljUserService {
     private final LzljPermissionService permissionService;
     private final LzljSaTokenConfig saTokenConfig;
     private final LzljUserRoleService userRoleService;
+    private final LzljOrgService orgService;
+    private final DataRoleService dataRoleService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -115,6 +121,41 @@ public class LzljUserServiceImpl implements LzljUserService {
         // 7. 设置用户上下文
         UserContext.setUserId(user.getId());
         UserContext.setUsername(user.getUsername());
+        UserContext.setOrgId(user.getOrgId());
+
+        // 8. 设置机构名称
+        if (user.getOrgId() != null) {
+            try {
+                LzljOrgDTO org = orgService.getById(user.getOrgId());
+                if (org != null) {
+                    UserContext.setOrgName(org.getOrgName());
+                }
+            } catch (Exception e) {
+                log.warn("获取机构名称失败: orgId={}", user.getOrgId(), e);
+            }
+        }
+
+        // 9. 设置功能角色
+        try {
+            List<LzljRoleDTO> roles = userRoleService.getUserRoles(user.getId());
+            if (roles != null && !roles.isEmpty()) {
+                String functionalRoles = roles.stream().map(LzljRoleDTO::getRoleName).collect(Collectors.joining(","));
+                UserContext.setFunctionalRoles(functionalRoles);
+            }
+        } catch (Exception e) {
+            log.warn("获取用户功能角色失败: userId={}", user.getId(), e);
+        }
+
+        // 10. 设置数据角色
+        try {
+            List<DataRoleDTO> dataRoles = dataRoleService.getUserDataRoles(user.getId());
+            if (dataRoles != null && !dataRoles.isEmpty()) {
+                String dataRoleStr = dataRoles.stream().map(DataRoleDTO::getDataRoleName).collect(Collectors.joining(","));
+                UserContext.setDataRoles(dataRoleStr);
+            }
+        } catch (Exception e) {
+            log.warn("获取用户数据角色失败: userId={}", user.getId(), e);
+        }
 
         // 8. 更新登录信息
         user.setLastLoginTime(System.currentTimeMillis());
