@@ -9,8 +9,8 @@ import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.dto.UserRoleDTO;
 import com.lzlj.account.user.entity.SaasUser;
+import com.lzlj.account.user.service.SaasUserRoleService;
 import com.lzlj.account.user.service.SaasUserService;
-import com.lzlj.account.user.service.UserRoleService;
 import com.lzlj.account.user.service.impl.UserCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ import java.util.Map;
 public class SaasUserController {
 
     private final SaasUserService userService;
-    private final UserRoleService userRoleService;
+    private final SaasUserRoleService userRoleService;
     private final UserCacheService userCacheService;
 
     @Operation(summary = "用户登录")

@@ -15,8 +15,8 @@ import com.lzlj.account.role.dao.RoleDao;
 import com.lzlj.account.role.dao.RoleMenuDao;
 import com.lzlj.account.role.entity.Role;
 import com.lzlj.account.role.entity.RoleMenu;
-import com.lzlj.account.user.dao.UserRoleDao;
-import com.lzlj.account.user.entity.UserRole;
+import com.lzlj.account.user.dao.SaasUserRoleDao;
+import com.lzlj.account.user.entity.SaasUserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class MenuServiceImpl implements MenuService {
 
     private final MenuDao menuDao;
-    private final UserRoleDao userRoleDao;
+    private final SaasUserRoleDao userRoleDao;
     private final RoleMenuDao roleMenuDao;
     private final RoleDao roleDao;
 
@@ -123,16 +123,16 @@ public class MenuServiceImpl implements MenuService {
         }
 
         // 获取用户的角色IDs
-        LambdaQueryWrapper<UserRole> userRoleWrapper = new LambdaQueryWrapper<>();
-        userRoleWrapper.eq(UserRole::getUserId, userId);
-        List<UserRole> userRoles = userRoleDao.selectList(userRoleWrapper);
+        LambdaQueryWrapper<SaasUserRole> userRoleWrapper = new LambdaQueryWrapper<>();
+        userRoleWrapper.eq(SaasUserRole::getUserId, userId);
+        List<SaasUserRole> userRoles = userRoleDao.selectList(userRoleWrapper);
 
         if (userRoles.isEmpty()) {
             return Collections.emptyList();
         }
 
         Set<Long> roleIds = userRoles.stream()
-                .map(UserRole::getRoleId)
+                .map(SaasUserRole::getRoleId)
                 .collect(Collectors.toSet());
 
         // 检查是否有 SUPER_ADMIN 角色

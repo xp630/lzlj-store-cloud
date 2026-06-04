@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 用户角色服务接口
  */
-public interface UserRoleService {
+public interface SaasUserRoleService {
 
     /**
      * 获取用户角色
