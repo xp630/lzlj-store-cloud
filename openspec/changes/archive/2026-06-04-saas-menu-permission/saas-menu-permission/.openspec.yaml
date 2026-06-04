@@ -1,0 +1,46 @@
+name: saas-menu-permission
+title: Sa-Token菜单级权限控制
+description: 引入Sa-Token框架，实现基于菜单的权限校验，复用现有RoleMenu→Menu权限链
+schema: task
+status: proposed
+created: 2026-06-04
+artifacts:
+  - name: proposal
+    path: proposal.md
+    status: done
+  - name: 依赖添加
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/pom.xml
+    status: pending
+  - name: SaaS Sa-Token配置
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/src/main/java/com/lzlj/account/config/SaasSaTokenConfig.java
+    status: pending
+  - name: SaaS 登录改造
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/src/main/java/com/lzlj/account/user/service/impl/SaasUserServiceImpl.java
+    status: pending
+  - name: LZLJ Sa-Token配置
+    path: cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth/src/main/java/com/lzlj/account/config/LzljSaTokenConfig.java
+    status: pending
+  - name: LZLJ 登录改造
+    path: cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth/src/main/java/com/lzlj/account/user/service/impl/LzljUserServiceImpl.java
+    status: pending
+  - name: Gateway改造
+    path: cloud-account-saas/cloud-account-saas-entrance/cloud-account-saas-gateway/src/main/java/com/lzlj/account/gateway/filter/JwtAuthFilter.java
+    status: pending
+  - name: SaaS Controller注解
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/src/main/java/com/lzlj/account
+    status: pending
+  - name: LZLJ Controller注解
+    path: cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth/src/main/java/com/lzlj/account
+    status: pending
+tasks:
+  - "[ ] 添加 sa-token 依赖到 SaaS 和 LZLJ auth pom.xml"
+  - "[ ] 创建 SaasSaTokenConfig.java 配置类"
+  - "[ ] 创建 LzljSaTokenConfig.java 配置类"
+  - "[ ] 改造 SaasUserServiceImpl.login() 使用 Sa-Token"
+  - "[ ] 改造 LzljUserServiceImpl.login() 使用 Sa-Token"
+  - "[ ] 创建 PermissionService 权限加载服务"
+  - "[ ] 改造 SaaS JwtAuthFilter 支持 Sa-Token Token"
+  - "[ ] 改造 LZLJ JwtAuthFilter 支持 Sa-Token Token"
+  - "[ ] SaaS Controller 添加 @SaCheckPermission 注解"
+  - "[ ] LZLJ Controller 添加 @SaCheckPermission 注解"
+  - "[ ] 集成测试"
