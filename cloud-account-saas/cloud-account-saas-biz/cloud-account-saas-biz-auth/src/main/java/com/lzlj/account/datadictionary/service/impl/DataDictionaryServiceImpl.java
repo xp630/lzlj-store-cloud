@@ -106,14 +106,6 @@ public class DataDictionaryServiceImpl implements DataDictionaryService {
     }
 
     @Override
-    public List<DataDictionaryDTO> list() {
-        LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
-        wrapper.orderByAsc(DataDictionary::getDictType, DataDictionary::getSort);
-        List<DataDictionary> dicts = dataDictionaryDao.selectList(wrapper);
-        return dicts.stream().map(this::convertToDTO).collect(Collectors.toList());
-    }
-
-    @Override
     public List<DataDictionaryDTO> getByType(String type) {
         LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DataDictionary::getDictType, type)
@@ -134,6 +126,22 @@ public class DataDictionaryServiceImpl implements DataDictionaryService {
         return dicts.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.groupingBy(DataDictionaryDTO::getDictType));
+    }
+
+    @Override
+    public List<DataDictionaryDTO> getTypes() {
+        LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DataDictionary::getStatus, 1)
+               .orderByAsc(DataDictionary::getDictType);
+        List<DataDictionary> dicts = dataDictionaryDao.selectList(wrapper);
+
+        // 按 dictType 分组，每组取第一条
+        return dicts.stream()
+                .collect(Collectors.groupingBy(DataDictionary::getDictType))
+                .values().stream()
+                .map(group -> group.get(0))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     private boolean checkCodeExists(String dictCode, Long excludeId) {

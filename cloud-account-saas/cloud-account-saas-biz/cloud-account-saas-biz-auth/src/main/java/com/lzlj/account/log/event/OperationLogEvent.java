@@ -18,4 +18,5 @@ public class OperationLogEvent {
     private Long bizId;
     private String ip;
     private String userAgent;
+    private String roles;
 }

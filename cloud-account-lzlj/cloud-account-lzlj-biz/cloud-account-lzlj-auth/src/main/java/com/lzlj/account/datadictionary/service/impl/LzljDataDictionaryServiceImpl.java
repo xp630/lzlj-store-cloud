@@ -121,6 +121,21 @@ public class LzljDataDictionaryServiceImpl implements LzljDataDictionaryService 
                 .collect(Collectors.groupingBy(LzljDataDictionaryDTO::getDictType));
     }
 
+    @Override
+    public List<LzljDataDictionaryDTO> getTypes() {
+        LambdaQueryWrapper<LzljDataDictionary> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(LzljDataDictionary::getStatus, 1)
+               .orderByAsc(LzljDataDictionary::getDictType);
+        List<LzljDataDictionary> dicts = lzljDataDictionaryDao.selectList(wrapper);
+
+        return dicts.stream()
+                .collect(Collectors.groupingBy(LzljDataDictionary::getDictType))
+                .values().stream()
+                .map(group -> group.get(0))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     private boolean checkCodeExists(String dictCode, Long excludeId) {
         LambdaQueryWrapper<LzljDataDictionary> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LzljDataDictionary::getDictCode, dictCode);

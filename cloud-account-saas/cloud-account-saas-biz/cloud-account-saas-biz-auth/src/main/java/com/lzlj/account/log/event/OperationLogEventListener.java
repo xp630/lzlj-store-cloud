@@ -30,7 +30,8 @@ public class OperationLogEventListener {
                     event.getContent(),
                     event.getBizId(),
                     event.getIp(),
-                    event.getUserAgent()
+                    event.getUserAgent(),
+                    event.getRoles()
             );
         } catch (Exception e) {
             log.error("处理操作日志事件失败", e);

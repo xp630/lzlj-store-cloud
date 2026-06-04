@@ -40,11 +40,6 @@ public interface DataDictionaryService {
     PageResult<DataDictionaryDTO> page(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
 
     /**
-     * 获取数据字典列表
-     */
-    List<DataDictionaryDTO> list();
-
-    /**
      * 根据类型获取数据字典
      */
     List<DataDictionaryDTO> getByType(String type);
@@ -53,4 +48,9 @@ public interface DataDictionaryService {
      * 获取所有字典类型分组
      */
     Map<String, List<DataDictionaryDTO>> getAllGroup();
+
+    /**
+     * 获取所有字典类型列表（去重）
+     */
+    List<DataDictionaryDTO> getTypes();
 }

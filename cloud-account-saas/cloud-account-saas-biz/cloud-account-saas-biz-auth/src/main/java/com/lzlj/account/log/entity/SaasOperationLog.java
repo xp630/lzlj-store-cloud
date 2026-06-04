@@ -66,6 +66,11 @@ public class SaasOperationLog {
     private String userAgent;
 
     /**
+     * 操作人角色
+     */
+    private String roles;
+
+    /**
      * 操作时间
      */
     private LocalDateTime createTime;

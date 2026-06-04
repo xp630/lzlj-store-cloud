@@ -37,6 +37,9 @@ public class OperationLogAspect {
         Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
         Long tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : 0L;
         String username = UserContext.getUsername();
+        String functionalRoles = UserContext.getFunctionalRoles();
+        String dataRoles = UserContext.getDataRoles();
+        String roles = (functionalRoles != null ? functionalRoles : "") + (dataRoles != null && !dataRoles.isEmpty() ? "," + dataRoles : "");
         String ip = ServletUtils.getClientIp();
         String userAgent = ServletUtils.getUserAgent();
 
@@ -56,7 +59,7 @@ public class OperationLogAspect {
                 }
                 eventPublisher.publishEvent(new OperationLogEvent(
                         userId, tenantId, username, annotation.module(),
-                        annotation.operation(), content, extractBizId(result), ip, userAgent
+                        annotation.operation(), content, extractBizId(result), ip, userAgent, roles
                 ));
             } catch (Exception e) {
                 log.error("发布操作日志事件失败", e);

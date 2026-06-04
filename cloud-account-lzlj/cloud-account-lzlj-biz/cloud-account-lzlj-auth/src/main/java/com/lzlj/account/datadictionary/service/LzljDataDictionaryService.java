@@ -15,4 +15,5 @@ public interface LzljDataDictionaryService {
     List<LzljDataDictionaryDTO> list();
     List<LzljDataDictionaryDTO> getByType(String type);
     Map<String, List<LzljDataDictionaryDTO>> getAllGroup();
+    List<LzljDataDictionaryDTO> getTypes();
 }

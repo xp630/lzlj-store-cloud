@@ -23,21 +23,21 @@ import java.util.Map;
  */
 @Tag(name = "数据字典管理")
 @RestController
-@RequestMapping("/datadictionary")
+@RequestMapping("/dictionary")
 @RequiredArgsConstructor
-public class DataDictionaryController {
+public class SaasDataDictionaryController {
 
     private final DataDictionaryService dataDictionaryService;
 
     @Operation(summary = "创建数据字典")
-    @OperationLog(module = "data-dictionary", operation = "CREATE", content = "创建数据字典")
+    @OperationLog(module = "dictionary", operation = "CREATE", content = "创建数据字典")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateDataDictionaryDTO dto) {
         return Result.success(dataDictionaryService.create(dto));
     }
 
     @Operation(summary = "更新数据字典")
-    @OperationLog(module = "data-dictionary", operation = "UPDATE", content = "更新数据字典")
+    @OperationLog(module = "dictionary", operation = "UPDATE", content = "更新数据字典")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateDataDictionaryDTO dto) {
         dataDictionaryService.update(id, dto);
@@ -45,7 +45,7 @@ public class DataDictionaryController {
     }
 
     @Operation(summary = "删除数据字典")
-    @OperationLog(module = "data-dictionary", operation = "DELETE", content = "删除数据字典")
+    @OperationLog(module = "dictionary", operation = "DELETE", content = "删除数据字典")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         dataDictionaryService.delete(id);
@@ -66,12 +66,6 @@ public class DataDictionaryController {
         return Result.success(dataDictionaryService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
-    @Operation(summary = "获取数据字典列表")
-    @GetMapping("/list")
-    public Result<List<DataDictionaryDTO>> list() {
-        return Result.success(dataDictionaryService.list());
-    }
-
     @Operation(summary = "根据类型获取数据字典")
     @GetMapping("/type/{type}")
     public Result<List<DataDictionaryDTO>> getByType(@PathVariable String type) {
@@ -82,5 +76,11 @@ public class DataDictionaryController {
     @GetMapping("/all-group")
     public Result<Map<String, List<DataDictionaryDTO>>> getAllGroup() {
         return Result.success(dataDictionaryService.getAllGroup());
+    }
+
+    @Operation(summary = "获取所有字典类型列表（去重，同一类型只显示一条）")
+    @GetMapping("/types")
+    public Result<List<DataDictionaryDTO>> getTypes() {
+        return Result.success(dataDictionaryService.getTypes());
     }
 }

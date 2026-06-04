@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Tag(name = "LZLJ数据字典管理")
 @RestController
-@RequestMapping("/datadictionary")
+@RequestMapping("/dictionary")
 @RequiredArgsConstructor
 public class LzljDataDictionaryController {
 
@@ -76,5 +76,11 @@ public class LzljDataDictionaryController {
     @GetMapping("/all-group")
     public Result<Map<String, List<LzljDataDictionaryDTO>>> getAllGroup() {
         return Result.success(lzljDataDictionaryService.getAllGroup());
+    }
+
+    @Operation(summary = "获取所有字典类型列表（去重，同一类型只显示一条）")
+    @GetMapping("/types")
+    public Result<List<LzljDataDictionaryDTO>> getTypes() {
+        return Result.success(lzljDataDictionaryService.getTypes());
     }
 }

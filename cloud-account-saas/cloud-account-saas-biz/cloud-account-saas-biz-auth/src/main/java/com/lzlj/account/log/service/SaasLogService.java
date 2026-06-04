@@ -21,9 +21,10 @@ public interface SaasLogService {
      * @param bizId     业务ID
      * @param ip        IP地址
      * @param userAgent 用户UA
+     * @param roles     操作人角色
      */
     void logOperation(Long userId, Long tenantId, String username, String module,
-                     String operation, String content, Long bizId, String ip, String userAgent);
+                     String operation, String content, Long bizId, String ip, String userAgent, String roles);
 
     /**
      * 分页查询操作日志

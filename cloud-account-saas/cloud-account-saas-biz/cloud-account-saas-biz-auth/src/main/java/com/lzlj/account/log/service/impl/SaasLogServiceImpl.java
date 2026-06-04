@@ -35,7 +35,7 @@ public class SaasLogServiceImpl implements SaasLogService {
     @Override
     @Async
     public void logOperation(Long userId, Long tenantId, String username, String module,
-                             String operation, String content, Long bizId, String ip, String userAgent) {
+                             String operation, String content, Long bizId, String ip, String userAgent, String roles) {
         try {
             SaasOperationLog operationLog = new SaasOperationLog();
             operationLog.setUserId(userId);
@@ -47,6 +47,7 @@ public class SaasLogServiceImpl implements SaasLogService {
             operationLog.setBizId(bizId);
             operationLog.setIp(ip);
             operationLog.setUserAgent(userAgent);
+            operationLog.setRoles(roles);
             operationLog.setCreateTime(LocalDateTime.now());
 
             operationLogDao.insert(operationLog);
@@ -59,11 +60,16 @@ public class SaasLogServiceImpl implements SaasLogService {
     public PageResult<OperationLogDTO> pageOperationLog(OperationLogQueryDTO query) {
         Page<SaasOperationLog> page = new Page<>(query.getPageNum(), query.getPageSize());
         LambdaQueryWrapper<SaasOperationLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getUsername()), SaasOperationLog::getUsername, query.getUsername())
-               .like(StringUtils.hasText(query.getModule()), SaasOperationLog::getModule, query.getModule())
-               .eq(StringUtils.hasText(query.getOperation()), SaasOperationLog::getOperation, query.getOperation())
-               .ge(query.getStartTime() != null, SaasOperationLog::getCreateTime, query.getStartTime())
-               .le(query.getEndTime() != null, SaasOperationLog::getCreateTime, query.getEndTime())
+        String username = query.getUsername();
+        String module = query.getModule();
+        String operation = query.getOperation();
+        String startTime = query.getStartTime();
+        String endTime = query.getEndTime();
+        wrapper.like(StringUtils.hasText(username), SaasOperationLog::getUsername, username)
+               .like(StringUtils.hasText(module), SaasOperationLog::getModule, module)
+               .eq(StringUtils.hasText(operation), SaasOperationLog::getOperation, operation)
+               .ge(StringUtils.hasText(startTime), SaasOperationLog::getCreateTime, startTime)
+               .le(StringUtils.hasText(endTime), SaasOperationLog::getCreateTime, endTime)
                .orderByDesc(SaasOperationLog::getCreateTime);
 
         IPage<SaasOperationLog> resultPage = operationLogDao.selectPage(page, wrapper);
@@ -79,6 +85,7 @@ public class SaasLogServiceImpl implements SaasLogService {
             dto.setBizId(log.getBizId());
             dto.setIp(log.getIp());
             dto.setUserAgent(log.getUserAgent());
+            dto.setRoles(log.getRoles());
             dto.setCreateTime(log.getCreateTime());
             return dto;
         }).collect(Collectors.toList());

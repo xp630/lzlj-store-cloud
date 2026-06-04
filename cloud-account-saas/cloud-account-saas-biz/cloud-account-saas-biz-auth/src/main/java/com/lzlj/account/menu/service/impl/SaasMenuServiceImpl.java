@@ -145,7 +145,10 @@ public class SaasMenuServiceImpl implements SaasMenuService {
             allMenuWrapper.eq(SaasMenu::getStatus, 1)
                          .orderByAsc(SaasMenu::getSort);
             List<SaasMenu> menus = menuDao.selectList(allMenuWrapper);
-            return buildTree(menus, 0L);
+            if (menus.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return buildTree(menus, menus.get(0).getParentId());
         }
 
         // 获取这些角色的菜单IDs
@@ -167,8 +170,11 @@ public class SaasMenuServiceImpl implements SaasMenuService {
                   .eq(SaasMenu::getStatus, 1)
                   .orderByAsc(SaasMenu::getSort);
         List<SaasMenu> menus = menuDao.selectList(menuWrapper);
+        if (menus.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        return buildTree(menus, 0L);
+        return buildTree(menus, menus.get(0).getParentId());
     }
 
     @Override
@@ -188,8 +194,17 @@ public class SaasMenuServiceImpl implements SaasMenuService {
         // 获取全部菜单
         List<SaasMenu> allMenus = getAllMenus();
 
+        // 确定树的根节点：用第一个菜单的parentId
+        Long rootParentId = 0L;
+        if (!allMenus.isEmpty()) {
+            SaasMenu firstMenu = allMenus.get(0);
+            if (firstMenu.getParentId() != null) {
+                rootParentId = firstMenu.getParentId();
+            }
+        }
+
         // 构建树并标注checked状态
-        return buildMenuTreeWithChecked(allMenus, 0L, checkedMenuIds);
+        return buildMenuTreeWithChecked(allMenus, rootParentId, checkedMenuIds);
     }
 
     private List<SaasMenu> getAllMenus() {
@@ -201,7 +216,7 @@ public class SaasMenuServiceImpl implements SaasMenuService {
 
     private List<MenuDTO> buildTree(List<SaasMenu> menus, Long parentId) {
         return menus.stream()
-                .filter(menu -> menu.getParentId().equals(parentId))
+                .filter(menu -> Objects.equals(menu.getParentId(), parentId))
                 .map(menu -> {
                     MenuDTO dto = convertToDTO(menu);
                     dto.setChildren(buildTree(menus, menu.getId()));
