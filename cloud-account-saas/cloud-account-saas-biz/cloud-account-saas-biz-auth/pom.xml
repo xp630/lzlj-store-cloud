@@ -87,7 +87,7 @@
         </dependency>
         <dependency>
             <groupId>com.lzlj.account</groupId>
-            <artifactId>cloud-account-saas-api</artifactId>
+            <artifactId>cloud-account-saas-api-auth</artifactId>
         </dependency>
 
         <!-- Lombok -->
