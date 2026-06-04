@@ -6,6 +6,8 @@ import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.role.dto.RoleDTO;
+import com.lzlj.account.user.dto.CreateUserDTO;
+import com.lzlj.account.user.dto.UpdateUserDTO;
 import com.lzlj.account.user.dto.UserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.dto.UserRoleDTO;
@@ -72,16 +74,16 @@ public class SaasUserController {
     @SaCheckPermission("saas:user:create")
     @Operation(summary = "创建用户")
     @PostMapping
-    public Result<Long> create(@Valid @RequestBody SaasUser user) {
-        return Result.success(userService.create(user));
+    public Result<Long> create(@Valid @RequestBody CreateUserDTO createUserDTO) {
+        return Result.success(userService.create(createUserDTO));
     }
 
     @SaCheckPermission("saas:user:update")
     @Operation(summary = "更新用户")
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody SaasUser user) {
-        user.setId(id);
-        userService.update(user);
+    public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
+        updateUserDTO.setId(id);
+        userService.update(updateUserDTO);
         return Result.success();
     }
 

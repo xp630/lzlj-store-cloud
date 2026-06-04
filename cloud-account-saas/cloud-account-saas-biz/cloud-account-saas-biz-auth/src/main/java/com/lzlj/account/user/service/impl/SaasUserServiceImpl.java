@@ -14,9 +14,13 @@ import com.lzlj.account.config.SaasSaTokenConfig;
 import com.lzlj.account.permission.service.PermissionService;
 import com.lzlj.account.sms.service.SmsCodeService;
 import com.lzlj.account.systemparameter.dto.SystemParameterDTO;
+import com.lzlj.account.tenant.dto.AssignTenantDTO;
+import com.lzlj.account.tenant.service.AdminTenantService;
 import com.lzlj.account.systemparameter.service.SystemParameterService;
 import com.lzlj.account.user.dao.SaasUserDao;
+import com.lzlj.account.user.dto.CreateUserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
+import com.lzlj.account.user.dto.UpdateUserDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.service.SaasUserRoleService;
 import com.lzlj.account.user.service.SaasUserService;
@@ -54,6 +58,7 @@ public class SaasUserServiceImpl implements SaasUserService {
     private final PermissionService permissionService;
     private final SaasSaTokenConfig saTokenConfig;
     private final SaasUserRoleService userRoleService;
+    private final AdminTenantService adminTenantService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -214,37 +219,87 @@ public class SaasUserServiceImpl implements SaasUserService {
     }
 
     @Override
-    public Long create(SaasUser user) {
+    public Long create(CreateUserDTO createUserDTO) {
         // 检查用户名唯一性
         LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SaasUser::getUsername, user.getUsername())
+        wrapper.eq(SaasUser::getUsername, createUserDTO.getUsername())
                .eq(SaasUser::getDeleted, 0);
         if (userDao.selectCount(wrapper) > 0) {
             throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS);
         }
 
+        // 创建用户实体
+        SaasUser user = new SaasUser();
+        user.setUsername(createUserDTO.getUsername());
+        user.setRealName(createUserDTO.getRealName());
+        user.setPhone(createUserDTO.getPhone());
+        user.setEmail(createUserDTO.getEmail());
+        user.setAvatar(createUserDTO.getAvatar());
+        user.setGender(createUserDTO.getGender());
+        user.setUserType(createUserDTO.getUserType());
+        user.setOrgId(createUserDTO.getOrgId());
+        user.setStatus(createUserDTO.getStatus() != null ? createUserDTO.getStatus() : 1);
+
         // 加密密码
         String salt = UUID.randomUUID().toString().substring(0, 8);
         user.setSalt(salt);
-        user.setPassword(encryptPassword(user.getPassword(), salt));
-        user.setStatus(1);
+        user.setPassword(encryptPassword(createUserDTO.getPassword(), salt));
 
         userDao.insert(user);
+
+        // 分配角色
+        if (createUserDTO.getRoleIds() != null && !createUserDTO.getRoleIds().isEmpty()) {
+            userRoleService.assignRoles(user.getId(), createUserDTO.getRoleIds());
+        }
+
+        // 分配可管理的租户
+        if (createUserDTO.getTenantIds() != null && !createUserDTO.getTenantIds().isEmpty()) {
+            AssignTenantDTO assignTenantDTO = new AssignTenantDTO();
+            assignTenantDTO.setTenantIds(createUserDTO.getTenantIds());
+            adminTenantService.assignTenants(user.getId(), assignTenantDTO);
+        }
+
         return user.getId();
     }
 
     @Override
-    public void update(SaasUser user) {
-        SaasUser existUser = userDao.selectById(user.getId());
+    public void update(UpdateUserDTO updateUserDTO) {
+        SaasUser existUser = userDao.selectById(updateUserDTO.getId());
         if (existUser == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
-        user.setPassword(null);
-        user.setSalt(null);
-        userDao.updateById(user);
+
+        // 更新用户信息
+        existUser.setRealName(updateUserDTO.getRealName());
+        existUser.setPhone(updateUserDTO.getPhone());
+        existUser.setEmail(updateUserDTO.getEmail());
+        existUser.setAvatar(updateUserDTO.getAvatar());
+        existUser.setGender(updateUserDTO.getGender());
+        if (updateUserDTO.getUserType() != null) {
+            existUser.setUserType(updateUserDTO.getUserType());
+        }
+        if (updateUserDTO.getOrgId() != null) {
+            existUser.setOrgId(updateUserDTO.getOrgId());
+        }
+        if (updateUserDTO.getStatus() != null) {
+            existUser.setStatus(updateUserDTO.getStatus());
+        }
+        userDao.updateById(existUser);
+
+        // 更新角色
+        if (updateUserDTO.getRoleIds() != null) {
+            userRoleService.assignRoles(updateUserDTO.getId(), updateUserDTO.getRoleIds());
+        }
+
+        // 更新可管理的租户
+        if (updateUserDTO.getTenantIds() != null) {
+            AssignTenantDTO assignTenantDTO = new AssignTenantDTO();
+            assignTenantDTO.setTenantIds(updateUserDTO.getTenantIds());
+            adminTenantService.assignTenants(updateUserDTO.getId(), assignTenantDTO);
+        }
 
         // 清除缓存
-        redisHelper.delete(USER_INFO_PREFIX + user.getId());
+        redisHelper.delete(USER_INFO_PREFIX + updateUserDTO.getId());
     }
 
     @Override

@@ -19,4 +19,9 @@ public interface SaasUserRoleService {
      * 分配用户角色
      */
     void assignRoles(Long userId, UserRoleDTO dto);
+
+    /**
+     * 分配用户角色
+     */
+    void assignRoles(Long userId, List<Long> roleIds);
 }

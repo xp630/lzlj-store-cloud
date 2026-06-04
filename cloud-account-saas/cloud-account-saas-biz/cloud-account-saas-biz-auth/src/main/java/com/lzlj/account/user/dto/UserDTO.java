@@ -73,6 +73,11 @@ public class UserDTO {
     private Long tenantId;
 
     /**
+     * 最后登录IP
+     */
+    private String lastLoginIp;
+
+    /**
      * 最后登录时间
      */
     private LocalDateTime lastLoginTime;
@@ -82,6 +87,24 @@ public class UserDTO {
      */
     private LocalDateTime createTime;
 
+    /**
+     * 创建人名称
+     */
+    private String createByName;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
+
+    /**
+     * 更新人名称
+     */
+    private String updateByName;
+
     /** 用户角色列表 */
     private List<RoleDTO> roles;
+
+    /** 可管理的租户ID列表 */
+    private List<Long> tenantIds;
 }

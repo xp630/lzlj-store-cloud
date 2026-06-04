@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.user.dto.CreateLzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
@@ -64,8 +65,8 @@ public class LzljUserController {
     @SaCheckPermission("lzlj:user:create")
     @Operation(summary = "创建用户")
     @PostMapping
-    public Result<Long> create(@Valid @RequestBody LzljUser user) {
-        return Result.success(userService.create(user));
+    public Result<Long> create(@Valid @RequestBody CreateLzljUserDTO createUserDTO) {
+        return Result.success(userService.create(createUserDTO));
     }
 
     @SaCheckPermission("lzlj:user:update")

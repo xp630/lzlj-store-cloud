@@ -39,7 +39,7 @@ public class AdminTenantServiceImpl implements AdminTenantService {
     public List<AdminTenantDTO> getAdminTenants(Long adminUserId) {
         // 获取管理员关联的租户ID列表
         LambdaQueryWrapper<AdminTenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AdminTenant::getAdminUserId, adminUserId);
+        wrapper.eq(AdminTenant::getUserId, adminUserId);
         List<AdminTenant> adminTenants = adminTenantDao.selectList(wrapper);
 
         List<Long> tenantIds;
@@ -79,14 +79,14 @@ public class AdminTenantServiceImpl implements AdminTenantService {
     public void assignTenants(Long adminUserId, AssignTenantDTO dto) {
         // 删除原有关联
         LambdaQueryWrapper<AdminTenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AdminTenant::getAdminUserId, adminUserId);
+        wrapper.eq(AdminTenant::getUserId, adminUserId);
         adminTenantDao.delete(wrapper);
 
         // 新增关联
         if (dto.getTenantIds() != null && !dto.getTenantIds().isEmpty()) {
             List<AdminTenant> adminTenants = dto.getTenantIds().stream().map(tenantId -> {
                 AdminTenant adminTenant = new AdminTenant();
-                adminTenant.setAdminUserId(adminUserId);
+                adminTenant.setUserId(adminUserId);
                 adminTenant.setTenantId(tenantId);
                 return adminTenant;
             }).collect(Collectors.toList());

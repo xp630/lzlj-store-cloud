@@ -21,8 +21,18 @@ public class LzljUserDTO {
     private Integer status;
     private Integer userType;
     private Long orgId;
+    /** 最后登录IP */
+    private String lastLoginIp;
+    /** 最后登录时间 */
     private Long lastLoginTime;
+    /** 创建时间 */
     private LocalDateTime createTime;
+    /** 创建人名称 */
+    private String createByName;
+    /** 更新时间 */
+    private LocalDateTime updateTime;
+    /** 更新人名称 */
+    private String updateByName;
     /** 用户角色列表 */
     private List<LzljRoleDTO> roles;
 }

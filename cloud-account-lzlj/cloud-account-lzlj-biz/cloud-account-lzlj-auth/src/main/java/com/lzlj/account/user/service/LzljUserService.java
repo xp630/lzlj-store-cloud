@@ -1,6 +1,7 @@
 package com.lzlj.account.user.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.user.dto.CreateLzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.dto.LzljUserDTO;
@@ -33,7 +34,7 @@ public interface LzljUserService {
     /**
      * 创建用户
      */
-    Long create(LzljUser user);
+    Long create(CreateLzljUserDTO createUserDTO);
 
     /**
      * 更新用户

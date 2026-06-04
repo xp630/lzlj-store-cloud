@@ -16,7 +16,7 @@ public class AdminTenant extends BaseEntity {
     /**
      * 管理员用户ID
      */
-    private Long adminUserId;
+    private Long userId;
 
     /**
      * 可管理的租户ID

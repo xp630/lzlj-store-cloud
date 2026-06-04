@@ -62,6 +62,12 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRoles(Long userId, UserRoleDTO dto) {
+        assignRoles(userId, dto.getRoleIds());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
         // 检查用户是否存在
         SaasUser user = userDao.selectById(userId);
         if (user == null) {
@@ -72,8 +78,8 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
         userRoleDao.deleteByUserIdHard(userId);
 
         // 新增角色关联
-        if (dto.getRoleIds() != null && !dto.getRoleIds().isEmpty()) {
-            List<SaasUserRole> userRoles = dto.getRoleIds().stream().map(roleId -> {
+        if (roleIds != null && !roleIds.isEmpty()) {
+            List<SaasUserRole> userRoles = roleIds.stream().map(roleId -> {
                 SaasUserRole userRole = new SaasUserRole();
                 userRole.setUserId(userId);
                 userRole.setRoleId(roleId);
@@ -85,7 +91,7 @@ public class SaasUserRoleServiceImpl implements SaasUserRoleService {
             }
         }
 
-        log.info("分配用户角色成功: userId={}, roleIds={}", userId, dto.getRoleIds());
+        log.info("分配用户角色成功: userId={}, roleIds={}", userId, roleIds);
     }
 
     private RoleDTO convertToDTO(SaasRole role) {

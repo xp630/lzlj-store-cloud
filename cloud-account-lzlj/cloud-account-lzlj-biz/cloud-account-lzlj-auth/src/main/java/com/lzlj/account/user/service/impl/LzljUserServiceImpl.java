@@ -16,6 +16,7 @@ import com.lzlj.account.role.dto.LzljRoleDTO;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
 import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
 import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
+import com.lzlj.account.user.dto.CreateLzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
@@ -198,22 +199,39 @@ public class LzljUserServiceImpl implements LzljUserService {
     }
 
     @Override
-    public Long create(LzljUser user) {
+    public Long create(CreateLzljUserDTO createUserDTO) {
         // 检查用户名唯一性
         LambdaQueryWrapper<LzljUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LzljUser::getUsername, user.getUsername())
+        wrapper.eq(LzljUser::getUsername, createUserDTO.getUsername())
                .eq(LzljUser::getDeleted, 0);
         if (userDao.selectCount(wrapper) > 0) {
             throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS);
         }
 
+        // 创建用户实体
+        LzljUser user = new LzljUser();
+        user.setUsername(createUserDTO.getUsername());
+        user.setRealName(createUserDTO.getRealName());
+        user.setPhone(createUserDTO.getPhone());
+        user.setEmail(createUserDTO.getEmail());
+        user.setAvatar(createUserDTO.getAvatar());
+        user.setGender(createUserDTO.getGender());
+        user.setUserType(createUserDTO.getUserType());
+        user.setOrgId(createUserDTO.getOrgId());
+        user.setStatus(createUserDTO.getStatus() != null ? createUserDTO.getStatus() : 1);
+
         // 加密密码
         String salt = UUID.randomUUID().toString().substring(0, 8);
         user.setSalt(salt);
-        user.setPassword(encryptPassword(user.getPassword(), salt));
-        user.setStatus(1);
+        user.setPassword(encryptPassword(createUserDTO.getPassword(), salt));
 
         userDao.insert(user);
+
+        // 分配角色
+        if (createUserDTO.getRoleIds() != null && !createUserDTO.getRoleIds().isEmpty()) {
+            userRoleService.assignRoles(user.getId(), createUserDTO.getRoleIds());
+        }
+
         return user.getId();
     }
 

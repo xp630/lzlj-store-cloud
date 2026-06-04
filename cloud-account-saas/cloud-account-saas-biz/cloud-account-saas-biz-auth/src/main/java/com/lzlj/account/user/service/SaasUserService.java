@@ -1,6 +1,8 @@
 package com.lzlj.account.user.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.user.dto.CreateUserDTO;
+import com.lzlj.account.user.dto.UpdateUserDTO;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.dto.UserDTO;
@@ -35,12 +37,12 @@ public interface SaasUserService {
     /**
      * 创建用户
      */
-    Long create(SaasUser user);
+    Long create(CreateUserDTO createUserDTO);
 
     /**
      * 更新用户
      */
-    void update(SaasUser user);
+    void update(UpdateUserDTO updateUserDTO);
 
     /**
      * 删除用户
