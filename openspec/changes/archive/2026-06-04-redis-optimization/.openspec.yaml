@@ -1,0 +1,28 @@
+name: redis-optimization
+title: Redis优化
+description: Redis操作统一封装，解决LocalDateTime序列化问题
+schema: task
+status: completed
+created: 2026-06-04
+artifacts:
+  - name: RedisHelper
+    path: cloud-account-common/cloud-account-common-redis/src/main/java/com/lzlj/account/common/core/helper/RedisHelper.java
+    status: done
+  - name: SaasUserServiceImpl改造
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/src/main/java/com/lzlj/account/user/service/impl/SaasUserServiceImpl.java
+    status: done
+  - name: LzljUserServiceImpl改造
+    path: cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-auth/src/main/java/com/lzlj/account/user/service/impl/LzljUserServiceImpl.java
+    status: done
+  - name: Jackson JSR310依赖添加
+    path: cloud-account-common/cloud-account-common-core/pom.xml
+    status: done
+  - name: RedisConfig配置JavaTimeModule
+    path: cloud-account-saas/cloud-account-saas-biz/cloud-account-saas-biz-auth/src/main/java/com/lzlj/account/user/config/RedisConfig.java
+    status: done
+  - name: 测试验证
+    status: pending
+tasks:
+  - "[ ] 集成测试 SaasUserServiceImpl Redis操作"
+  - "[ ] 集成测试 LzljUserServiceImpl Redis操作"
+  - "[ ] 验证 LocalDateTime 序列化正常"
