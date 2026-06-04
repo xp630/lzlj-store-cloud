@@ -2,7 +2,7 @@ package com.lzlj.account.log.controller;
 
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.log.dto.ApiAccessLogDTO;
-import com.lzlj.account.log.service.LogService;
+import com.lzlj.account.log.service.SaasLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/inner/log")
 @RequiredArgsConstructor
-public class ApiLogController {
+public class SaasApiLogController {
 
-    private final LogService logService;
+    private final SaasLogService logService;
 
     @Operation(summary = "记录API访问日志（内部接口，供网关调用）")
     @PostMapping("/api")

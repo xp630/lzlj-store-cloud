@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("saas_auth_operation_log")
-public class OperationLog {
+public class SaasOperationLog {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;

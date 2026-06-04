@@ -1,10 +1,10 @@
 package com.lzlj.account.log.service.impl;
 
 import com.lzlj.account.log.dao.ApiLogDao;
-import com.lzlj.account.log.dao.OperationLogDao;
+import com.lzlj.account.log.dao.SaasOperationLogDao;
 import com.lzlj.account.log.entity.ApiLog;
-import com.lzlj.account.log.entity.OperationLog;
-import com.lzlj.account.log.service.LogService;
+import com.lzlj.account.log.entity.SaasOperationLog;
+import com.lzlj.account.log.service.SaasLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -18,9 +18,9 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LogServiceImpl implements LogService {
+public class SaasLogServiceImpl implements SaasLogService {
 
-    private final OperationLogDao operationLogDao;
+    private final SaasOperationLogDao operationLogDao;
     private final ApiLogDao apiLogDao;
 
     @Override
@@ -28,7 +28,7 @@ public class LogServiceImpl implements LogService {
     public void logOperation(Long userId, Long tenantId, String username, String module,
                              String operation, String content, Long bizId, String ip, String userAgent) {
         try {
-            OperationLog operationLog = new OperationLog();
+            SaasOperationLog operationLog = new SaasOperationLog();
             operationLog.setUserId(userId);
             operationLog.setTenantId(tenantId);
             operationLog.setUsername(username);

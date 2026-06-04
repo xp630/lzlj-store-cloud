@@ -1,6 +1,6 @@
 package com.lzlj.account.log.event;
 
-import com.lzlj.account.log.service.LogService;
+import com.lzlj.account.log.service.SaasLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OperationLogEventListener {
 
-    private final LogService logService;
+    private final SaasLogService logService;
 
     @Async
     @EventListener

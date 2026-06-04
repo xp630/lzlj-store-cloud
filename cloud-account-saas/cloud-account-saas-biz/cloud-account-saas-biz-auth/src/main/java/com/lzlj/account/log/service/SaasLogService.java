@@ -3,7 +3,7 @@ package com.lzlj.account.log.service;
 /**
  * 日志服务接口
  */
-public interface LogService {
+public interface SaasLogService {
 
     /**
      * 记录操作日志
