@@ -1,7 +1,10 @@
 package com.lzlj.account.user.dto;
 
+import com.lzlj.account.role.dto.RoleDTO;
 import lombok.Data;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 用户 DTO
@@ -78,4 +81,7 @@ public class UserDTO {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /** 用户角色列表 */
+    private List<RoleDTO> roles;
 }

@@ -18,6 +18,7 @@ import com.lzlj.account.systemparameter.service.SystemParameterService;
 import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dto.UserLoginDTO;
 import com.lzlj.account.user.entity.SaasUser;
+import com.lzlj.account.user.service.SaasUserRoleService;
 import com.lzlj.account.user.service.SaasUserService;
 import com.lzlj.account.user.dto.UserDTO;
 import io.jsonwebtoken.Jwts;
@@ -33,6 +34,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +53,7 @@ public class SaasUserServiceImpl implements SaasUserService {
     private final SystemParameterService systemParameterService;
     private final PermissionService permissionService;
     private final SaasSaTokenConfig saTokenConfig;
+    private final SaasUserRoleService userRoleService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -196,8 +199,14 @@ public class SaasUserServiceImpl implements SaasUserService {
 
         IPage<SaasUser> resultPage = userDao.selectPage(page, wrapper);
 
+        List<UserDTO> list = resultPage.getRecords().stream().map(user -> {
+            UserDTO dto = convertToDTO(user);
+            dto.setRoles(userRoleService.getUserRoles(user.getId()));
+            return dto;
+        }).collect(Collectors.toList());
+
         return new PageResult<>(
-                resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
+                list,
                 resultPage.getTotal(),
                 resultPage.getCurrent(),
                 resultPage.getSize()

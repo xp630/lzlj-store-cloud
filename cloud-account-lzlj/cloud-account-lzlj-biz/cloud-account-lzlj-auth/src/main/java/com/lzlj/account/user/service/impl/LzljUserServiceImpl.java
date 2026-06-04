@@ -12,6 +12,7 @@ import com.lzlj.account.common.core.helper.RedisHelper;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.config.LzljSaTokenConfig;
 import com.lzlj.account.permission.service.LzljPermissionService;
+import com.lzlj.account.role.dto.LzljRoleDTO;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
 import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
 import com.lzlj.account.systemparameter.service.LzljSystemParameterService;
@@ -19,6 +20,7 @@ import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.dao.LzljUserDao;
+import com.lzlj.account.user.service.LzljUserRoleService;
 import com.lzlj.account.user.service.LzljUserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -33,6 +35,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,6 +54,7 @@ public class LzljUserServiceImpl implements LzljUserService {
     private final LzljSystemParameterService systemParameterService;
     private final LzljPermissionService permissionService;
     private final LzljSaTokenConfig saTokenConfig;
+    private final LzljUserRoleService userRoleService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -179,8 +183,14 @@ public class LzljUserServiceImpl implements LzljUserService {
 
         IPage<LzljUser> resultPage = userDao.selectPage(page, wrapper);
 
+        List<LzljUserDTO> list = resultPage.getRecords().stream().map(user -> {
+            LzljUserDTO dto = convertToDTO(user);
+            dto.setRoles(userRoleService.getUserRoles(user.getId()));
+            return dto;
+        }).collect(Collectors.toList());
+
         return new PageResult<>(
-                resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
+                list,
                 resultPage.getTotal(),
                 resultPage.getCurrent(),
                 resultPage.getSize()
