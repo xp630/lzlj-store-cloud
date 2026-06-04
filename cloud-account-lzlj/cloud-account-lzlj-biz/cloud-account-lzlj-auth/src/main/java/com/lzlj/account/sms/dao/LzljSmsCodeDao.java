@@ -9,6 +9,5 @@ import org.apache.ibatis.annotations.Mapper;
  * 短信验证码Mapper
  */
 @Mapper
-@InterceptorIgnore(tenantLine = "true")
 public interface LzljSmsCodeDao extends BaseMapper<LzljSmsCode> {
 }

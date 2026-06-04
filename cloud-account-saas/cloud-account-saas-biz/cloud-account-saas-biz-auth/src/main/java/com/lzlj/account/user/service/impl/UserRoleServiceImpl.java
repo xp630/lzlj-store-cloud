@@ -6,10 +6,10 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.role.dao.RoleDao;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.entity.Role;
-import com.lzlj.account.user.dao.UserDao;
+import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dao.UserRoleDao;
 import com.lzlj.account.user.dto.UserRoleDTO;
-import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.entity.SaasUser;
 import com.lzlj.account.user.entity.UserRole;
 import com.lzlj.account.user.service.UserRoleService;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +30,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserRoleServiceImpl implements UserRoleService {
 
-    private final UserDao userDao;
+    private final SaasUserDao userDao;
     private final UserRoleDao userRoleDao;
     private final RoleDao roleDao;
 
     @Override
     public List<RoleDTO> getUserRoles(Long userId) {
         // 检查用户是否存在
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -64,7 +64,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Transactional(rollbackFor = Exception.class)
     public void assignRoles(Long userId, UserRoleDTO dto) {
         // 检查用户是否存在
-        User user = userDao.selectById(userId);
+        SaasUser user = userDao.selectById(userId);
         if (user == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }

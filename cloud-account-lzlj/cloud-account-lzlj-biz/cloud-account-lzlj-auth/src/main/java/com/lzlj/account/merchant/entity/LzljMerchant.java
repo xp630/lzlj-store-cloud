@@ -78,6 +78,11 @@ public class LzljMerchant extends BaseEntity {
     private Integer merchantType;
 
     /**
+     * 经营类型 1:个人 2:企业经营 3:个体经营
+     */
+    private Integer businessType;
+
+    /**
      * 母商户ID（子户时必填）
      */
     private Long parentId;

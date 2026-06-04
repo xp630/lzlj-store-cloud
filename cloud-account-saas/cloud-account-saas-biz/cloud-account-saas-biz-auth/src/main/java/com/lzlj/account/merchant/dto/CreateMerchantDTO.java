@@ -43,6 +43,9 @@ public class CreateMerchantDTO {
     @Schema(description = "支付渠道账号")
     private String wangshangAccount;
 
+    @Schema(description = "经营类型 1:个人 2:企业经营 3:个体经营")
+    private Integer businessType;
+
     @Schema(description = "法人信息")
     private MerchantLegalDTO legal;
 

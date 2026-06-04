@@ -10,8 +10,8 @@ import com.lzlj.account.tenant.dto.AssignTenantDTO;
 import com.lzlj.account.tenant.entity.AdminTenant;
 import com.lzlj.account.tenant.entity.Tenant;
 import com.lzlj.account.tenant.service.AdminTenantService;
-import com.lzlj.account.user.dao.UserDao;
-import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.dao.SaasUserDao;
+import com.lzlj.account.user.entity.SaasUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class AdminTenantServiceImpl implements AdminTenantService {
 
     private final AdminTenantDao adminTenantDao;
     private final TenantDao tenantDao;
-    private final UserDao userDao;
+    private final SaasUserDao userDao;
 
     @Override
     public List<AdminTenantDTO> getAdminTenants(Long adminUserId) {
@@ -46,7 +46,7 @@ public class AdminTenantServiceImpl implements AdminTenantService {
 
         // 如果关联表没有记录，则返回用户自己的租户
         if (adminTenants.isEmpty()) {
-            User user = userDao.selectById(adminUserId);
+            SaasUser user = userDao.selectById(adminUserId);
             if (user == null || user.getTenantId() == null) {
                 return Collections.emptyList();
             }

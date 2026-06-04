@@ -7,6 +7,7 @@ import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.helper.RedisHelper;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.sms.service.LzljSmsCodeService;
 import com.lzlj.account.systemparameter.dto.LzljSystemParameterDTO;
@@ -22,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class LzljUserServiceImpl implements LzljUserService {
 
     private final LzljUserDao userDao;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisHelper redisHelper;
     private final LzljSmsCodeService smsCodeService;
     private final LzljSystemParameterService systemParameterService;
 
@@ -136,9 +136,9 @@ public class LzljUserServiceImpl implements LzljUserService {
     public LzljUserDTO getById(Long id) {
         // 先从缓存获取
         String cacheKey = USER_INFO_PREFIX + id;
-        LzljUserDTO cachedUser = (LzljUserDTO) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedUser != null) {
-            return cachedUser;
+        LzljUserDTO cached = redisHelper.get(cacheKey, LzljUserDTO.class);
+        if (cached != null) {
+            return cached;
         }
 
         LzljUser user = userDao.selectById(id);
@@ -149,7 +149,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         LzljUserDTO userVO = convertToDTO(user);
 
         // 缓存用户信息
-        redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
+        redisHelper.set(cacheKey, userVO, 30, TimeUnit.MINUTES);
 
         return userVO;
     }
@@ -205,7 +205,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         userDao.updateById(user);
 
         // 清除缓存
-        redisTemplate.delete(USER_INFO_PREFIX + user.getId());
+        redisHelper.delete(USER_INFO_PREFIX + user.getId());
     }
 
     @Override
@@ -217,7 +217,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         userDao.deleteById(id);
 
         // 清除缓存
-        redisTemplate.delete(USER_INFO_PREFIX + id);
+        redisHelper.delete(USER_INFO_PREFIX + id);
     }
 
     @Override
@@ -238,7 +238,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         userDao.updateById(user);
 
         // 清除缓存，强制重新登录
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -253,7 +253,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         user.setPassword(encryptPassword(newPassword, newSalt));
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -265,7 +265,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         user.setStatus(status);
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -277,7 +277,7 @@ public class LzljUserServiceImpl implements LzljUserService {
         user.setAvatar(avatar);
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     // ========== 私有方法 ==========
@@ -298,7 +298,7 @@ public class LzljUserServiceImpl implements LzljUserService {
 
         // 缓存Token
         String cacheKey = TOKEN_PREFIX + user.getId();
-        redisTemplate.opsForValue().set(cacheKey, token, jwtExpiration, TimeUnit.MILLISECONDS);
+        redisHelper.set(cacheKey, token, jwtExpiration, TimeUnit.MILLISECONDS);
 
         return token;
     }
@@ -306,7 +306,7 @@ public class LzljUserServiceImpl implements LzljUserService {
     private void cacheUserInfo(LzljUser user) {
         String cacheKey = USER_INFO_PREFIX + user.getId();
         LzljUserDTO userVO = convertToDTO(user);
-        redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
+        redisHelper.set(cacheKey, userVO, 30, TimeUnit.MINUTES);
     }
 
     private LzljUserDTO convertToDTO(LzljUser user) {

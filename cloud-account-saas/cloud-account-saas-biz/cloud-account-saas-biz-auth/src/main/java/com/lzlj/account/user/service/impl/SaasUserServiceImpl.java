@@ -7,6 +7,7 @@ import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.helper.RedisHelper;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.sms.service.SmsCodeService;
 import com.lzlj.account.systemparameter.dto.SystemParameterDTO;
@@ -22,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 public class SaasUserServiceImpl implements SaasUserService {
 
     private final SaasUserDao userDao;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisHelper redisHelper;
     private final SmsCodeService smsCodeService;
     private final SystemParameterService systemParameterService;
 
@@ -153,9 +153,9 @@ public class SaasUserServiceImpl implements SaasUserService {
     public UserDTO getById(Long id) {
         // 先从缓存获取
         String cacheKey = USER_INFO_PREFIX + id;
-        UserDTO cachedUser = (UserDTO) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedUser != null) {
-            return cachedUser;
+        UserDTO cached = redisHelper.get(cacheKey, UserDTO.class);
+        if (cached != null) {
+            return cached;
         }
 
         SaasUser user = userDao.selectById(id);
@@ -166,7 +166,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         UserDTO userVO = convertToDTO(user);
 
         // 缓存用户信息
-        redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
+        redisHelper.set(cacheKey, userVO, 30, TimeUnit.MINUTES);
 
         return userVO;
     }
@@ -222,7 +222,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         userDao.updateById(user);
 
         // 清除缓存
-        redisTemplate.delete(USER_INFO_PREFIX + user.getId());
+        redisHelper.delete(USER_INFO_PREFIX + user.getId());
     }
 
     @Override
@@ -234,7 +234,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         userDao.deleteById(id);
 
         // 清除缓存
-        redisTemplate.delete(USER_INFO_PREFIX + id);
+        redisHelper.delete(USER_INFO_PREFIX + id);
     }
 
     @Override
@@ -255,7 +255,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         userDao.updateById(user);
 
         // 清除缓存，强制重新登录
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -270,7 +270,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         user.setPassword(encryptPassword(newPassword, newSalt));
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -282,7 +282,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         user.setStatus(status);
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -295,7 +295,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         user.setWxMaOpenid(wxMaOpenid);
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     @Override
@@ -307,7 +307,7 @@ public class SaasUserServiceImpl implements SaasUserService {
         user.setAvatar(avatar);
         userDao.updateById(user);
 
-        redisTemplate.delete(USER_INFO_PREFIX + userId);
+        redisHelper.delete(USER_INFO_PREFIX + userId);
     }
 
     // ========== 私有方法 ==========
@@ -328,7 +328,7 @@ public class SaasUserServiceImpl implements SaasUserService {
 
         // 缓存Token
         String cacheKey = TOKEN_PREFIX + user.getId();
-        redisTemplate.opsForValue().set(cacheKey, token, jwtExpiration, TimeUnit.MILLISECONDS);
+        redisHelper.set(cacheKey, token, jwtExpiration, TimeUnit.MILLISECONDS);
 
         return token;
     }
@@ -336,7 +336,7 @@ public class SaasUserServiceImpl implements SaasUserService {
     private void cacheUserInfo(SaasUser user) {
         String cacheKey = USER_INFO_PREFIX + user.getId();
         UserDTO userVO = convertToDTO(user);
-        redisTemplate.opsForValue().set(cacheKey, userVO, 30, TimeUnit.MINUTES);
+        redisHelper.set(cacheKey, userVO, 30, TimeUnit.MINUTES);
     }
 
     private UserDTO convertToDTO(SaasUser user) {

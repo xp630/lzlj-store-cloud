@@ -23,6 +23,9 @@ public class MerchantDTO extends MerchantBaseDTO {
     @Schema(description = "商户类型 1:母户 2:子户")
     private Integer merchantType;
 
+    @Schema(description = "经营类型 1:个人 2:企业经营 3:个体经营")
+    private Integer businessType;
+
     @Schema(description = "母商户ID")
     private Long parentId;
 

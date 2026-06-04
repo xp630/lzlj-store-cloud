@@ -2,17 +2,11 @@ package com.lzlj.account.user.controller;
 
 import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.result.Result;
-import com.lzlj.account.common.oss.dto.PresignedUrlRequest;
-import com.lzlj.account.common.oss.dto.PresignedUrlResponse;
-import com.lzlj.account.common.oss.facade.OssUploadFacade;
-import com.lzlj.account.common.core.tenant.TenantContext;
 import com.lzlj.account.user.service.SaasUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 /**
  * 用户头像控制器
@@ -23,18 +17,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class UserAvatarController {
 
-    private final OssUploadFacade ossUploadFacade;
     private final SaasUserService userService;
-
-    @Operation(summary = "获取头像预签名上传URL")
-    @PostMapping("/presigned-url")
-    public Result<PresignedUrlResponse> getAvatarPresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
-        // 设置业务类型为头像
-        request.setBizType("avatar");
-        Long userId = UserContext.getUserId() != null ? UserContext.getUserId() : 0L;
-        Long tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : 0L;
-        return ossUploadFacade.generateUploadUrl(request, userId, tenantId);
-    }
 
     @Operation(summary = "更新用户头像")
     @PutMapping

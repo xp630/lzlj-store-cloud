@@ -48,6 +48,9 @@ public class MerchantBaseDTO {
     @Schema(description = "状态 0禁用 1启用")
     private Integer status;
 
+    @Schema(description = "经营类型 1:个人 2:企业经营 3:个体经营")
+    private Integer businessType;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 }

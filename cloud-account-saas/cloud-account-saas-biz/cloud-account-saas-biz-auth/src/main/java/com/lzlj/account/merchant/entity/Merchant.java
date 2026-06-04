@@ -61,4 +61,9 @@ public class Merchant extends TenantEntity {
      * 0 母户，1 子户
      */
     private  Integer merchantType;
+
+    /**
+     * 经营类型 1:个人 2:企业经营 3:个体经营
+     */
+    private Integer businessType;
 }

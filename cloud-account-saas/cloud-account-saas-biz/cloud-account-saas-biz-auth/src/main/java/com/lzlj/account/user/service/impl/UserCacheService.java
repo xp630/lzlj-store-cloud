@@ -1,8 +1,8 @@
 package com.lzlj.account.user.service.impl;
 
-import com.lzlj.account.user.dao.UserDao;
+import com.lzlj.account.user.dao.SaasUserDao;
 import com.lzlj.account.user.dto.UserDTO;
-import com.lzlj.account.user.entity.User;
+import com.lzlj.account.user.entity.SaasUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 public class UserCacheService {
 
     private final RedissonClient redissonClient;
-    private final UserDao userDao;
+    private final SaasUserDao userDao;
 
     /**
      * 缓存 key
@@ -65,7 +65,7 @@ public class UserCacheService {
 
         // 2. 缓存未命中，查数据库
         log.debug("【旁路缓存】未命中，查数据库 userId={}", id);
-        User user = userDao.selectById(id);
+        SaasUser user = userDao.selectById(id);
 
         if (user != null) {
             UserDTO userDTO = convertToDTO(user);
@@ -114,7 +114,7 @@ public class UserCacheService {
      * @param id   用户ID
      * @param user 更新后的用户
      */
-    public void updateById(Long id, User user) {
+    public void updateById(Long id, SaasUser user) {
         // 1. 先更新数据库
         userDao.updateById(user);
 
@@ -152,7 +152,7 @@ public class UserCacheService {
      * @param id   用户ID
      * @param user 更新后的用户
      */
-    public void updateWithDoubleDelete(Long id, User user) {
+    public void updateWithDoubleDelete(Long id, SaasUser user) {
         // 1. 先删除缓存
         RMap<Long, UserDTO> cache = redissonClient.getMap(CACHE_KEY);
         cache.remove(id);
@@ -194,7 +194,7 @@ public class UserCacheService {
         }
 
         // 2. 查数据库
-        User user = userDao.selectById(id);
+        SaasUser user = userDao.selectById(id);
         UserDTO userDTO = user != null ? convertToDTO(user) : null;
 
         // 3. 即使为空也写入缓存，防止穿透
@@ -206,7 +206,7 @@ public class UserCacheService {
 
     // ==================== 工具方法 ====================
 
-    private UserDTO convertToDTO(User user) {
+    private UserDTO convertToDTO(SaasUser user) {
         if (user == null) return null;
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());

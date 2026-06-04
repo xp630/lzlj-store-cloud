@@ -99,6 +99,12 @@
             <artifactId>mapstruct</artifactId>
         </dependency>
 
+        <!-- Jackson JSR310 Java8 DateTime -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <!-- OpenAPI / Swagger (v1.x for Spring Boot 2.x) -->
         <dependency>
             <groupId>org.springdoc</groupId>
