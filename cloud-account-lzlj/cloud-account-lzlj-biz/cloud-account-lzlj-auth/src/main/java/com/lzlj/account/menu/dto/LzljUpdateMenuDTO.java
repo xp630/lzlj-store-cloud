@@ -12,6 +12,7 @@ public class LzljUpdateMenuDTO {
     private String path;
     private String component;
     private String icon;
+    private String selectedIcon;
     private Integer sort;
     private Integer type;
     private String permission;

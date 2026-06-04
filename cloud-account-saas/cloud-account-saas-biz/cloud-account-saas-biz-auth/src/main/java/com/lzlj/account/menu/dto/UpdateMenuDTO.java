@@ -29,6 +29,9 @@ public class UpdateMenuDTO {
     @Schema(description = "图标")
     private String icon;
 
+    @Schema(description = "选中图标")
+    private String selectedIcon;
+
     @Schema(description = "排序")
     private Integer sort;
 

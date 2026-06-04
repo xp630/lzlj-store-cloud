@@ -39,6 +39,11 @@ public class LzljMenu extends BaseEntity {
     private String icon;
 
     /**
+     * 选中图标
+     */
+    private String selectedIcon;
+
+    /**
      * 排序
      */
     private Integer sort;
