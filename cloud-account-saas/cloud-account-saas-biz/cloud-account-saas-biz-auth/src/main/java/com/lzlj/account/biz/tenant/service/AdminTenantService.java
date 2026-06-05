@@ -1,0 +1,27 @@
+package com.lzlj.account.biz.tenant.service;
+
+import com.lzlj.account.biz.tenant.dto.AdminTenantDTO;
+import com.lzlj.account.biz.tenant.dto.AssignTenantDTO;
+
+import java.util.List;
+
+/**
+ * 管理员租户服务接口
+ */
+public interface AdminTenantService {
+
+    /**
+     * 获取管理员可管理的租户列表
+     */
+    List<AdminTenantDTO> getAdminTenants(Long adminUserId);
+
+    /**
+     * 获取管理员可管理的租户ID列表
+     */
+    List<Long> getAdminTenantIds(Long adminUserId);
+
+    /**
+     * 分配管理员可管理的租户
+     */
+    void assignTenants(Long adminUserId, AssignTenantDTO dto);
+}

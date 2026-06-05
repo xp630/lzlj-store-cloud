@@ -1,0 +1,23 @@
+# ============================================
+# saas-task 公共配置
+# ============================================
+
+spring:
+  profiles:
+    active: dev
+
+# 调度配置
+schedule:
+  enabled: true
+
+# XXL-JOB 配置
+xxl:
+  job:
+    admin:
+      addresses: http://localhost:8080/xxl-job-admin
+    access-token:
+    executor:
+      appname: saas-task
+      port: 9998
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30

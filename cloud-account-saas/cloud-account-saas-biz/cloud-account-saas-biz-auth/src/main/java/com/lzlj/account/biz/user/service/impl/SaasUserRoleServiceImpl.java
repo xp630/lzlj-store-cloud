@@ -1,0 +1,115 @@
+package com.lzlj.account.biz.user.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.lzlj.account.cache.SaasCacheService;
+import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.common.core.tenant.TenantContext;
+import com.lzlj.account.biz.role.dao.SaasRoleDao;
+import com.lzlj.account.biz.role.dto.RoleDTO;
+import com.lzlj.account.biz.role.entity.SaasRole;
+import com.lzlj.account.biz.user.dao.SaasUserDao;
+import com.lzlj.account.biz.user.dao.SaasUserRoleDao;
+import com.lzlj.account.biz.user.dto.UserRoleDTO;
+import com.lzlj.account.biz.user.entity.SaasUser;
+import com.lzlj.account.biz.user.entity.SaasUserRole;
+import com.lzlj.account.biz.user.service.SaasUserRoleService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 用户角色服务实现
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SaasUserRoleServiceImpl implements SaasUserRoleService {
+
+    private final SaasUserDao userDao;
+    private final SaasUserRoleDao userRoleDao;
+    private final SaasRoleDao roleDao;
+    private final SaasCacheService cacheService;
+
+    @Override
+    public List<RoleDTO> getUserRoles(Long userId) {
+        // 先查缓存
+        List<RoleDTO> cached = cacheService.getUserRoles(userId);
+        if (cached != null) {
+            return cached;
+        }
+
+        // 临时忽略租户隔离，获取用户的角色（不受到当前租户限制）
+        TenantContext.setIgnoreTenant(true);
+        try {
+            // 获取用户角色关联
+            LambdaQueryWrapper<SaasUserRole> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SaasUserRole::getUserId, userId);
+            List<SaasUserRole> userRoles = userRoleDao.selectList(wrapper);
+
+            if (userRoles.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            // 获取角色列表
+            List<Long> roleIds = userRoles.stream().map(SaasUserRole::getRoleId).collect(Collectors.toList());
+            List<SaasRole> roles = roleDao.selectBatchIds(roleIds);
+
+            List<RoleDTO> result = roles.stream().map(this::convertToDTO).collect(Collectors.toList());
+            if (!result.isEmpty()) {
+                cacheService.setUserRoles(userId, result);
+            }
+            return result;
+        } finally {
+            TenantContext.setIgnoreTenant(false);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, UserRoleDTO dto) {
+        assignRoles(userId, dto.getRoleIds());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        // 检查用户是否存在
+        SaasUser user = userDao.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        // 删除原有角色关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        userRoleDao.deleteByUserIdHard(userId);
+
+        // 新增角色关联
+        if (roleIds != null && !roleIds.isEmpty()) {
+            List<SaasUserRole> userRoles = roleIds.stream().map(roleId -> {
+                SaasUserRole userRole = new SaasUserRole();
+                userRole.setUserId(userId);
+                userRole.setRoleId(roleId);
+                return userRole;
+            }).collect(Collectors.toList());
+
+            for (SaasUserRole userRole : userRoles) {
+                userRoleDao.insert(userRole);
+            }
+        }
+
+        cacheService.invalidateUserRoles(userId);
+        log.info("分配用户角色成功: userId={}, roleIds={}", userId, roleIds);
+    }
+
+    private RoleDTO convertToDTO(SaasRole role) {
+        RoleDTO dto = new RoleDTO();
+        BeanUtils.copyProperties(role, dto);
+        return dto;
+    }
+}

@@ -1,0 +1,234 @@
+package com.lzlj.account.biz.role.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
+import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.exception.BusinessException;
+import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.biz.menu.dao.SaasMenuDao;
+import com.lzlj.account.biz.menu.dto.MenuDTO;
+import com.lzlj.account.biz.menu.entity.SaasMenu;
+import com.lzlj.account.biz.role.dao.SaasRoleDao;
+import com.lzlj.account.biz.role.dao.SaasRoleMenuDao;
+import com.lzlj.account.biz.role.dto.CreateRoleDTO;
+import com.lzlj.account.biz.role.dto.RoleDTO;
+import com.lzlj.account.biz.role.dto.RoleMenuDTO;
+import com.lzlj.account.biz.role.dto.RoleQueryDTO;
+import com.lzlj.account.biz.role.dto.UpdateRoleDTO;
+import com.lzlj.account.biz.role.entity.SaasRole;
+import com.lzlj.account.biz.role.entity.SaasRoleMenu;
+import com.lzlj.account.biz.role.service.RoleService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * 角色服务实现
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class RoleServiceImpl implements RoleService {
+
+    private final SaasRoleDao roleDao;
+    private final SaasRoleMenuDao roleMenuDao;
+    private final SaasMenuDao menuDao;
+
+    @Override
+    public List<MenuDTO> getRoleMenusTree(Long roleId) {
+        SaasRole role = roleDao.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        LambdaQueryWrapper<SaasRoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRoleMenu::getRoleId, roleId);
+        List<SaasRoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+
+        if (roleMenus.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<Long> menuIds = roleMenus.stream()
+                .map(SaasRoleMenu::getMenuId)
+                .collect(Collectors.toSet());
+
+        LambdaQueryWrapper<SaasMenu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(SaasMenu::getId, menuIds)
+                .eq(SaasMenu::getStatus, 1)
+                .orderByAsc(SaasMenu::getSort);
+        List<SaasMenu> menus = menuDao.selectList(menuWrapper);
+
+        return buildMenuTree(menus, 0L);
+    }
+
+    private List<MenuDTO> buildMenuTree(List<SaasMenu> menus, Long parentId) {
+        return menus.stream()
+                .filter(menu -> menu.getParentId().equals(parentId))
+                .map(menu -> {
+                    MenuDTO dto = convertMenuToDTO(menu);
+                    dto.setChildren(buildMenuTree(menus, menu.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Long create(CreateRoleDTO dto) {
+        // 检查编码唯一性
+        if (checkCodeExists(dto.getRoleCode(), null)) {
+            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "角色编码已存在");
+        }
+
+        SaasRole role = new SaasRole();
+        BeanUtils.copyProperties(dto, role);
+        role.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
+        roleDao.insert(role);
+        log.info("创建角色成功: id={}, code={}", role.getId(), role.getRoleCode());
+        return role.getId();
+    }
+
+    @Override
+    public void update(Long id, UpdateRoleDTO dto) {
+        SaasRole existRole = roleDao.selectById(id);
+        if (existRole == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        BeanUtils.copyProperties(dto, existRole);
+        roleDao.updateById(existRole);
+        log.info("更新角色成功: id={}", id);
+    }
+
+    @Override
+    public void delete(Long id) {
+        SaasRole role = roleDao.selectById(id);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        // 删除角色菜单关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        roleMenuDao.deleteByRoleIdHard(id);
+
+        // 删除角色
+        roleDao.deleteById(id);
+        log.info("删除角色成功: id={}", id);
+    }
+
+    @Override
+    public RoleDTO getById(Long id) {
+        SaasRole role = roleDao.selectById(id);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+        return convertToDTO(role);
+    }
+
+    @Override
+    public PageResult<RoleDTO> page(PageRequest<RoleQueryDTO> pageRequest) {
+        RoleQueryDTO query = pageRequest.getCondition();
+        Page<SaasRole> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+
+        LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(SaasRole::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getKeyword()), SaasRole::getRoleName, query.getKeyword())
+                    .eq(query.getStatus() != null, SaasRole::getStatus, query.getStatus());
+        }
+
+        IPage<SaasRole> resultPage = roleDao.selectPage(page, wrapper);
+
+        return new PageResult<>(
+                resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
+                resultPage.getTotal(),
+                resultPage.getCurrent(),
+                resultPage.getSize()
+        );
+    }
+
+    @Override
+    public List<MenuDTO> getRoleMenus(Long roleId) {
+        SaasRole role = roleDao.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        // 获取角色菜单关联
+        LambdaQueryWrapper<SaasRoleMenu> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRoleMenu::getRoleId, roleId);
+        List<SaasRoleMenu> roleMenus = roleMenuDao.selectList(wrapper);
+
+        if (roleMenus.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 获取菜单列表
+        List<Long> menuIds = roleMenus.stream().map(SaasRoleMenu::getMenuId).collect(Collectors.toList());
+        LambdaQueryWrapper<SaasMenu> menuWrapper = new LambdaQueryWrapper<>();
+        menuWrapper.in(SaasMenu::getId, menuIds);
+        List<SaasMenu> menus = menuDao.selectList(menuWrapper);
+
+        return menus.stream().map(this::convertMenuToDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignMenus(Long roleId, RoleMenuDTO dto) {
+        SaasRole role = roleDao.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        // 删除原有菜单关联（硬删，避免 @TableLogic + 唯一键 冲突）
+        roleMenuDao.deleteByRoleIdHard(roleId);
+
+        // 新增菜单关联
+        if (dto.getMenuIds() != null && !dto.getMenuIds().isEmpty()) {
+            List<SaasRoleMenu> roleMenus = dto.getMenuIds().stream().map(menuId -> {
+                SaasRoleMenu roleMenu = new SaasRoleMenu();
+                roleMenu.setRoleId(roleId);
+                roleMenu.setMenuId(menuId);
+                return roleMenu;
+            }).collect(Collectors.toList());
+
+            // 批量插入
+            for (SaasRoleMenu roleMenu : roleMenus) {
+                roleMenuDao.insert(roleMenu);
+            }
+        }
+
+        log.info("分配菜单权限成功: roleId={}, menuIds={}", roleId, dto.getMenuIds());
+    }
+
+    private boolean checkCodeExists(String roleCode, Long excludeId) {
+        LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasRole::getRoleCode, roleCode);
+        if (excludeId != null) {
+            wrapper.ne(SaasRole::getId, excludeId);
+        }
+        return roleDao.selectCount(wrapper) > 0;
+    }
+
+    private RoleDTO convertToDTO(SaasRole role) {
+        RoleDTO dto = new RoleDTO();
+        BeanUtils.copyProperties(role, dto);
+        return dto;
+    }
+
+    private MenuDTO convertMenuToDTO(SaasMenu menu) {
+        MenuDTO dto = new MenuDTO();
+        BeanUtils.copyProperties(menu, dto);
+        dto.setChildren(new ArrayList<>());
+        return dto;
+    }
+}

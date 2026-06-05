@@ -17,6 +17,6 @@
 
     <modules>
         <module>cloud-account-saas-biz-auth</module>
-        <module>cloud-account-saas-biz-goods</module>
+        <module>cloud-account-saas-biz-task</module>
     </modules>
 </project>

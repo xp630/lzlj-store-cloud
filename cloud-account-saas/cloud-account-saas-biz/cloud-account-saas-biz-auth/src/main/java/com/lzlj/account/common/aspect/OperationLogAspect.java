@@ -4,7 +4,9 @@ import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.context.UserContext;
 import com.lzlj.account.common.core.tenant.TenantContext;
 import com.lzlj.account.common.core.utils.ServletUtils;
-import com.lzlj.account.log.event.OperationLogEvent;
+import com.lzlj.account.biz.log.event.OperationLogEvent;
+import com.lzlj.account.biz.role.dto.RoleDTO;
+import com.lzlj.account.biz.user.service.SaasUserRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -15,6 +17,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 操作日志切面
@@ -26,6 +30,7 @@ import java.lang.reflect.Method;
 public class OperationLogAspect {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final SaasUserRoleService userRoleService;
 
     @Around("@annotation(com.lzlj.account.common.core.annotation.OperationLog)")
     public Object around(ProceedingJoinPoint point) throws Throwable {
@@ -40,6 +45,17 @@ public class OperationLogAspect {
         String functionalRoles = UserContext.getFunctionalRoles();
         String dataRoles = UserContext.getDataRoles();
         String roles = (functionalRoles != null ? functionalRoles : "") + (dataRoles != null && !dataRoles.isEmpty() ? "," + dataRoles : "");
+        // 如果上下文没有角色信息，从用户角色服务获取
+        if ((roles == null || roles.isEmpty()) && userId > 0) {
+            try {
+                List<RoleDTO> userRoleList = userRoleService.getUserRoles(userId);
+                if (userRoleList != null && !userRoleList.isEmpty()) {
+                    roles = userRoleList.stream().map(RoleDTO::getRoleCode).collect(Collectors.joining(","));
+                }
+            } catch (Exception e) {
+                log.warn("获取用户角色信息失败: userId={}", userId, e);
+            }
+        }
         String ip = ServletUtils.getClientIp();
         String userAgent = ServletUtils.getUserAgent();
 

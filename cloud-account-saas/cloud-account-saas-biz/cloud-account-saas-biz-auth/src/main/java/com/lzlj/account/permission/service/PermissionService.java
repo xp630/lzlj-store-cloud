@@ -1,9 +1,9 @@
 package com.lzlj.account.permission.service;
 
-import com.lzlj.account.menu.dto.MenuDTO;
-import com.lzlj.account.role.dto.RoleDTO;
-import com.lzlj.account.role.service.RoleService;
-import com.lzlj.account.user.service.SaasUserRoleService;
+import com.lzlj.account.biz.menu.dto.MenuDTO;
+import com.lzlj.account.biz.role.dto.RoleDTO;
+import com.lzlj.account.biz.role.service.RoleService;
+import com.lzlj.account.biz.user.service.SaasUserRoleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 权限服务

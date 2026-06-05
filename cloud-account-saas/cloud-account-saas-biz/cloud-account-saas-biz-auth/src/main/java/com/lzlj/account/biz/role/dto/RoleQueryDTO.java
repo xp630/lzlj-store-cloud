@@ -1,0 +1,21 @@
+package com.lzlj.account.biz.role.dto;
+
+import com.lzlj.account.common.core.domain.PageRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * 角色查询条件
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "角色查询条件")
+public class RoleQueryDTO extends PageRequest {
+
+    @Schema(description = "角色名称（模糊搜索）")
+    private String keyword;
+
+    @Schema(description = "状态 0:禁用 1:启用")
+    private Integer status;
+}
