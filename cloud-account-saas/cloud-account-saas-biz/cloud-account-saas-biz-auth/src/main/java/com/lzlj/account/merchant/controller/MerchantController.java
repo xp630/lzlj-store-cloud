@@ -6,6 +6,7 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.merchant.dto.CreateMerchantDTO;
 import com.lzlj.account.merchant.dto.MerchantDTO;
+import com.lzlj.account.merchant.dto.MerchantQueryDTO;
 import com.lzlj.account.merchant.dto.UpdateMerchantDTO;
 import com.lzlj.account.merchant.service.MerchantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,12 +66,9 @@ public class MerchantController {
 
     @SaCheckPermission("saas:merchant:list")
     @Operation(summary = "分页查询商户")
-    @GetMapping("/page")
-    public Result<PageResult<MerchantDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(merchantService.page(keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<MerchantDTO>> page(@RequestBody PageRequest<MerchantQueryDTO> pageRequest) {
+        return Result.success(merchantService.page(pageRequest));
     }
 
     @SaCheckPermission("saas:merchant:update")

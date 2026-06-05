@@ -36,11 +36,6 @@ public interface SaasDataDictionaryService {
     DataDictionaryDTO getById(Long id);
 
     /**
-     * 分页查询数据字典
-     */
-    PageResult<DataDictionaryDTO> page(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
-
-    /**
      * 根据类型获取数据字典
      */
     List<DataDictionaryDTO> getByType(String type);
@@ -53,7 +48,7 @@ public interface SaasDataDictionaryService {
     /**
      * 获取所有字典类型列表（去重）
      */
-    PageResult<DataDictionaryDTO> getTypesPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
+    PageResult<DataDictionaryDTO> getPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
 
     /**
      * 批量保存（创建/更新）

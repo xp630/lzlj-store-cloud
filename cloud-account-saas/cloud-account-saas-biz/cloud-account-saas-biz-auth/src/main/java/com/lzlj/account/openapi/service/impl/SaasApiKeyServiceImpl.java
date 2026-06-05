@@ -3,16 +3,18 @@ package com.lzlj.account.openapi.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
-import com.lzlj.account.openapi.dao.ApiKeyDao;
+import com.lzlj.account.openapi.dao.SaasApiKeyDao;
 import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
+import com.lzlj.account.openapi.dto.ApiKeyQueryDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
-import com.lzlj.account.openapi.entity.ApiKey;
-import com.lzlj.account.openapi.service.ApiKeyService;
+import com.lzlj.account.openapi.entity.SaasApiKey;
+import com.lzlj.account.openapi.service.SaasApiKeyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -33,9 +35,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ApiKeyServiceImpl implements ApiKeyService {
+public class SaasApiKeyServiceImpl implements SaasApiKeyService {
 
-    private final ApiKeyDao apiKeyDao;
+    private final SaasApiKeyDao apiKeyDao;
     private final CacheManager cacheManager;
 
     private static final String CACHE_NAME = "apiKeyAuth";
@@ -46,7 +48,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         String apiKey = "ak_" + UUID.randomUUID().toString().replace("-", "");
         String apiSecret = "sk_" + UUID.randomUUID().toString().replace("-", "");
 
-        ApiKey apiKeyEntity = new ApiKey();
+        SaasApiKey apiKeyEntity = new SaasApiKey();
         BeanUtils.copyProperties(dto, apiKeyEntity);
         apiKeyEntity.setApiKey(apiKey);
         apiKeyEntity.setApiSecret(encryptSecret(apiSecret));
@@ -65,7 +67,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public void update(Long id, UpdateApiKeyDTO dto) {
-        ApiKey existKey = apiKeyDao.selectById(id);
+        SaasApiKey existKey = apiKeyDao.selectById(id);
         if (existKey == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -81,7 +83,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public void delete(Long id) {
-        ApiKey apiKey = apiKeyDao.selectById(id);
+        SaasApiKey apiKey = apiKeyDao.selectById(id);
         if (apiKey == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -95,7 +97,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public ApiKeyDTO getById(Long id) {
-        ApiKey apiKey = apiKeyDao.selectById(id);
+        SaasApiKey apiKey = apiKeyDao.selectById(id);
         if (apiKey == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -105,15 +107,16 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
-    public PageResult<ApiKeyDTO> page(Long tenantId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<ApiKey> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<ApiKey> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(tenantId != null, ApiKey::getTenantId, tenantId)
-               .like(StringUtils.hasText(keyword), ApiKey::getName, keyword)
-               .eq(status != null, ApiKey::getStatus, status)
-               .orderByDesc(ApiKey::getCreateTime);
+    public PageResult<ApiKeyDTO> page(PageRequest<ApiKeyQueryDTO> pageRequest) {
+        ApiKeyQueryDTO query = pageRequest.getCondition();
+        Page<SaasApiKey> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+        LambdaQueryWrapper<SaasApiKey> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getTenantId() != null, SaasApiKey::getTenantId, query.getTenantId())
+               .like(StringUtils.hasText(query.getKeyword()), SaasApiKey::getName, query.getKeyword())
+               .eq(query.getStatus() != null, SaasApiKey::getStatus, query.getStatus())
+               .orderByDesc(SaasApiKey::getCreateTime);
 
-        IPage<ApiKey> resultPage = apiKeyDao.selectPage(page, wrapper);
+        IPage<SaasApiKey> resultPage = apiKeyDao.selectPage(page, wrapper);
 
         return new PageResult<>(
                 resultPage.getRecords().stream().map(apiKey -> {
@@ -130,11 +133,11 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Override
     public ApiKeyDTO getByApiKey(String apiKey) {
         // 直接查数据库，避免 @Cacheable 自我调用失效
-        LambdaQueryWrapper<ApiKey> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ApiKey::getApiKey, apiKey)
-               .eq(ApiKey::getStatus, 1)
-               .eq(ApiKey::getDeleted, 0);
-        ApiKey existKey = apiKeyDao.selectOne(wrapper);
+        LambdaQueryWrapper<SaasApiKey> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasApiKey::getApiKey, apiKey)
+               .eq(SaasApiKey::getStatus, 1)
+               .eq(SaasApiKey::getDeleted, 0);
+        SaasApiKey existKey = apiKeyDao.selectOne(wrapper);
         if (existKey == null) {
             return null;
         }
@@ -152,7 +155,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         log.debug("查询API密钥认证信息（DB）: apiKey={}", apiKey);
 
         // 使用绕过租户拦截的查询方法
-        ApiKey existKey = apiKeyDao.selectByApiKeyWithoutTenant(apiKey);
+        SaasApiKey existKey = apiKeyDao.selectByApiKeyWithoutTenant(apiKey);
         if (existKey == null) {
             return null;
         }
@@ -169,16 +172,16 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public void updateLastUsedTime(String apiKey) {
-        LambdaQueryWrapper<ApiKey> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ApiKey::getApiKey, apiKey);
-        ApiKey updateKey = new ApiKey();
+        LambdaQueryWrapper<SaasApiKey> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SaasApiKey::getApiKey, apiKey);
+        SaasApiKey updateKey = new SaasApiKey();
         updateKey.setLastUsedTime(LocalDateTime.now());
         apiKeyDao.update(updateKey, wrapper);
     }
 
     @Override
     public void changeStatus(Long id, Integer status) {
-        ApiKey apiKey = apiKeyDao.selectById(id);
+        SaasApiKey apiKey = apiKeyDao.selectById(id);
         if (apiKey == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
@@ -203,7 +206,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         }
     }
 
-    private ApiKeyDTO convertToDTO(ApiKey apiKey) {
+    private ApiKeyDTO convertToDTO(SaasApiKey apiKey) {
         ApiKeyDTO dto = new ApiKeyDTO();
         BeanUtils.copyProperties(apiKey, dto);
         dto.setSecretSaved(false);

@@ -5,9 +5,10 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
+import com.lzlj.account.openapi.dto.ApiKeyQueryDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
-import com.lzlj.account.openapi.service.ApiKeyService;
+import com.lzlj.account.openapi.service.SaasApiKeyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,9 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/openapi/key")
 @RequiredArgsConstructor
-public class ApiKeyController {
+public class SaasApiKeyController {
 
-    private final ApiKeyService apiKeyService;
+    private final SaasApiKeyService apiKeyService;
 
     @Operation(summary = "创建API密钥")
     @PostMapping
@@ -53,14 +54,9 @@ public class ApiKeyController {
     }
 
     @Operation(summary = "分页查询API密钥")
-    @GetMapping("/page")
-    public Result<PageResult<ApiKeyDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) Long tenantId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(apiKeyService.page(tenantId, keyword, status,
-                pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<ApiKeyDTO>> page(@RequestBody PageRequest<ApiKeyQueryDTO> pageRequest) {
+        return Result.success(apiKeyService.page(pageRequest));
     }
 
     @Operation(summary = "修改API密钥状态")

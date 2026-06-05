@@ -3,6 +3,7 @@ package com.lzlj.account.tenant.service;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.tenant.dto.CreateTenantDTO;
 import com.lzlj.account.tenant.dto.TenantDTO;
+import com.lzlj.account.tenant.dto.TenantQueryDTO;
 import com.lzlj.account.tenant.dto.UpdateTenantDTO;
 
 /**
@@ -38,7 +39,7 @@ public interface TenantService {
     /**
      * 分页查询租户
      */
-    PageResult<TenantDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<TenantDTO> page(TenantQueryDTO query, Integer pageNum, Integer pageSize);
 
     /**
      * 修改租户状态

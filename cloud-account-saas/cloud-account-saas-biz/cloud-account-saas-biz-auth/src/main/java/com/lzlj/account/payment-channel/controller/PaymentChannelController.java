@@ -58,11 +58,9 @@ public class PaymentChannelController {
     }
 
     @Operation(summary = "分页查询支付通道")
-    @GetMapping("/page")
-    public Result<PageResult<PaymentChannelDTO>> page(
-            PageRequest pageRequest,
-            PaymentChannelQueryDTO query) {
-        return Result.success(paymentChannelService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<PaymentChannelDTO>> page(@RequestBody PageRequest<PaymentChannelQueryDTO> pageRequest) {
+        return Result.success(paymentChannelService.page(pageRequest.getCondition(), pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "获取支付通道列表")

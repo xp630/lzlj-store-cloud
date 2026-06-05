@@ -9,6 +9,7 @@ import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.tenant.dao.TenantDao;
 import com.lzlj.account.tenant.dto.CreateTenantDTO;
 import com.lzlj.account.tenant.dto.TenantDTO;
+import com.lzlj.account.tenant.dto.TenantQueryDTO;
 import com.lzlj.account.tenant.dto.UpdateTenantDTO;
 import com.lzlj.account.tenant.entity.Tenant;
 import com.lzlj.account.tenant.service.TenantService;
@@ -99,11 +100,11 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public PageResult<TenantDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize) {
+    public PageResult<TenantDTO> page(TenantQueryDTO query, Integer pageNum, Integer pageSize) {
         Page<Tenant> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Tenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(keyword), Tenant::getTenantName, keyword)
-               .eq(status != null, Tenant::getStatus, status)
+        wrapper.like(StringUtils.hasText(query.getKeyword()), Tenant::getTenantName, query.getKeyword())
+               .eq(query.getStatus() != null, Tenant::getStatus, query.getStatus())
                .eq(Tenant::getDeleted, 0)
                .orderByDesc(Tenant::getCreateTime);
 

@@ -1,7 +1,9 @@
 package com.lzlj.account.openapi.service;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.openapi.dto.ApiKeyAuthDTO;
+import com.lzlj.account.openapi.dto.ApiKeyQueryDTO;
 import com.lzlj.account.openapi.dto.ApiKeyDTO;
 import com.lzlj.account.openapi.dto.CreateApiKeyDTO;
 import com.lzlj.account.openapi.dto.UpdateApiKeyDTO;
@@ -11,7 +13,7 @@ import java.util.List;
 /**
  * API密钥服务接口
  */
-public interface ApiKeyService {
+public interface SaasApiKeyService {
 
     /**
      * 创建API密钥
@@ -36,7 +38,7 @@ public interface ApiKeyService {
     /**
      * 分页查询API密钥
      */
-    PageResult<ApiKeyDTO> page(Long tenantId, String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<ApiKeyDTO> page(PageRequest<ApiKeyQueryDTO> pageRequest);
 
     /**
      * 根据API Key获取密钥信息（用于认证）

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("saas_auth_api_key")
-public class ApiKey extends BaseEntity {
+public class SaasApiKey extends BaseEntity {
 
     /**
      * 绑定的租户ID

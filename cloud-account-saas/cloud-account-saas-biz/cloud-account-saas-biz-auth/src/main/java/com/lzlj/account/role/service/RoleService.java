@@ -1,9 +1,11 @@
 package com.lzlj.account.role.service;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.role.dto.CreateRoleDTO;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.dto.RoleMenuDTO;
+import com.lzlj.account.role.dto.RoleQueryDTO;
 import com.lzlj.account.role.dto.UpdateRoleDTO;
 import com.lzlj.account.menu.dto.MenuDTO;
 
@@ -37,7 +39,7 @@ public interface RoleService {
     /**
      * 分页查询角色
      */
-    PageResult<RoleDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<RoleDTO> page(PageRequest<RoleQueryDTO> pageRequest);
 
     /**
      * 获取角色已授权菜单

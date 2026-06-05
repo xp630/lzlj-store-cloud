@@ -64,11 +64,9 @@ public class SystemParameterController {
     }
 
     @Operation(summary = "分页查询系统参数")
-    @GetMapping("/page")
-    public Result<PageResult<SystemParameterDTO>> page(
-            PageRequest pageRequest,
-            SystemParameterQueryDTO query) {
-        return Result.success(systemParameterService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<SystemParameterDTO>> page(@RequestBody PageRequest<SystemParameterQueryDTO> pageRequest) {
+        return Result.success(systemParameterService.page(pageRequest.getCondition(), pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "获取系统参数列表")

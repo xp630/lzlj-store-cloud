@@ -90,25 +90,6 @@ public class SaasDataDictionaryServiceImpl implements SaasDataDictionaryService 
     }
 
     @Override
-    public PageResult<DataDictionaryDTO> page(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize) {
-        Page<DataDictionary> page = new Page<>(pageNum, pageSize);
-        LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StringUtils.hasText(query.getDictType()), DataDictionary::getDictType, query.getDictType())
-               .eq(query.getStatus() != null, DataDictionary::getStatus, query.getStatus())
-               .orderByAsc(DataDictionary::getSort)
-               .orderByDesc(DataDictionary::getCreateTime);
-
-        IPage<DataDictionary> resultPage = dataDictionaryDao.selectPage(page, wrapper);
-
-        return new PageResult<>(
-                resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),
-                resultPage.getTotal(),
-                resultPage.getCurrent(),
-                resultPage.getSize()
-        );
-    }
-
-    @Override
     public List<DataDictionaryDTO> getByType(String type) {
         LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DataDictionary::getDictType, type)
@@ -132,7 +113,7 @@ public class SaasDataDictionaryServiceImpl implements SaasDataDictionaryService 
     }
 
     @Override
-    public PageResult<DataDictionaryDTO> getTypesPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize) {
+    public PageResult<DataDictionaryDTO> getPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize) {
         LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(StringUtils.hasText(query.getDictType()), DataDictionary::getDictType, query.getDictType())
                .eq(query.getStatus() != null, DataDictionary::getStatus, query.getStatus())

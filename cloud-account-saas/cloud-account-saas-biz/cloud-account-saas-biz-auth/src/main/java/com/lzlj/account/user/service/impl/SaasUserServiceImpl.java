@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.stp.StpUtil;
 import com.lzlj.account.common.core.context.UserContext;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
@@ -200,8 +201,9 @@ public class SaasUserServiceImpl implements SaasUserService {
     }
 
     @Override
-    public PageResult<UserDTO> page(UserQueryDTO query) {
-        Page<SaasUser> page = new Page<>(query.getPageNum(), query.getPageSize());
+    public PageResult<UserDTO> page(PageRequest<UserQueryDTO> pageRequest) {
+        UserQueryDTO query = pageRequest.getCondition();
+        Page<SaasUser> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
         String key = query.getKeyWord();
         String phone = query.getPhone();

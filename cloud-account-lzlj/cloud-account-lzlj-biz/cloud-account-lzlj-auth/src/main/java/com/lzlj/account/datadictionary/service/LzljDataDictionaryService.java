@@ -15,11 +15,10 @@ public interface LzljDataDictionaryService {
     void update(Long id, UpdateLzljDataDictionaryDTO dto);
     void delete(Long id);
     DataDictionaryDTO getById(Long id);
-    PageResult<DataDictionaryDTO> page(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
     List<DataDictionaryDTO> list();
     List<DataDictionaryDTO> getByType(String type);
     Map<String, List<DataDictionaryDTO>> getAllGroup();
-    PageResult<DataDictionaryDTO> getTypesPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
+    PageResult<DataDictionaryDTO> getPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
 
     /**
      * 批量保存（创建/更新）

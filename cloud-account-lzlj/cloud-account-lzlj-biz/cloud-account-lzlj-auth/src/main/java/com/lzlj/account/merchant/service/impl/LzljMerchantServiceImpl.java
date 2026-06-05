@@ -3,6 +3,7 @@ package com.lzlj.account.merchant.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.domain.merchant.MerchantChannelAccountDTO;
 import com.lzlj.account.common.core.domain.merchant.MerchantLegalDTO;
@@ -359,7 +360,8 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     }
 
     @Override
-    public PageResult<MerchantDTO> page(MerchantQueryDTO query) {
+    public PageResult<MerchantDTO> page(PageRequest<MerchantQueryDTO> pageRequest) {
+        MerchantQueryDTO query = pageRequest.getCondition();
         LambdaQueryWrapper<LzljMerchant> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(query.getMerchantName())) {
             wrapper.like(LzljMerchant::getMerchantName, query.getMerchantName());
@@ -377,7 +379,7 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
                .orderByDesc(LzljMerchant::getCreateTime);
 
         IPage<LzljMerchant> page = merchantDao.selectPage(
-                new Page<>(query.getPageNum(), query.getPageSize()),
+                new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()),
                 wrapper
         );
 

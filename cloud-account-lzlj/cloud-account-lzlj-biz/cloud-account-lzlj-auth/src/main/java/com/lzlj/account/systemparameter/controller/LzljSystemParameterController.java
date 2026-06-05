@@ -58,11 +58,9 @@ public class LzljSystemParameterController {
     }
 
     @Operation(summary = "分页查询系统参数")
-    @GetMapping("/page")
-    public Result<PageResult<LzljSystemParameterDTO>> page(
-            PageRequest pageRequest,
-            LzljSystemParameterQueryDTO query) {
-        return Result.success(lzljSystemParameterService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<LzljSystemParameterDTO>> page(@RequestBody PageRequest<LzljSystemParameterQueryDTO> pageRequest) {
+        return Result.success(lzljSystemParameterService.page(pageRequest));
     }
 
     @Operation(summary = "获取系统参数列表")

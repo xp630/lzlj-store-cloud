@@ -7,6 +7,7 @@ import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.user.dto.CreateLzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
+import com.lzlj.account.user.dto.LzljUserQueryDTO;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.service.LzljUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,13 +54,9 @@ public class LzljUserController {
 
     @SaCheckPermission("lzlj:user:list")
     @Operation(summary = "分页查询用户")
-    @GetMapping("/page")
-    public Result<PageResult<LzljUserDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) Long orgId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(userService.page(orgId, keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<LzljUserDTO>> page(@RequestBody PageRequest<LzljUserQueryDTO> pageRequest) {
+        return Result.success(userService.page(pageRequest));
     }
 
     @SaCheckPermission("lzlj:user:create")

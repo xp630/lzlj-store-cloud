@@ -9,6 +9,7 @@ import com.lzlj.account.menu.dto.MenuDTO;
 import com.lzlj.account.role.dto.CreateRoleDTO;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.dto.RoleMenuDTO;
+import com.lzlj.account.role.dto.RoleQueryDTO;
 import com.lzlj.account.role.dto.UpdateRoleDTO;
 import com.lzlj.account.role.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,12 +66,9 @@ public class RoleController {
 
     @SaCheckPermission("saas:role:list")
     @Operation(summary = "分页查询角色")
-    @GetMapping("/page")
-    public Result<PageResult<RoleDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) String loginName,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(roleService.page(loginName, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<RoleDTO>> page(@RequestBody PageRequest<RoleQueryDTO> pageRequest) {
+        return Result.success(roleService.page(pageRequest));
     }
 
     @SaCheckPermission("saas:role:list")

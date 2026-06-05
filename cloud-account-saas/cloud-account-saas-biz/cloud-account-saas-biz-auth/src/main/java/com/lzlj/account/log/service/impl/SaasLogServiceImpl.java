@@ -3,6 +3,7 @@ package com.lzlj.account.log.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.log.dao.ApiLogDao;
 import com.lzlj.account.log.dao.SaasOperationLogDao;
@@ -57,8 +58,9 @@ public class SaasLogServiceImpl implements SaasLogService {
     }
 
     @Override
-    public PageResult<OperationLogDTO> pageOperationLog(OperationLogQueryDTO query) {
-        Page<SaasOperationLog> page = new Page<>(query.getPageNum(), query.getPageSize());
+    public PageResult<OperationLogDTO> pageOperationLog(PageRequest<OperationLogQueryDTO> pageRequest) {
+        OperationLogQueryDTO query = pageRequest.getCondition();
+        Page<SaasOperationLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasOperationLog> wrapper = new LambdaQueryWrapper<>();
         String username = query.getUsername();
         String module = query.getModule();

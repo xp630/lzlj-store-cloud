@@ -1,6 +1,7 @@
 package com.lzlj.account.merchant.service;
 
 import com.lzlj.account.merchant.dto.*;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public interface LzljMerchantService {
     /**
      * 商户分页列表
      */
-    PageResult<MerchantDTO> page(MerchantQueryDTO query);
+    PageResult<MerchantDTO> page(PageRequest<MerchantQueryDTO> pageRequest);
 
     /**
      * 获取结算信息

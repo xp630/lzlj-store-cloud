@@ -1,5 +1,6 @@
 package com.lzlj.account.log.service;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.log.dto.OperationLogDTO;
 import com.lzlj.account.log.dto.OperationLogQueryDTO;
@@ -29,10 +30,10 @@ public interface SaasLogService {
     /**
      * 分页查询操作日志
      *
-     * @param query 查询条件
+     * @param pageRequest 分页请求
      * @return 分页结果
      */
-    PageResult<OperationLogDTO> pageOperationLog(OperationLogQueryDTO query);
+    PageResult<OperationLogDTO> pageOperationLog(PageRequest<OperationLogQueryDTO> pageRequest);
 
     /**
      * 记录API访问日志

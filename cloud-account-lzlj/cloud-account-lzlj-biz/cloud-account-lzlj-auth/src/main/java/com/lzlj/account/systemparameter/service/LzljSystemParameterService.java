@@ -1,5 +1,6 @@
 package com.lzlj.account.systemparameter.service;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.systemparameter.dto.*;
 
@@ -11,6 +12,6 @@ public interface LzljSystemParameterService {
     void delete(Long id);
     LzljSystemParameterDTO getById(Long id);
     LzljSystemParameterDTO getByKey(String key);
-    PageResult<LzljSystemParameterDTO> page(LzljSystemParameterQueryDTO query, Integer pageNum, Integer pageSize);
+    PageResult<LzljSystemParameterDTO> page(PageRequest<LzljSystemParameterQueryDTO> pageRequest);
     List<LzljSystemParameterDTO> list();
 }

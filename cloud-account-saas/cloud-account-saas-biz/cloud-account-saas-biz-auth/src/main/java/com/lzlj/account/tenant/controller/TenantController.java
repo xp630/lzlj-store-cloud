@@ -5,6 +5,7 @@ import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.tenant.dto.CreateTenantDTO;
 import com.lzlj.account.tenant.dto.TenantDTO;
+import com.lzlj.account.tenant.dto.TenantQueryDTO;
 import com.lzlj.account.tenant.dto.UpdateTenantDTO;
 import com.lzlj.account.tenant.service.TenantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,12 +59,9 @@ public class TenantController {
     }
 
     @Operation(summary = "分页查询租户")
-    @GetMapping("/page")
-    public Result<PageResult<TenantDTO>> page(
-            PageRequest pageRequest,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        return Result.success(tenantService.page(keyword, status, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<TenantDTO>> page(@RequestBody PageRequest<TenantQueryDTO> pageRequest) {
+        return Result.success(tenantService.page(pageRequest.getCondition(), pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "修改租户状态")

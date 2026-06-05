@@ -1,6 +1,5 @@
 package com.lzlj.account.openapi.controller;
 
-import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.merchant.dto.MerchantDTO;
@@ -43,16 +42,6 @@ public class OpenApiController {
     @PostMapping("/merchant/getByCode")
     public Result<MerchantDTO> getMerchantByCode(@RequestBody @Valid OpenApiMerchantCodeRequest request) {
         return Result.success(merchantService.getByCode(request.getMerchantCode()));
-    }
-
-    @Operation(summary = "分页查询商户")
-    @PostMapping("/merchant/page")
-    public Result<PageResult<MerchantDTO>> pageMerchant(@RequestBody @Valid OpenApiMerchantPageRequest request) {
-        return Result.success(merchantService.page(
-                request.getKeyword(),
-                request.getStatus(),
-                request.getPageNum(),
-                request.getPageSize()));
     }
 
     // ==================== 支付通道接口 ====================

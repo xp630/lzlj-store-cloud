@@ -3,12 +3,12 @@ package com.lzlj.account.log.controller;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
+import com.lzlj.account.log.dto.LzljApiLogQueryDTO;
+import com.lzlj.account.log.dto.LzljOperationLogQueryDTO;
 import com.lzlj.account.log.entity.LzljApiLog;
 import com.lzlj.account.log.entity.LzljOperationLog;
 import com.lzlj.account.log.service.LzljLogService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,22 +28,9 @@ public class LzljLogController {
     private final LzljLogService logService;
 
     @Operation(summary = "分页查询操作日志")
-    @GetMapping("/operation/page")
-    public Result<PageResult<LzljOperationLog>> pageOperationLog(
-            PageRequest pageRequest,
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) String module,
-            @RequestParam(required = false) String operation) {
-        Page<LzljOperationLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
-        LambdaQueryWrapper<LzljOperationLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(userId != null, LzljOperationLog::getUserId, userId)
-               .like(module != null, LzljOperationLog::getModule, module)
-               .like(operation != null, LzljOperationLog::getOperation, operation)
-               .eq(LzljOperationLog::getDeleted, 0)
-               .orderByDesc(LzljOperationLog::getCreateTime);
-
-        IPage<LzljOperationLog> resultPage = logService.pageOperationLog(page, wrapper);
-
+    @PostMapping("/operation/page")
+    public Result<PageResult<LzljOperationLog>> pageOperationLog(@RequestBody PageRequest<LzljOperationLogQueryDTO> pageRequest) {
+        IPage<LzljOperationLog> resultPage = logService.pageOperationLog(pageRequest);
         return Result.success(new PageResult<>(
                 resultPage.getRecords(),
                 resultPage.getTotal(),
@@ -53,22 +40,9 @@ public class LzljLogController {
     }
 
     @Operation(summary = "分页查询API访问日志")
-    @GetMapping("/api/page")
-    public Result<PageResult<LzljApiLog>> pageApiLog(
-            PageRequest pageRequest,
-            @RequestParam(required = false) Long apiKeyId,
-            @RequestParam(required = false) String path,
-            @RequestParam(required = false) Integer statusCode) {
-        Page<LzljApiLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
-        LambdaQueryWrapper<LzljApiLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(apiKeyId != null, LzljApiLog::getApiKeyId, apiKeyId)
-               .like(path != null, LzljApiLog::getPath, path)
-               .eq(statusCode != null, LzljApiLog::getStatusCode, statusCode)
-               .eq(LzljApiLog::getDeleted, 0)
-               .orderByDesc(LzljApiLog::getCreateTime);
-
-        IPage<LzljApiLog> resultPage = logService.pageApiLog(page, wrapper);
-
+    @PostMapping("/api/page")
+    public Result<PageResult<LzljApiLog>> pageApiLog(@RequestBody PageRequest<LzljApiLogQueryDTO> pageRequest) {
+        IPage<LzljApiLog> resultPage = logService.pageApiLog(pageRequest);
         return Result.success(new PageResult<>(
                 resultPage.getRecords(),
                 resultPage.getTotal(),

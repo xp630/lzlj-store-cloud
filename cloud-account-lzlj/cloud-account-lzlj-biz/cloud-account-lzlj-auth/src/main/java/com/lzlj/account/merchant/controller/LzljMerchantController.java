@@ -1,6 +1,7 @@
 package com.lzlj.account.merchant.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.merchant.dto.*;
@@ -33,9 +34,9 @@ public class LzljMerchantController {
 
     @SaCheckPermission("lzlj:merchant:list")
     @Operation(summary = "商户分页列表")
-    @GetMapping("/page")
-    public Result<PageResult<MerchantDTO>> page(MerchantQueryDTO query) {
-        return Result.success(merchantService.page(query));
+    @PostMapping("/page")
+    public Result<PageResult<MerchantDTO>> page(@RequestBody PageRequest<MerchantQueryDTO> pageRequest) {
+        return Result.success(merchantService.page(pageRequest));
     }
 
     @SaCheckPermission("lzlj:merchant:list")

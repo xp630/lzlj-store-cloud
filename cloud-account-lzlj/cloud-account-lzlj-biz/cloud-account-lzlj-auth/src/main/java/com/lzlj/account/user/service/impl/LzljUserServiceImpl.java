@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.common.core.context.UserContext;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.AuthException;
 import com.lzlj.account.common.core.exception.BusinessException;
@@ -22,6 +23,7 @@ import com.lzlj.account.user.dto.CreateLzljUserDTO;
 import com.lzlj.account.user.dto.LzljOrgDTO;
 import com.lzlj.account.user.dto.LzljUserDTO;
 import com.lzlj.account.user.dto.LzljUserLoginDTO;
+import com.lzlj.account.user.dto.LzljUserQueryDTO;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.dao.LzljUserDao;
 import com.lzlj.account.user.service.LzljOrgService;
@@ -214,12 +216,13 @@ public class LzljUserServiceImpl implements LzljUserService {
     }
 
     @Override
-    public PageResult<LzljUserDTO> page(Long orgId, String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<LzljUser> page = new Page<>(pageNum, pageSize);
+    public PageResult<LzljUserDTO> page(PageRequest<LzljUserQueryDTO> pageRequest) {
+        LzljUserQueryDTO query = pageRequest.getCondition();
+        Page<LzljUser> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(orgId != null, LzljUser::getOrgId, orgId)
-               .like(keyword != null, LzljUser::getUsername, keyword)
-               .eq(status != null, LzljUser::getStatus, status)
+        wrapper.eq(query.getOrgId() != null, LzljUser::getOrgId, query.getOrgId())
+               .like(query.getKeyword() != null, LzljUser::getUsername, query.getKeyword())
+               .eq(query.getStatus() != null, LzljUser::getStatus, query.getStatus())
                .eq(LzljUser::getDeleted, 0)
                .orderByDesc(LzljUser::getCreateTime);
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
@@ -15,6 +16,7 @@ import com.lzlj.account.role.dao.SaasRoleMenuDao;
 import com.lzlj.account.role.dto.CreateRoleDTO;
 import com.lzlj.account.role.dto.RoleDTO;
 import com.lzlj.account.role.dto.RoleMenuDTO;
+import com.lzlj.account.role.dto.RoleQueryDTO;
 import com.lzlj.account.role.dto.UpdateRoleDTO;
 import com.lzlj.account.role.entity.SaasRole;
 import com.lzlj.account.role.entity.SaasRoleMenu;
@@ -136,11 +138,12 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PageResult<RoleDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<SaasRole> page = new Page<>(pageNum, pageSize);
+    public PageResult<RoleDTO> page(PageRequest<RoleQueryDTO> pageRequest) {
+        RoleQueryDTO query = pageRequest.getCondition();
+        Page<SaasRole> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(keyword), SaasRole::getRoleName, keyword)
-               .eq(status != null, SaasRole::getStatus, status)
+        wrapper.like(StringUtils.hasText(query.getKeyword()), SaasRole::getRoleName, query.getKeyword())
+               .eq(query.getStatus() != null, SaasRole::getStatus, query.getStatus())
                .orderByDesc(SaasRole::getCreateTime);
 
         IPage<SaasRole> resultPage = roleDao.selectPage(page, wrapper);

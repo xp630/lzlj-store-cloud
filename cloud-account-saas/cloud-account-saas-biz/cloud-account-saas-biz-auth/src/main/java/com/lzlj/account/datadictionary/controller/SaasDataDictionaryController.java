@@ -67,13 +67,6 @@ public class SaasDataDictionaryController {
         return Result.success(dataDictionaryService.getById(id));
     }
 
-    @Operation(summary = "分页查询数据字典")
-    @GetMapping("/page")
-    public Result<PageResult<DataDictionaryDTO>> page(
-            PageRequest pageRequest,
-            DataDictionaryQueryDTO query) {
-        return Result.success(dataDictionaryService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
-    }
 
     @Operation(summary = "根据类型获取数据字典")
     @GetMapping("/type/{type}")
@@ -82,16 +75,14 @@ public class SaasDataDictionaryController {
     }
 
     @Operation(summary = "获取所有字典类型分组")
-    @GetMapping("/all-group")
+    @GetMapping("/allGroup")
     public Result<Map<String, List<DataDictionaryDTO>>> getAllGroup() {
         return Result.success(dataDictionaryService.getAllGroup());
     }
 
     @Operation(summary = "获取所有字典类型列表（去重，同一类型只显示一条）")
-    @GetMapping("/types")
-    public Result<PageResult<DataDictionaryDTO>> getTypesPage(
-            PageRequest pageRequest,
-            DataDictionaryQueryDTO query) {
-        return Result.success(dataDictionaryService.getTypesPage(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
+    @PostMapping("/page")
+    public Result<PageResult<DataDictionaryDTO>> getPage(@RequestBody PageRequest<DataDictionaryQueryDTO> pageRequest) {
+        return Result.success(dataDictionaryService.getPage(pageRequest.getCondition(), pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 }

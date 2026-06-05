@@ -3,13 +3,18 @@ package com.lzlj.account.role.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.menu.dto.LzljMenuDTO;
 import com.lzlj.account.menu.entity.LzljMenu;
 import com.lzlj.account.menu.dao.LzljMenuDao;
-import com.lzlj.account.role.dto.*;
+import com.lzlj.account.role.dto.LzljCreateRoleDTO;
+import com.lzlj.account.role.dto.LzljRoleDTO;
+import com.lzlj.account.role.dto.LzljRoleMenuDTO;
+import com.lzlj.account.role.dto.LzljRoleQueryDTO;
+import com.lzlj.account.role.dto.LzljUpdateRoleDTO;
 import com.lzlj.account.role.entity.LzljRole;
 import com.lzlj.account.role.entity.LzljRoleMenu;
 import com.lzlj.account.role.dao.LzljRoleDao;
@@ -92,11 +97,12 @@ public class LzljRoleServiceImpl implements LzljRoleService {
     }
 
     @Override
-    public PageResult<LzljRoleDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<LzljRole> page = new Page<>(pageNum, pageSize);
+    public PageResult<LzljRoleDTO> page(PageRequest<LzljRoleQueryDTO> pageRequest) {
+        LzljRoleQueryDTO query = pageRequest.getCondition();
+        Page<LzljRole> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(keyword), LzljRole::getRoleName, keyword)
-               .eq(status != null, LzljRole::getStatus, status)
+        wrapper.like(StringUtils.hasText(query.getKeyword()), LzljRole::getRoleName, query.getKeyword())
+               .eq(query.getStatus() != null, LzljRole::getStatus, query.getStatus())
                .orderByDesc(LzljRole::getCreateTime);
 
         IPage<LzljRole> resultPage = roleDao.selectPage(page, wrapper);

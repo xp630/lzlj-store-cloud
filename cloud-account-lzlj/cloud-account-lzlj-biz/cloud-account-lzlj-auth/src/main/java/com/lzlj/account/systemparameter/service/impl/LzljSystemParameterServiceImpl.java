@@ -3,6 +3,7 @@ package com.lzlj.account.systemparameter.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
@@ -87,8 +88,9 @@ public class LzljSystemParameterServiceImpl implements LzljSystemParameterServic
     }
 
     @Override
-    public PageResult<LzljSystemParameterDTO> page(LzljSystemParameterQueryDTO query, Integer pageNum, Integer pageSize) {
-        Page<LzljSystemParameter> page = new Page<>(pageNum, pageSize);
+    public PageResult<LzljSystemParameterDTO> page(PageRequest<LzljSystemParameterQueryDTO> pageRequest) {
+        LzljSystemParameterQueryDTO query = pageRequest.getCondition();
+        Page<LzljSystemParameter> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljSystemParameter> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.hasText(query.getParamName()), LzljSystemParameter::getParamName, query.getParamName())
                .eq(query.getStatus() != null, LzljSystemParameter::getStatus, query.getStatus())

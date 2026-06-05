@@ -1,8 +1,10 @@
 package com.lzlj.account.merchant.service;
 
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.merchant.dto.CreateMerchantDTO;
 import com.lzlj.account.merchant.dto.MerchantDTO;
+import com.lzlj.account.merchant.dto.MerchantQueryDTO;
 import com.lzlj.account.merchant.dto.UpdateMerchantDTO;
 
 /**
@@ -38,7 +40,7 @@ public interface MerchantService {
     /**
      * 分页查询商户
      */
-    PageResult<MerchantDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize);
+    PageResult<MerchantDTO> page(PageRequest<MerchantQueryDTO> pageRequest);
 
     /**
      * 修改商户状态

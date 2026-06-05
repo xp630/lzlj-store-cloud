@@ -2,6 +2,7 @@
 package com.lzlj.account.user.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.role.dto.RoleDTO;
@@ -65,9 +66,9 @@ public class SaasUserController {
 
     @SaCheckPermission("saas:user:list")
     @Operation(summary = "分页查询用户", description = "支持按用户名、手机号、状态模糊搜索，分页参数pageNum从1开始")
-    @GetMapping("/page")
-    public Result<PageResult<UserDTO>> page(UserQueryDTO query) {
-        return Result.success(userService.page(query));
+    @PostMapping("/page")
+    public Result<PageResult<UserDTO>> page(@RequestBody PageRequest<UserQueryDTO> pageRequest) {
+        return Result.success(userService.page(pageRequest));
     }
 
     @SaCheckPermission("saas:user:create")

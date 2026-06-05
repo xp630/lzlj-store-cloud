@@ -2,6 +2,9 @@ package com.lzlj.account.log.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
+import com.lzlj.account.log.dto.LzljApiLogQueryDTO;
+import com.lzlj.account.log.dto.LzljOperationLogQueryDTO;
 import com.lzlj.account.log.entity.LzljApiLog;
 import com.lzlj.account.log.entity.LzljOperationLog;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -28,12 +31,12 @@ public interface LzljLogService {
     /**
      * 分页查询操作日志
      */
-    IPage<LzljOperationLog> pageOperationLog(Page<LzljOperationLog> page, LambdaQueryWrapper<LzljOperationLog> wrapper);
+    IPage<LzljOperationLog> pageOperationLog(PageRequest<LzljOperationLogQueryDTO> pageRequest);
 
     /**
      * 分页查询API访问日志
      */
-    IPage<LzljApiLog> pageApiLog(Page<LzljApiLog> page, LambdaQueryWrapper<LzljApiLog> wrapper);
+    IPage<LzljApiLog> pageApiLog(PageRequest<LzljApiLogQueryDTO> pageRequest);
 
     /**
      * 获取操作日志详情

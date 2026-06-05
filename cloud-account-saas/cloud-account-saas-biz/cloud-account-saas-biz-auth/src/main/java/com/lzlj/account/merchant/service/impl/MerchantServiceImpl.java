@@ -3,6 +3,7 @@ package com.lzlj.account.merchant.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
@@ -11,6 +12,7 @@ import com.lzlj.account.merchant.dao.MerchantLegalDao;
 import com.lzlj.account.merchant.dao.MerchantChannelAccountDao;
 import com.lzlj.account.merchant.dto.CreateMerchantDTO;
 import com.lzlj.account.merchant.dto.MerchantDTO;
+import com.lzlj.account.merchant.dto.MerchantQueryDTO;
 import com.lzlj.account.merchant.dto.UpdateMerchantDTO;
 import com.lzlj.account.common.core.domain.merchant.MerchantChannelAccountDTO;
 import com.lzlj.account.common.core.domain.merchant.MerchantLegalDTO;
@@ -155,11 +157,12 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public PageResult<MerchantDTO> page(String keyword, Integer status, Integer pageNum, Integer pageSize) {
-        Page<Merchant> page = new Page<>(pageNum, pageSize);
+    public PageResult<MerchantDTO> page(PageRequest<MerchantQueryDTO> pageRequest) {
+        MerchantQueryDTO query = pageRequest.getCondition();
+        Page<Merchant> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<Merchant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(keyword), Merchant::getMerchantName, keyword)
-               .eq(status != null, Merchant::getStatus, status)
+        wrapper.like(StringUtils.hasText(query.getKeyword()), Merchant::getMerchantName, query.getKeyword())
+               .eq(query.getStatus() != null, Merchant::getStatus, query.getStatus())
                .eq(Merchant::getDeleted, 0)
                .orderByDesc(Merchant::getCreateTime);
 

@@ -1,17 +1,21 @@
 package com.lzlj.account.log.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lzlj.account.log.entity.LzljApiLog;
-import com.lzlj.account.log.entity.LzljOperationLog;
+import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.log.dao.LzljApiLogDao;
 import com.lzlj.account.log.dao.LzljOperationLogDao;
+import com.lzlj.account.log.dto.LzljApiLogQueryDTO;
+import com.lzlj.account.log.dto.LzljOperationLogQueryDTO;
+import com.lzlj.account.log.entity.LzljApiLog;
+import com.lzlj.account.log.entity.LzljOperationLog;
 import com.lzlj.account.log.service.LzljLogService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -80,12 +84,28 @@ public class LzljLogServiceImpl implements LzljLogService {
     }
 
     @Override
-    public IPage<LzljOperationLog> pageOperationLog(Page<LzljOperationLog> page, LambdaQueryWrapper<LzljOperationLog> wrapper) {
+    public IPage<LzljOperationLog> pageOperationLog(PageRequest<LzljOperationLogQueryDTO> pageRequest) {
+        LzljOperationLogQueryDTO query = pageRequest.getCondition();
+        Page<LzljOperationLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+        LambdaQueryWrapper<LzljOperationLog> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getUserId() != null, LzljOperationLog::getUserId, query.getUserId())
+               .like(StringUtils.hasText(query.getModule()), LzljOperationLog::getModule, query.getModule())
+               .like(StringUtils.hasText(query.getOperation()), LzljOperationLog::getOperation, query.getOperation())
+               .eq(LzljOperationLog::getDeleted, 0)
+               .orderByDesc(LzljOperationLog::getCreateTime);
         return operationLogDao.selectPage(page, wrapper);
     }
 
     @Override
-    public IPage<LzljApiLog> pageApiLog(Page<LzljApiLog> page, LambdaQueryWrapper<LzljApiLog> wrapper) {
+    public IPage<LzljApiLog> pageApiLog(PageRequest<LzljApiLogQueryDTO> pageRequest) {
+        LzljApiLogQueryDTO query = pageRequest.getCondition();
+        Page<LzljApiLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+        LambdaQueryWrapper<LzljApiLog> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getApiKeyId() != null, LzljApiLog::getApiKeyId, query.getApiKeyId())
+               .like(StringUtils.hasText(query.getPath()), LzljApiLog::getPath, query.getPath())
+               .eq(query.getStatusCode() != null, LzljApiLog::getStatusCode, query.getStatusCode())
+               .eq(LzljApiLog::getDeleted, 0)
+               .orderByDesc(LzljApiLog::getCreateTime);
         return apiLogDao.selectPage(page, wrapper);
     }
 
