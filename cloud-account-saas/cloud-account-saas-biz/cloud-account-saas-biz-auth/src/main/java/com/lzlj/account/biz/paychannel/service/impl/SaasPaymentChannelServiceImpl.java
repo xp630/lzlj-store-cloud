@@ -34,9 +34,9 @@ public class SaasPaymentChannelServiceImpl implements SaasPaymentChannelService 
 
     @Override
     public Long create(CreatePaymentChannelDTO dto) {
-        // 检查通道编码唯一性
-        if (checkCodeExists(dto.getChannelCode(), null)) {
-            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "通道编码已存在");
+        // 检查通道编码+支付方式组合是否已存在
+        if (checkChannelCodeAndPaymentMethodExists(dto.getChannelCode(), dto.getPaymentMethod(), null)) {
+            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "该通道编码和支付方式组合已存在");
         }
 
         SaasPaymentChannel channel = new SaasPaymentChannel();
@@ -51,6 +51,11 @@ public class SaasPaymentChannelServiceImpl implements SaasPaymentChannelService 
         SaasPaymentChannel existChannel = paymentChannelDao.selectById(id);
         if (existChannel == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
+        }
+
+        // 检查通道编码+支付方式组合是否已存在（排除自身）
+        if (checkChannelCodeAndPaymentMethodExists(dto.getChannelCode(), dto.getPaymentMethod(), id)) {
+            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "该通道编码和支付方式组合已存在");
         }
 
         BeanUtils.copyProperties(dto, existChannel);
@@ -104,9 +109,10 @@ public class SaasPaymentChannelServiceImpl implements SaasPaymentChannelService 
         return channels.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    private boolean checkCodeExists(String channelCode, Long excludeId) {
+    private boolean checkChannelCodeAndPaymentMethodExists(String channelCode, String paymentMethod, Long excludeId) {
         LambdaQueryWrapper<SaasPaymentChannel> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SaasPaymentChannel::getChannelCode, channelCode);
+        wrapper.eq(SaasPaymentChannel::getChannelCode, channelCode)
+               .eq(SaasPaymentChannel::getPaymentMethod, paymentMethod);
         if (excludeId != null) {
             wrapper.ne(SaasPaymentChannel::getId, excludeId);
         }

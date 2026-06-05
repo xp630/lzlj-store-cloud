@@ -28,6 +28,7 @@ public class SaasEnumController {
         allEnums.put("BusinessType", getEnumValues("BusinessType"));
         allEnums.put("Module", getEnumValues("Module"));
         allEnums.put("ParamType", getEnumValues("ParamType"));
+        allEnums.put("PaymentChannel", getEnumValues("PaymentChannel"));
         return Result.success(allEnums);
     }
 

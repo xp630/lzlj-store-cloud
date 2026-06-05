@@ -77,11 +77,9 @@ public class LzljDataDictionaryServiceImpl implements LzljDataDictionaryService 
         if (dtos == null || dtos.isEmpty()) {
             return;
         }
-        // 基于第一个 dictCode 删除该类型的所有记录
+        // 基于第一个 dictCode 删除该类型的所有记录（物理删除）
         String dictType = dtos.get(0).getDictType();
-        LambdaQueryWrapper<LzljDataDictionary> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LzljDataDictionary::getDictType, dictType);
-        lzljDataDictionaryDao.delete(wrapper);
+        lzljDataDictionaryDao.deleteByDictTypePhysical(dictType);
 
         // 批量新增
         for (SaveDataDictionaryDTO dto : dtos) {

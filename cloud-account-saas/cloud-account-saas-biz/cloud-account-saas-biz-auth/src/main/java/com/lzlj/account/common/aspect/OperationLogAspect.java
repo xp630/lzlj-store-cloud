@@ -74,7 +74,7 @@ public class OperationLogAspect {
                     content = signature.getDeclaringType().getSimpleName() + "." + signature.getName();
                 }
                 eventPublisher.publishEvent(new OperationLogEvent(
-                        userId, tenantId, username, annotation.module(),
+                        userId, tenantId, username, annotation.module().name(),
                         annotation.operation(), content, extractBizId(result), ip, userAgent, roles
                 ));
             } catch (Exception e) {

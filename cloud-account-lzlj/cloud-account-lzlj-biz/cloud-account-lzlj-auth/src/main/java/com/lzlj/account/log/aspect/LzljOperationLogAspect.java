@@ -59,7 +59,7 @@ public class LzljOperationLogAspect {
                     content = signature.getDeclaringType().getSimpleName() + "." + signature.getName();
                 }
                 eventPublisher.publishEvent(new LzljOperationLogEvent(
-                        userId, orgId, username, annotation.module(),
+                        userId, orgId, username, annotation.module().name(),
                         annotation.operation(), content, extractBizId(result), ip, userAgent,
                         orgName != null ? orgName : "", functionalRoles != null ? functionalRoles : "", dataRoles != null ? dataRoles : ""
                 ));
