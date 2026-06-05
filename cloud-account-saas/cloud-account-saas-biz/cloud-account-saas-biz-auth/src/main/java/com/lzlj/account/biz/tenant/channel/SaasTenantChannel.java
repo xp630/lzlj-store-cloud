@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 @TableName("saas_auth_tenant_channel")
 public class SaasTenantChannel extends BaseEntity {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
-
     /**
      * 租户ID
      */
