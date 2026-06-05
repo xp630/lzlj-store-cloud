@@ -22,7 +22,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/tenant")
 @RequiredArgsConstructor
-public class TenantController {
+public class SaasTenantController {
 
     private final TenantService tenantService;
 

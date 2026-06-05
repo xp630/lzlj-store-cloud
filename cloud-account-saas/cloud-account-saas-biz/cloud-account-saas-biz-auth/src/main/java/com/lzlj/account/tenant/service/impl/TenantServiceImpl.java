@@ -103,10 +103,12 @@ public class TenantServiceImpl implements TenantService {
     public PageResult<TenantDTO> page(TenantQueryDTO query, Integer pageNum, Integer pageSize) {
         Page<Tenant> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Tenant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getKeyword()), Tenant::getTenantName, query.getKeyword())
-               .eq(query.getStatus() != null, Tenant::getStatus, query.getStatus())
-               .eq(Tenant::getDeleted, 0)
+        wrapper.eq(Tenant::getDeleted, 0)
                .orderByDesc(Tenant::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getKeyword()), Tenant::getTenantName, query.getKeyword())
+                   .eq(query.getStatus() != null, Tenant::getStatus, query.getStatus());
+        }
 
         IPage<Tenant> resultPage = tenantDao.selectPage(page, wrapper);
 

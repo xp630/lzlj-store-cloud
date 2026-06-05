@@ -88,11 +88,13 @@ public class LzljLogServiceImpl implements LzljLogService {
         LzljOperationLogQueryDTO query = pageRequest.getCondition();
         Page<LzljOperationLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljOperationLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getUserId() != null, LzljOperationLog::getUserId, query.getUserId())
-               .like(StringUtils.hasText(query.getModule()), LzljOperationLog::getModule, query.getModule())
-               .like(StringUtils.hasText(query.getOperation()), LzljOperationLog::getOperation, query.getOperation())
-               .eq(LzljOperationLog::getDeleted, 0)
+        wrapper.eq(LzljOperationLog::getDeleted, 0)
                .orderByDesc(LzljOperationLog::getCreateTime);
+        if (query != null) {
+            wrapper.eq(query.getUserId() != null, LzljOperationLog::getUserId, query.getUserId())
+                   .like(StringUtils.hasText(query.getModule()), LzljOperationLog::getModule, query.getModule())
+                   .like(StringUtils.hasText(query.getOperation()), LzljOperationLog::getOperation, query.getOperation());
+        }
         return operationLogDao.selectPage(page, wrapper);
     }
 
@@ -101,11 +103,13 @@ public class LzljLogServiceImpl implements LzljLogService {
         LzljApiLogQueryDTO query = pageRequest.getCondition();
         Page<LzljApiLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljApiLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getApiKeyId() != null, LzljApiLog::getApiKeyId, query.getApiKeyId())
-               .like(StringUtils.hasText(query.getPath()), LzljApiLog::getPath, query.getPath())
-               .eq(query.getStatusCode() != null, LzljApiLog::getStatusCode, query.getStatusCode())
-               .eq(LzljApiLog::getDeleted, 0)
+        wrapper.eq(LzljApiLog::getDeleted, 0)
                .orderByDesc(LzljApiLog::getCreateTime);
+        if (query != null) {
+            wrapper.eq(query.getApiKeyId() != null, LzljApiLog::getApiKeyId, query.getApiKeyId())
+                   .like(StringUtils.hasText(query.getPath()), LzljApiLog::getPath, query.getPath())
+                   .eq(query.getStatusCode() != null, LzljApiLog::getStatusCode, query.getStatusCode());
+        }
         return apiLogDao.selectPage(page, wrapper);
     }
 
