@@ -66,7 +66,7 @@ public class LzljOperationLog extends BaseEntity {
     /**
      * 功能角色列表（角色名称逗号分隔）
      */
-    private String functionalRoles;
+    private String userRoles;
 
     /**
      * 数据角色列表（角色名称逗号分隔）

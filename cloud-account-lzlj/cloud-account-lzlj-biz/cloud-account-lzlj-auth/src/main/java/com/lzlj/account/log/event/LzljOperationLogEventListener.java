@@ -32,7 +32,7 @@ public class LzljOperationLogEventListener {
                     event.getIp(),
                     event.getUserAgent(),
                     event.getOrgName(),
-                    event.getFunctionalRoles(),
+                    event.getUserRoles(),
                     event.getDataRoles()
             );
         } catch (Exception e) {
