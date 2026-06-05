@@ -3,6 +3,10 @@ package com.lzlj.account.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
+import com.lzlj.account.merchant.dao.LzljMerchantDao;
+import com.lzlj.account.merchant.entity.LzljMerchant;
+import com.lzlj.account.scenario.dao.LzljScenarioDao;
+import com.lzlj.account.scenario.entity.LzljScenario;
 import com.lzlj.account.user.dto.LzljOrgDTO;
 import com.lzlj.account.user.entity.LzljOrg;
 import com.lzlj.account.user.entity.LzljUser;
@@ -28,6 +32,8 @@ public class LzljOrgServiceImpl implements LzljOrgService {
 
     private final LzljOrgDao orgDao;
     private final LzljUserDao userDao;
+    private final LzljMerchantDao merchantDao;
+    private final LzljScenarioDao scenarioDao;
 
     @Override
     public Long create(LzljOrg org) {
@@ -175,6 +181,31 @@ public class LzljOrgServiceImpl implements LzljOrgService {
     private LzljOrgDTO convertToDTO(LzljOrg org) {
         LzljOrgDTO dto = new LzljOrgDTO();
         BeanUtils.copyProperties(org, dto);
+
+        // 补充商户名称
+        if (org.getMerchantId() != null) {
+            LzljMerchant merchant = merchantDao.selectById(org.getMerchantId());
+            if (merchant != null) {
+                dto.setMerchantName(merchant.getMerchantName());
+            }
+        }
+
+        // 补充场景名称
+        if (org.getScenarioId() != null) {
+            LzljScenario scenario = scenarioDao.selectById(org.getScenarioId());
+            if (scenario != null) {
+                dto.setScenarioName(scenario.getScenarioName());
+            }
+        }
+
+        // 补充上级机构名称
+        if (org.getParentId() != null && org.getParentId() > 0) {
+            LzljOrg parent = orgDao.selectById(org.getParentId());
+            if (parent != null) {
+                dto.setParentOrgName(parent.getOrgName());
+            }
+        }
+
         return dto;
     }
 }

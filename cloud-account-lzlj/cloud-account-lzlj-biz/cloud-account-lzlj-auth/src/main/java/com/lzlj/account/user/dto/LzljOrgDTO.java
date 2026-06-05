@@ -37,6 +37,26 @@ public class LzljOrgDTO {
     private Long scenarioId;
 
     /**
+     * 商户名称（关联查询）
+     */
+    private String merchantName;
+
+    /**
+     * 场景名称（关联查询）
+     */
+    private String scenarioName;
+
+    /**
+     * 上级机构名称（关联查询）
+     */
+    private String parentOrgName;
+
+    /**
+     * 统一社会信用代码
+     */
+    private String unifiedSocialCreditCode;
+
+    /**
      * 子机构列表（用于树形结构）
      */
     private List<LzljOrgDTO> children;
