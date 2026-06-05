@@ -1,6 +1,8 @@
 package com.lzlj.account.user.service;
 
+import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.user.dto.LzljOrgDTO;
+import com.lzlj.account.user.dto.OrgQueryDTO;
 import com.lzlj.account.user.entity.LzljOrg;
 
 import java.util.List;
@@ -34,6 +36,11 @@ public interface LzljOrgService {
      * 获取子机构列表
      */
     List<LzljOrgDTO> getChildren(Long parentId);
+
+    /**
+     * 分页查询机构列表
+     */
+    PageResult<LzljOrgDTO> pageQuery(OrgQueryDTO queryDTO, Integer pageNum, Integer pageSize);
 
     /**
      * 更新机构

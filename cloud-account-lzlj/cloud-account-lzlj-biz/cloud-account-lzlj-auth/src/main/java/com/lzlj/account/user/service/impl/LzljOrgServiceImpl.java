@@ -1,6 +1,9 @@
 package com.lzlj.account.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.merchant.dao.LzljMerchantDao;
@@ -8,6 +11,7 @@ import com.lzlj.account.merchant.entity.LzljMerchant;
 import com.lzlj.account.scenario.dao.LzljScenarioDao;
 import com.lzlj.account.scenario.entity.LzljScenario;
 import com.lzlj.account.user.dto.LzljOrgDTO;
+import com.lzlj.account.user.dto.OrgQueryDTO;
 import com.lzlj.account.user.entity.LzljOrg;
 import com.lzlj.account.user.entity.LzljUser;
 import com.lzlj.account.user.dao.LzljOrgDao;
@@ -19,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -110,6 +115,54 @@ public class LzljOrgServiceImpl implements LzljOrgService {
         return orgDao.selectList(wrapper).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PageResult<LzljOrgDTO> pageQuery(OrgQueryDTO queryDTO, Integer pageNum, Integer pageSize) {
+        Page<LzljOrg> page = new Page<>(pageNum, pageSize);
+
+        LambdaQueryWrapper<LzljOrg> wrapper = new LambdaQueryWrapper<>();
+
+        // 上级机构ID（0表示根级）
+        if (queryDTO.getParentId() != null) {
+            wrapper.eq(LzljOrg::getParentId, queryDTO.getParentId());
+        }
+
+        // 机构名称（模糊查询）
+        if (StringUtils.hasText(queryDTO.getOrgName())) {
+            wrapper.like(LzljOrg::getOrgName, queryDTO.getOrgName());
+        }
+
+        // 机构编码（精确查询）
+        if (StringUtils.hasText(queryDTO.getOrgCode())) {
+            wrapper.eq(LzljOrg::getOrgCode, queryDTO.getOrgCode());
+        }
+
+        // 母户ID
+        if (queryDTO.getMerchantId() != null) {
+            wrapper.eq(LzljOrg::getMerchantId, queryDTO.getMerchantId());
+        }
+
+        // 场景ID
+        if (queryDTO.getScenarioId() != null) {
+            wrapper.eq(LzljOrg::getScenarioId, queryDTO.getScenarioId());
+        }
+
+        // 状态
+        if (queryDTO.getStatus() != null) {
+            wrapper.eq(LzljOrg::getStatus, queryDTO.getStatus());
+        }
+
+        wrapper.eq(LzljOrg::getDeleted, 0)
+               .orderByAsc(LzljOrg::getSort);
+
+        IPage<LzljOrg> resultPage = orgDao.selectPage(page, wrapper);
+
+        List<LzljOrgDTO> records = resultPage.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        return new PageResult<>(records, resultPage.getTotal(), resultPage.getCurrent(), resultPage.getSize());
     }
 
     @Override

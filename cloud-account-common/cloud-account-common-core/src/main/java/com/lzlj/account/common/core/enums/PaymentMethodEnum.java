@@ -3,6 +3,8 @@ package com.lzlj.account.common.core.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * 支付方式枚举
  */
@@ -25,4 +27,18 @@ public enum PaymentMethodEnum {
      * 支付方式编码
      */
     private final String code;
+
+    /**
+     * 根据编码获取名称
+     */
+    public static String getNameByCode(String code) {
+        if (code == null || code.isEmpty()) {
+            return null;
+        }
+        return Arrays.stream(values())
+                .filter(e -> e.code.equalsIgnoreCase(code))
+                .findFirst()
+                .map(PaymentMethodEnum::getName)
+                .orElse(code);
+    }
 }

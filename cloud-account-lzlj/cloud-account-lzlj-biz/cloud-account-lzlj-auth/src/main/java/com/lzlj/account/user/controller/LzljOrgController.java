@@ -1,7 +1,10 @@
 package com.lzlj.account.user.controller;
 
+import com.lzlj.account.common.core.domain.PageRequest;
+import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.user.dto.LzljOrgDTO;
+import com.lzlj.account.user.dto.OrgQueryDTO;
 import com.lzlj.account.user.entity.LzljOrg;
 import com.lzlj.account.user.service.LzljOrgService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +41,15 @@ public class LzljOrgController {
     @GetMapping("/{id}/children")
     public Result<List<LzljOrgDTO>> getChildren(@PathVariable Long id) {
         return Result.success(orgService.getChildren(id));
+    }
+
+    @Operation(summary = "分页查询机构列表", description = "支持按机构名称、机构编码、母户、场景等条件筛选")
+    @PostMapping("/page")
+    public Result<PageResult<LzljOrgDTO>> pageQuery(@RequestBody PageRequest<OrgQueryDTO> pageRequest) {
+        return Result.success(orgService.pageQuery(
+                pageRequest.getCondition(),
+                pageRequest.getPageNum(),
+                pageRequest.getPageSize()));
     }
 
     @Operation(summary = "创建机构")

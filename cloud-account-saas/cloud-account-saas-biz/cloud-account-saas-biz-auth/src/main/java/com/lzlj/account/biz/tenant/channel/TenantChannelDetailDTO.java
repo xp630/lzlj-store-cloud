@@ -36,6 +36,9 @@ public class TenantChannelDetailDTO {
     @Schema(description = "支付方式（逗号分隔，如 WECHAT,ALIPAY）")
     private String paymentMethod;
 
+    @Schema(description = "支付方式名称（中文，如 微信支付,支付宝）")
+    private String paymentMethodName;
+
     @Schema(description = "云账户管理费率")
     private BigDecimal cloudAccountFee;
 

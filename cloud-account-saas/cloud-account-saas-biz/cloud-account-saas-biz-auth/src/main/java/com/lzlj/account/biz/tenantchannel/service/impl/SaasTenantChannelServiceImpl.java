@@ -16,6 +16,7 @@ import com.lzlj.account.biz.tenant.entity.Tenant;
 import com.lzlj.account.biz.tenantchannel.entity.SaasTenantChannel;
 import com.lzlj.account.biz.tenantchannel.service.SaasTenantChannelService;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.enums.PaymentMethodEnum;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -145,6 +146,7 @@ public class SaasTenantChannelServiceImpl implements SaasTenantChannelService {
                 dto.setChannelCode(paymentChannel.getChannelCode());
                 dto.setChannelName(paymentChannel.getChannelName());
                 dto.setPaymentMethod(paymentChannel.getPaymentMethod());
+                dto.setPaymentMethodName(translatePaymentMethod(paymentChannel.getPaymentMethod()));
                 dto.setCloudAccountFee(paymentChannel.getCloudAccountFee());
                 dto.setUpstreamCostFee(paymentChannel.getUpstreamCostFee());
                 dto.setTotalFeeCost(paymentChannel.getTotalFeeCost());
@@ -221,6 +223,7 @@ public class SaasTenantChannelServiceImpl implements SaasTenantChannelService {
                 dto.setChannelCode(paymentChannel.getChannelCode());
                 dto.setChannelName(paymentChannel.getChannelName());
                 dto.setPaymentMethod(paymentChannel.getPaymentMethod());
+                dto.setPaymentMethodName(translatePaymentMethod(paymentChannel.getPaymentMethod()));
                 dto.setCloudAccountFee(paymentChannel.getCloudAccountFee());
                 dto.setUpstreamCostFee(paymentChannel.getUpstreamCostFee());
                 dto.setTotalFeeCost(paymentChannel.getTotalFeeCost());
@@ -265,5 +268,24 @@ public class SaasTenantChannelServiceImpl implements SaasTenantChannelService {
         TenantChannelDTO dto = new TenantChannelDTO();
         BeanUtils.copyProperties(channel, dto);
         return dto;
+    }
+
+    /**
+     * 翻译支付方式编码为中文名称
+     * 例如: "WECHAT,ALIPAY" -> "微信支付,支付宝"
+     */
+    private String translatePaymentMethod(String paymentMethod) {
+        if (paymentMethod == null || paymentMethod.isEmpty()) {
+            return paymentMethod;
+        }
+        String[] codes = paymentMethod.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < codes.length; i++) {
+            if (i > 0) {
+                sb.append(",");
+            }
+            sb.append(PaymentMethodEnum.getNameByCode(codes[i].trim()));
+        }
+        return sb.toString();
     }
 }
