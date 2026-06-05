@@ -1,11 +1,13 @@
 package com.lzlj.account.biz.tenant.dto;
 
+import com.lzlj.account.biz.tenant.channel.CreateTenantChannelDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 创建租户请求DTO
@@ -46,4 +48,7 @@ public class CreateTenantDTO {
 
     @Schema(description = "logo")
     private String logo;
+
+    @Schema(description = "渠道配置列表")
+    private List<CreateTenantChannelDTO> channels;
 }

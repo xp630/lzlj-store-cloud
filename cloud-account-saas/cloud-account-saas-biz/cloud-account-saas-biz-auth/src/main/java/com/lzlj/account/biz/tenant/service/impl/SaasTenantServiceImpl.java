@@ -3,6 +3,8 @@ package com.lzlj.account.biz.tenant.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzlj.account.biz.tenant.channel.SaasTenantChannelService;
+import com.lzlj.account.biz.tenant.service.SaasTenantService;
 import com.lzlj.account.cache.SaasCacheService;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.exception.BusinessException;
@@ -13,11 +15,11 @@ import com.lzlj.account.biz.tenant.dto.TenantDTO;
 import com.lzlj.account.biz.tenant.dto.TenantQueryDTO;
 import com.lzlj.account.biz.tenant.dto.UpdateTenantDTO;
 import com.lzlj.account.biz.tenant.entity.Tenant;
-import com.lzlj.account.biz.tenant.service.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.stream.Collectors;
@@ -28,12 +30,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TenantServiceImpl implements TenantService {
+public class SaasTenantServiceImpl implements SaasTenantService {
 
     private final TenantDao tenantDao;
     private final SaasCacheService cacheService;
+    private final SaasTenantChannelService tenantChannelService;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long create(CreateTenantDTO dto) {
         // 检查编码唯一性
         if (checkCodeExists(dto.getTenantCode(), null)) {
@@ -47,10 +51,16 @@ public class TenantServiceImpl implements TenantService {
         tenantDao.insert(tenant);
         log.info("创建租户成功: id={}, code={}", tenant.getId(), tenant.getTenantCode());
 
+        // 同步渠道配置
+        if (dto.getChannels() != null && !dto.getChannels().isEmpty()) {
+            tenantChannelService.createChannels(tenant.getId(), dto.getChannels());
+        }
+
         return tenant.getId();
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void update(Long id, UpdateTenantDTO dto) {
         Tenant existTenant = tenantDao.selectById(id);
         if (existTenant == null) {
@@ -66,15 +76,25 @@ public class TenantServiceImpl implements TenantService {
         tenantDao.updateById(existTenant);
         cacheService.invalidateTenant(id);
 
+        // 同步渠道配置（全量替换）
+        tenantChannelService.deleteByTenantId(id);
+        if (dto.getChannels() != null && !dto.getChannels().isEmpty()) {
+            tenantChannelService.createChannels(id, dto.getChannels());
+        }
+
         log.info("更新租户成功: id={}", id);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         Tenant tenant = tenantDao.selectById(id);
         if (tenant == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
+
+        // 删除租户渠道
+        tenantChannelService.deleteByTenantId(id);
 
         // 物理删除（根据业务需求可改为逻辑删除）
         tenantDao.deleteById(id);
@@ -106,7 +126,10 @@ public class TenantServiceImpl implements TenantService {
         if (tenant == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND.getCode(), "租户不存在");
         }
-        return convertToDTO(tenant);
+        TenantDTO dto = convertToDTO(tenant);
+        // 加载渠道信息
+        dto.setChannels(tenantChannelService.getByTenantId(tenant.getId()));
+        return dto;
     }
 
     @Override
@@ -157,6 +180,8 @@ public class TenantServiceImpl implements TenantService {
     private TenantDTO convertToDTO(Tenant tenant) {
         TenantDTO dto = new TenantDTO();
         BeanUtils.copyProperties(tenant, dto);
+        // 加载渠道信息
+        dto.setChannels(tenantChannelService.getByTenantId(tenant.getId()));
         return dto;
     }
 }

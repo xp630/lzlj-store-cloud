@@ -9,7 +9,7 @@ import com.lzlj.account.biz.tenant.dto.UpdateTenantDTO;
 /**
  * 租户服务接口
  */
-public interface TenantService {
+public interface SaasTenantService {
 
     /**
      * 创建租户

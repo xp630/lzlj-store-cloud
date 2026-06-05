@@ -1,5 +1,6 @@
 package com.lzlj.account.biz.tenant.controller;
 
+import com.lzlj.account.biz.tenant.service.SaasTenantService;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -7,7 +8,6 @@ import com.lzlj.account.biz.tenant.dto.CreateTenantDTO;
 import com.lzlj.account.biz.tenant.dto.TenantDTO;
 import com.lzlj.account.biz.tenant.dto.TenantQueryDTO;
 import com.lzlj.account.biz.tenant.dto.UpdateTenantDTO;
-import com.lzlj.account.biz.tenant.service.TenantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class SaasTenantController {
 
-    private final TenantService tenantService;
+    private final SaasTenantService tenantService;
 
     @Operation(summary = "创建租户")
     @PostMapping

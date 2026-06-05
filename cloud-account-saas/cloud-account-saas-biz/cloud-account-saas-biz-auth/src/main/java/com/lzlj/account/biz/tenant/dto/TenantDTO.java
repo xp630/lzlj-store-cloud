@@ -1,8 +1,10 @@
 package com.lzlj.account.biz.tenant.dto;
 
+import com.lzlj.account.biz.tenant.channel.TenantChannelDTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 租户DTO
@@ -68,4 +70,9 @@ public class TenantDTO {
     private String logo;
 
     private LocalDateTime createTime;
+
+    /**
+     * 渠道列表
+     */
+    private List<TenantChannelDTO> channels;
 }
