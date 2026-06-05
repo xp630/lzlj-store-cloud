@@ -1,13 +1,10 @@
-package com.lzlj.account.biz.tenant.channel;
+package com.lzlj.account.biz.tenantchannel.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lzlj.account.common.core.domain.BaseEntity;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 租户渠道实体

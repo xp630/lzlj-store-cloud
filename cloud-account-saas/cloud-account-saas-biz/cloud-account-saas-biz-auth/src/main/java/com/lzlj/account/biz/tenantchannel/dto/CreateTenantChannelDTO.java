@@ -1,4 +1,4 @@
-package com.lzlj.account.biz.merchantchannel.dto;
+package com.lzlj.account.biz.tenantchannel.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  */
 @Data
 @Schema(description = "开通商户渠道请求")
-public class CreateMerchantChannelDTO {
+public class CreateTenantChannelDTO {
 
     @NotNull(message = "商户ID不能为空")
     @Schema(description = "商户ID")

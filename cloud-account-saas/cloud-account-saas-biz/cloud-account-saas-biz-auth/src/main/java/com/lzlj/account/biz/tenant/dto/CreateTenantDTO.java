@@ -1,6 +1,6 @@
 package com.lzlj.account.biz.tenant.dto;
 
-import com.lzlj.account.biz.tenant.channel.CreateTenantChannelDTO;
+import com.lzlj.account.biz.tenantchannel.dto.CreateTenantChannelDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

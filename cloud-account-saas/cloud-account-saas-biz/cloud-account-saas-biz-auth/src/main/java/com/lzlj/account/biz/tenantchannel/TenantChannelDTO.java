@@ -1,4 +1,4 @@
-package com.lzlj.account.biz.merchantchannel.dto;
+package com.lzlj.account.biz.tenantchannel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -7,16 +7,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 商户渠道DTO
+ * 租户渠道DTO
  */
 @Data
-@Schema(description = "商户渠道响应")
-public class MerchantChannelDTO {
+@Schema(description = "租户渠道响应")
+public class TenantChannelDTO {
 
     private Long id;
 
-    @Schema(description = "商户ID")
-    private Long merchantId;
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
     @Schema(description = "渠道ID")
     private Long channelId;

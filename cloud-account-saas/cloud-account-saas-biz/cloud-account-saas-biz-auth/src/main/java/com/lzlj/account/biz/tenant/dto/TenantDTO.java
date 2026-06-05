@@ -1,6 +1,6 @@
 package com.lzlj.account.biz.tenant.dto;
 
-import com.lzlj.account.biz.tenant.channel.TenantChannelDTO;
+import com.lzlj.account.biz.tenantchannel.TenantChannelDTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
