@@ -10,17 +10,13 @@
 | 微服务框架 | Spring Cloud Alibaba 2021.0.5.0, Spring Cloud 2021.0.9 |
 | 服务注册/配置 | Alibaba Nacos 2.3.3 |
 | 服务治理 | Alibaba MSE (Microservice Engine) |
-| 服务调用 | Apache Dubbo 3.2.16, OpenFeign |
+| 服务调用 | OpenFeign |
 | 流量控制 | Alibaba Sentinel 1.8.8 |
-| 分布式事务 | Seata 2.0.0 (AT模式) |
 | 消息队列 | Apache RocketMQ 2.2.3 |
-| 缓存 | Redis Cluster, Redisson 3.27.2 |
-| 数据库 | MySQL 8.0, ShardingSphere |
-| 搜索引擎 | Elasticsearch 8.12.2 |
-| 容器编排 | ACK (Alibaba Cloud Kubernetes) |
-| 日志采集 | SLS (Simple Log Service) |
-| 监控采集 | ARMS (Application Real-Time Monitoring Service) |
-| API文档 | SpringDoc OpenAPI 2.4.0 |
+| 缓存 | Redis, Redisson 3.26.0 |
+| 数据库 | MySQL 8.0, Druid |
+| 权限认证 | Sa-Token 1.37.0 |
+| API文档 | SpringDoc OpenAPI 1.7.0 |
 
 ## 项目结构
 
@@ -61,21 +57,18 @@ lzlj-cloud-account/
 | account-gateway (SaaS) | 18080 | account-gateway | SaaS网关统一入口 |
 | account-gateway-lzlj | 28080 | account-gateway-lzlj | LZLJ网关入口 |
 | saas-auth | 9092 | saas-auth | SaaS认证服务 |
-| lzlj-auth | 9294 | lzlj-auth | LZLJ认证服务 |
+| lzlj-auth | 9292 | lzlj-auth | LZLJ认证服务 |
 | account-lzlj-user | 9093 | account-lzlj-user | LZLJ用户服务 |
 
 ## 快速开始
 
 ### 环境要求
 
-- JDK 17+
+- JDK 8+
 - Maven 3.8+
 - MySQL 8.0+
 - Redis 6.0+
 - Nacos 2.3.3+
-- RocketMQ 4.9+
-- Elasticsearch 8.x
-- Kubernetes (可选)
 
 ### 1. 初始化数据库
 
@@ -120,40 +113,26 @@ java -jar cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-user/targ
 - SaaS网关地址: http://localhost:18080
 - Nacos控制台: http://localhost:8848/nacos (nacos/nacos)
 
-## 架构特性
+## 核心功能模块
 
-### 1. 百万并发支撑
+### SaaS 多租户模块
+- 租户管理 (Tenant)
+- 用户管理 (User)
+- 角色权限 (Role/Menu)
+- 数据字典 (DataDictionary)
+- 系统参数 (SystemParameter)
+- 支付通道 (PaymentChannel)
 
-- **接入层**: CDN + WAF + ALB/SLB + Spring Cloud Gateway
-- **网关层**: 统一鉴权、限流、熔断
-- **服务层**: 无状态设计，K8s HPA自动扩缩容
-- **数据层**: 分库分表 + 读写分离
+### LZLJ 本地部署模块
+- 组织机构管理 (Org)
+- 数据角色 (DataRole)
+- 商户管理 (Merchant)
 
-### 2. 多级缓存
-
-```
-请求 → L1 Caffeine(本地) → L2 Redis(分布式) → L3 MySQL
-```
-
-### 3. 弹性伸缩
-
-- 基于K8s + HPA实现秒级扩容
-- 30秒内完成扩容响应
-- ESS自动伸缩策略
-
-### 4. 分布式事务
-
-- Seata AT模式
-- 自动补偿事务
-- 最终一致性
-
-### 5. 安全防护
-
-- JWT Token认证
-- RBAC权限控制
-- 多因素认证
-- 全站HTTPS
-- DDoS/WAF防护
+### 安全特性
+- Sa-Token 认证授权
+- RBAC 权限控制
+- 多租户数据隔离
+- 操作日志记录
 
 ## API文档
 
@@ -164,9 +143,9 @@ java -jar cloud-account-lzlj/cloud-account-lzlj-biz/cloud-account-lzlj-user/targ
 
 ## 监控
 
-- ARMS 应用监控
-- SLS 日志分析
-- MSE 服务治理
+- Nacos 配置中心
+- Sentinel 流量控制
+- Druid SQL 监控
 
 ## License
 
