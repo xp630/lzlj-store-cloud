@@ -4,21 +4,24 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryQueryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.SaveDataDictionaryDTO;
 import com.lzlj.account.common.core.exception.BusinessException;
 import com.lzlj.account.common.core.result.ResultCode;
 import com.lzlj.account.datadictionary.dao.DataDictionaryDao;
 import com.lzlj.account.datadictionary.dto.CreateDataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryQueryDTO;
 import com.lzlj.account.datadictionary.dto.UpdateDataDictionaryDTO;
 import com.lzlj.account.datadictionary.entity.DataDictionary;
-import com.lzlj.account.datadictionary.service.DataDictionaryService;
+import com.lzlj.account.datadictionary.service.SaasDataDictionaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataDictionaryServiceImpl implements DataDictionaryService {
+public class SaasDataDictionaryServiceImpl implements SaasDataDictionaryService {
 
     private final DataDictionaryDao dataDictionaryDao;
 
@@ -129,19 +132,49 @@ public class DataDictionaryServiceImpl implements DataDictionaryService {
     }
 
     @Override
-    public List<DataDictionaryDTO> getTypes() {
+    public PageResult<DataDictionaryDTO> getTypesPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize) {
         LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(DataDictionary::getStatus, 1)
+        wrapper.eq(StringUtils.hasText(query.getDictType()), DataDictionary::getDictType, query.getDictType())
+               .eq(query.getStatus() != null, DataDictionary::getStatus, query.getStatus())
                .orderByAsc(DataDictionary::getDictType);
         List<DataDictionary> dicts = dataDictionaryDao.selectList(wrapper);
 
         // 按 dictType 分组，每组取第一条
-        return dicts.stream()
+        List<DataDictionaryDTO> types = dicts.stream()
                 .collect(Collectors.groupingBy(DataDictionary::getDictType))
                 .values().stream()
                 .map(group -> group.get(0))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+
+        // 分页
+        int total = types.size();
+        int start = (pageNum - 1) * pageSize;
+        int end = Math.min(start + pageSize, total);
+        List<DataDictionaryDTO> pageList = start < total ? types.subList(start, end) : new ArrayList<>();
+
+        return new PageResult<>(pageList, (long) total, (long) pageNum, (long) pageSize);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveBatch(List<SaveDataDictionaryDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return;
+        }
+        // 基于第一个 dictCode 删除该类型的所有记录
+        String dictType = dtos.get(0).getDictType();
+        LambdaQueryWrapper<DataDictionary> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DataDictionary::getDictType, dictType);
+        dataDictionaryDao.delete(wrapper);
+
+        // 批量新增
+        for (SaveDataDictionaryDTO dto : dtos) {
+            DataDictionary dict = new DataDictionary();
+            BeanUtils.copyProperties(dto, dict);
+            dataDictionaryDao.insert(dict);
+        }
+        log.info("批量保存数据字典成功: dictType={}, {}条", dictType, dtos.size());
     }
 
     private boolean checkCodeExists(String dictCode, Long excludeId) {

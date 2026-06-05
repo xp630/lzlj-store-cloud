@@ -1,9 +1,10 @@
 package com.lzlj.account.datadictionary.service;
 
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryQueryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.SaveDataDictionaryDTO;
 import com.lzlj.account.datadictionary.dto.CreateDataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryQueryDTO;
 import com.lzlj.account.datadictionary.dto.UpdateDataDictionaryDTO;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Map;
 /**
  * 数据字典服务接口
  */
-public interface DataDictionaryService {
+public interface SaasDataDictionaryService {
 
     /**
      * 创建数据字典
@@ -52,5 +53,10 @@ public interface DataDictionaryService {
     /**
      * 获取所有字典类型列表（去重）
      */
-    List<DataDictionaryDTO> getTypes();
+    PageResult<DataDictionaryDTO> getTypesPage(DataDictionaryQueryDTO query, Integer pageNum, Integer pageSize);
+
+    /**
+     * 批量保存（创建/更新）
+     */
+    void saveBatch(List<SaveDataDictionaryDTO> dtos);
 }

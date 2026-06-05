@@ -3,8 +3,10 @@ package com.lzlj.account.datadictionary.controller;
 import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryQueryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.SaveDataDictionaryDTO;
 import com.lzlj.account.common.core.result.Result;
-import com.lzlj.account.datadictionary.dto.*;
 import com.lzlj.account.datadictionary.service.LzljDataDictionaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,21 +25,13 @@ public class LzljDataDictionaryController {
 
     private final LzljDataDictionaryService lzljDataDictionaryService;
 
-    @Operation(summary = "创建数据字典")
-    @OperationLog(module = "dictionary", operation = "CREATE", content = "创建数据字典")
-    @PostMapping
-    public Result<Long> create(@Valid @RequestBody CreateLzljDataDictionaryDTO dto) {
-        return Result.success(lzljDataDictionaryService.create(dto));
-    }
-
-    @Operation(summary = "更新数据字典")
-    @OperationLog(module = "dictionary", operation = "UPDATE", content = "更新数据字典")
-    @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateLzljDataDictionaryDTO dto) {
-        lzljDataDictionaryService.update(id, dto);
+    @Operation(summary = "批量保存数据字典（创建/更新）")
+    @OperationLog(module = "dictionary", operation = "SAVE", content = "批量保存数据字典")
+    @PostMapping("/batch")
+    public Result<Void> saveBatch(@Valid @RequestBody List<SaveDataDictionaryDTO> dtos) {
+        lzljDataDictionaryService.saveBatch(dtos);
         return Result.success();
     }
-
     @Operation(summary = "删除数据字典")
     @OperationLog(module = "dictionary", operation = "DELETE", content = "删除数据字典")
     @DeleteMapping("/{id}")
@@ -48,39 +42,41 @@ public class LzljDataDictionaryController {
 
     @Operation(summary = "获取数据字典详情")
     @GetMapping("/{id}")
-    public Result<LzljDataDictionaryDTO> getById(@PathVariable Long id) {
+    public Result<DataDictionaryDTO> getById(@PathVariable Long id) {
         return Result.success(lzljDataDictionaryService.getById(id));
     }
 
     @Operation(summary = "分页查询数据字典")
     @GetMapping("/page")
-    public Result<PageResult<LzljDataDictionaryDTO>> page(
+    public Result<PageResult<DataDictionaryDTO>> page(
             PageRequest pageRequest,
-            LzljDataDictionaryQueryDTO query) {
+            DataDictionaryQueryDTO query) {
         return Result.success(lzljDataDictionaryService.page(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 
     @Operation(summary = "获取数据字典列表")
     @GetMapping("/list")
-    public Result<List<LzljDataDictionaryDTO>> list() {
+    public Result<List<DataDictionaryDTO>> list() {
         return Result.success(lzljDataDictionaryService.list());
     }
 
     @Operation(summary = "根据类型获取数据字典")
     @GetMapping("/type/{type}")
-    public Result<List<LzljDataDictionaryDTO>> getByType(@PathVariable String type) {
+    public Result<List<DataDictionaryDTO>> getByType(@PathVariable String type) {
         return Result.success(lzljDataDictionaryService.getByType(type));
     }
 
     @Operation(summary = "获取所有字典类型分组")
-    @GetMapping("/all-group")
-    public Result<Map<String, List<LzljDataDictionaryDTO>>> getAllGroup() {
+    @GetMapping("/allGroup")
+    public Result<Map<String, List<DataDictionaryDTO>>> getAllGroup() {
         return Result.success(lzljDataDictionaryService.getAllGroup());
     }
 
     @Operation(summary = "获取所有字典类型列表（去重，同一类型只显示一条）")
     @GetMapping("/types")
-    public Result<List<LzljDataDictionaryDTO>> getTypes() {
-        return Result.success(lzljDataDictionaryService.getTypes());
+    public Result<PageResult<DataDictionaryDTO>> getTypesPage(
+            PageRequest pageRequest,
+            DataDictionaryQueryDTO query) {
+        return Result.success(lzljDataDictionaryService.getTypesPage(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 }

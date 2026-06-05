@@ -3,12 +3,13 @@ package com.lzlj.account.datadictionary.controller;
 import com.lzlj.account.common.core.annotation.OperationLog;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryQueryDTO;
+import com.lzlj.account.common.core.domain.datadictionary.SaveDataDictionaryDTO;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.datadictionary.dto.CreateDataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryDTO;
-import com.lzlj.account.datadictionary.dto.DataDictionaryQueryDTO;
 import com.lzlj.account.datadictionary.dto.UpdateDataDictionaryDTO;
-import com.lzlj.account.datadictionary.service.DataDictionaryService;
+import com.lzlj.account.datadictionary.service.SaasDataDictionaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SaasDataDictionaryController {
 
-    private final DataDictionaryService dataDictionaryService;
+    private final SaasDataDictionaryService dataDictionaryService;
 
     @Operation(summary = "创建数据字典")
     @OperationLog(module = "dictionary", operation = "CREATE", content = "创建数据字典")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateDataDictionaryDTO dto) {
         return Result.success(dataDictionaryService.create(dto));
+    }
+
+    @Operation(summary = "批量保存数据字典（创建/更新）")
+    @OperationLog(module = "dictionary", operation = "SAVE", content = "批量保存数据字典")
+    @PostMapping("/batch")
+    public Result<Void> saveBatch(@Valid @RequestBody List<SaveDataDictionaryDTO> dtos) {
+        dataDictionaryService.saveBatch(dtos);
+        return Result.success();
     }
 
     @Operation(summary = "更新数据字典")
@@ -80,7 +89,9 @@ public class SaasDataDictionaryController {
 
     @Operation(summary = "获取所有字典类型列表（去重，同一类型只显示一条）")
     @GetMapping("/types")
-    public Result<List<DataDictionaryDTO>> getTypes() {
-        return Result.success(dataDictionaryService.getTypes());
+    public Result<PageResult<DataDictionaryDTO>> getTypesPage(
+            PageRequest pageRequest,
+            DataDictionaryQueryDTO query) {
+        return Result.success(dataDictionaryService.getTypesPage(query, pageRequest.getPageNum(), pageRequest.getPageSize()));
     }
 }

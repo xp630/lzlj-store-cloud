@@ -1,4 +1,4 @@
-package com.lzlj.account.datadictionary.dto;
+package com.lzlj.account.common.core.domain.datadictionary;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
