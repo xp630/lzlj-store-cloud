@@ -72,10 +72,10 @@ public class LzljRoleController {
     }
 
     @SaCheckPermission("lzlj:role:list")
-    @Operation(summary = "获取角色已授权菜单")
+    @Operation(summary = "获取角色已授权菜单的idList")
     @GetMapping("/{id}/menus")
-    public Result<List<LzljMenuDTO>> getRoleMenus(@PathVariable Long id) {
-        return Result.success(roleService.getRoleMenus(id));
+    public Result<List<Long>> getRoleMenus(@PathVariable Long id) {
+        return Result.success(roleService.getRoleMenuIdList(id));
     }
 
     @SaCheckPermission("lzlj:role:list")

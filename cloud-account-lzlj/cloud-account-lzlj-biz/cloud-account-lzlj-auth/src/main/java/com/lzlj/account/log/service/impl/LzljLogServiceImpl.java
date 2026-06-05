@@ -47,7 +47,7 @@ public class LzljLogServiceImpl implements LzljLogService {
             operationLog.setIp(ip);
             operationLog.setUserAgent(userAgent);
             operationLog.setOrgName(orgName);
-            operationLog.setFunctionalRoles(functionalRoles);
+            operationLog.setUserRoles(functionalRoles);
             operationLog.setDataRoles(dataRoles);
             operationLog.setCreateTime(LocalDateTime.now());
 

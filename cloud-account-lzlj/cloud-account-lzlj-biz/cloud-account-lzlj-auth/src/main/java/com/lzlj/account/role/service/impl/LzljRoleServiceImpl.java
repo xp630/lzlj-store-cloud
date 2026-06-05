@@ -25,9 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -141,6 +143,11 @@ public class LzljRoleServiceImpl implements LzljRoleService {
     }
 
     @Override
+    public List<Long> getRoleMenuIdList(Long roleId) {
+        return getRoleMenus(roleId).stream().map(LzljMenuDTO::getId).collect(Collectors.toList());
+    }
+
+    @Override
     public List<LzljMenuDTO> getRoleMenusTree(Long roleId) {
         LzljRole role = roleDao.selectById(roleId);
         if (role == null) {
@@ -164,8 +171,11 @@ public class LzljRoleServiceImpl implements LzljRoleService {
                   .eq(LzljMenu::getStatus, 1)
                   .orderByAsc(LzljMenu::getSort);
         List<LzljMenu> menus = menuDao.selectList(menuWrapper);
+        if(CollectionUtils.isEmpty(menus)){
+            return new ArrayList<>();
+        }
 
-        return buildMenuTree(menus, 0L);
+        return buildMenuTree(menus, menus.get(0).getParentId());
     }
 
     @Override

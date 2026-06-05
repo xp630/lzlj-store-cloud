@@ -10,12 +10,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ModuleEnum {
 
-    USER("用户管理", "user"),
-    ROLE("角色管理", "role"),
-    MENU("菜单管理", "menu"),
-    TENANT("租户管理", "tenant"),
-    API_KEY("API密钥", "apiKey"),
-    SYSTEM("系统管理", "system");
+    USER("用户管理", "USER"),
+    ROLE("角色管理", "ROLE"),
+    MENU("菜单管理", "MENU"),
+    TENANT("租户管理", "TENANT"),
+    APIKEY("API密钥", "APIKEY"),
+    SYSTEM("系统管理", "SYSTEM");
 
     private final String description;
     private final String permission;

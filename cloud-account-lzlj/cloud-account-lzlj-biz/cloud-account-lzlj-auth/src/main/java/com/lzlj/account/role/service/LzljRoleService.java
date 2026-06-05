@@ -43,6 +43,10 @@ public interface LzljRoleService {
     List<LzljMenuDTO> getRoleMenus(Long roleId);
 
     /**
+     * 获取角色已授权菜单
+     */
+    List<Long> getRoleMenuIdList(Long roleId);
+    /**
      * 获取角色已授权菜单（树形）
      */
     List<LzljMenuDTO> getRoleMenusTree(Long roleId);
