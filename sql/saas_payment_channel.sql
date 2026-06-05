@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `saas_auth_payment_channel` (
     `remark` VARCHAR(500) DEFAULT NULL COMMENT '备注',
     `version` INT NOT NULL DEFAULT 0 COMMENT '版本号',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_channel_code` (`channel_code`),
+    UNIQUE KEY `uk_channel_code_payment_method` (`channel_code`, `payment_method`),
     KEY `idx_deleted` (`deleted`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付通道管理表';
