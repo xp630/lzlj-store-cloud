@@ -35,4 +35,16 @@ public class UpdatePaymentChannelDTO {
 
     @Schema(description = "备注")
     private String remark;
+
+    private String channelCode;
+
+    /**
+     * 通道名称（银联/网商）
+     */
+    private String channelName;
+
+    /**
+     * 支付方式（逗号分隔，如 WECHAT,ALIPAY）
+     */
+    private String paymentMethod;
 }

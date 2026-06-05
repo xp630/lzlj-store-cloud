@@ -1,6 +1,7 @@
 package com.lzlj.account.biz.paychannel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzlj.account.biz.paychannel.dao.SaasPaymentChannelDao;
@@ -53,13 +54,20 @@ public class SaasPaymentChannelServiceImpl implements SaasPaymentChannelService 
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
 
-        // 检查通道编码+支付方式组合是否已存在（排除自身）
-        if (checkChannelCodeAndPaymentMethodExists(dto.getChannelCode(), dto.getPaymentMethod(), id)) {
-            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS.getCode(), "该通道编码和支付方式组合已存在");
-        }
-
-        BeanUtils.copyProperties(dto, existChannel);
-        paymentChannelDao.updateById(existChannel);
+        // 使用 LambdaUpdateWrapper 绕过 updateById 的乐观锁问题
+        paymentChannelDao.update(null,
+            new LambdaUpdateWrapper<SaasPaymentChannel>()
+                .eq(SaasPaymentChannel::getId, id)
+                .set(SaasPaymentChannel::getCloudAccountFee, dto.getCloudAccountFee())
+                    .set(SaasPaymentChannel::getPaymentMethod,dto.getPaymentMethod())
+                    .set(SaasPaymentChannel::getChannelCode,dto.getChannelCode())
+                    .set(SaasPaymentChannel::getChannelName,dto.getChannelName())
+                .set(SaasPaymentChannel::getUpstreamCostFee, dto.getUpstreamCostFee())
+                .set(SaasPaymentChannel::getTotalFeeCost, dto.getTotalFeeCost())
+                .set(SaasPaymentChannel::getPerTransactionLimit, dto.getPerTransactionLimit())
+                .set(SaasPaymentChannel::getStatus, dto.getStatus())
+                .set(SaasPaymentChannel::getRemark, dto.getRemark())
+        );
         log.info("更新支付通道成功: id={}", id);
     }
 
@@ -69,8 +77,8 @@ public class SaasPaymentChannelServiceImpl implements SaasPaymentChannelService 
         if (channel == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND);
         }
-
-        paymentChannelDao.deleteById(id);
+        // 物理删除
+        paymentChannelDao.deleteByIdPhysical(id);
         log.info("删除支付通道成功: id={}", id);
     }
 
