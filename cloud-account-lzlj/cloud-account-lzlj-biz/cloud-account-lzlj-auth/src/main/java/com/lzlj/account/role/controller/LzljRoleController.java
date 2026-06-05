@@ -2,6 +2,7 @@ package com.lzlj.account.role.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -33,7 +34,7 @@ public class LzljRoleController {
 
     @SaCheckPermission("lzlj:role:create")
     @Operation(summary = "创建角色")
-    @OperationLog(module = "role", operation = "CREATE", content = "创建角色")
+    @OperationLog(module = ModuleEnum.ROLE, operation = "CREATE", content = "创建角色")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody LzljCreateRoleDTO dto) {
         return Result.success(roleService.create(dto));
@@ -41,7 +42,7 @@ public class LzljRoleController {
 
     @SaCheckPermission("lzlj:role:update")
     @Operation(summary = "更新角色")
-    @OperationLog(module = "role", operation = "UPDATE", content = "更新角色")
+    @OperationLog(module = ModuleEnum.ROLE, operation = "UPDATE", content = "更新角色")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody LzljUpdateRoleDTO dto) {
         roleService.update(id, dto);
@@ -50,7 +51,7 @@ public class LzljRoleController {
 
     @SaCheckPermission("lzlj:role:delete")
     @Operation(summary = "删除角色")
-    @OperationLog(module = "role", operation = "DELETE", content = "删除角色")
+    @OperationLog(module = ModuleEnum.ROLE, operation = "DELETE", content = "删除角色")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         roleService.delete(id);
@@ -87,7 +88,7 @@ public class LzljRoleController {
 
     @SaCheckPermission("lzlj:role:grant")
     @Operation(summary = "分配菜单权限")
-    @OperationLog(module = "role", operation = "GRANT", content = "分配菜单权限")
+    @OperationLog(module = ModuleEnum.ROLE, operation = "GRANT", content = "分配菜单权限")
     @PutMapping("/{id}/menus")
     public Result<Void> assignMenus(@PathVariable Long id, @RequestBody LzljRoleMenuDTO dto) {
         roleService.assignMenus(id, dto);

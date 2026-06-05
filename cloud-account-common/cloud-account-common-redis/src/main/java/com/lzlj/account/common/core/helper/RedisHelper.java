@@ -1,5 +1,6 @@
 package com.lzlj.account.common.core.helper;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,6 +37,17 @@ public class RedisHelper {
         }
         // LinkedHashMap 等类型需要转换，使用注入的 ObjectMapper（已注册 JavaTimeModule）
         return objectMapper.convertValue(value, clazz);
+    }
+
+    /**
+     * 获取值并转换为指定类型（支持泛型，如 List&lt;RoleDTO&gt;）
+     */
+    public <T> T get(String key, TypeReference<T> typeRef) {
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return null;
+        }
+        return objectMapper.convertValue(value, typeRef);
     }
 
     /**

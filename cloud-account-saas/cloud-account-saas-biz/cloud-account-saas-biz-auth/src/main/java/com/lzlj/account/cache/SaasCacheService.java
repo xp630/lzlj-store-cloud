@@ -1,5 +1,6 @@
 package com.lzlj.account.cache;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.lzlj.account.common.core.constant.CacheConstants;
 import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
 import com.lzlj.account.common.core.helper.RedisHelper;
@@ -33,7 +34,7 @@ public class SaasCacheService {
      * 获取菜单缓存
      */
     public List<MenuDTO> getMenus() {
-        return redisHelper.get(CacheConstants.SAAS_MENUS_KEY, List.class);
+        return redisHelper.get(CacheConstants.SAAS_MENUS_KEY, new TypeReference<List<MenuDTO>>() {});
     }
 
     /**
@@ -60,7 +61,7 @@ public class SaasCacheService {
      */
     public List<DataDictionaryDTO> getDataDictionaryByType(String dictType) {
         String key = CacheConstants.SAAS_DICT_TYPE_PREFIX + dictType;
-        return redisHelper.get(key, List.class);
+        return redisHelper.get(key, new TypeReference<List<DataDictionaryDTO>>() {});
     }
 
     /**
@@ -76,7 +77,7 @@ public class SaasCacheService {
      * 获取所有数据字典分组
      */
     public Map<String, List<DataDictionaryDTO>> getAllDataDictionaryGroup() {
-        return redisHelper.get(CacheConstants.SAAS_DICT_ALL_GROUP, Map.class);
+        return redisHelper.get(CacheConstants.SAAS_DICT_ALL_GROUP, new TypeReference<Map<String, List<DataDictionaryDTO>>>() {});
     }
 
     /**
@@ -109,7 +110,7 @@ public class SaasCacheService {
      * 获取角色缓存
      */
     public List<RoleDTO> getRoles() {
-        return redisHelper.get(CacheConstants.SAAS_ROLES_KEY, List.class);
+        return redisHelper.get(CacheConstants.SAAS_ROLES_KEY, new TypeReference<List<RoleDTO>>() {});
     }
 
     /**
@@ -135,7 +136,7 @@ public class SaasCacheService {
      * 获取系统参数缓存
      */
     public List<SystemParameterDTO> getSystemParameters() {
-        return redisHelper.get(CacheConstants.SAAS_SYS_PARAM_ALL, List.class);
+        return redisHelper.get(CacheConstants.SAAS_SYS_PARAM_ALL, new TypeReference<List<SystemParameterDTO>>() {});
     }
 
     /**
@@ -162,7 +163,7 @@ public class SaasCacheService {
      */
     public List<RoleDTO> getUserRoles(Long userId) {
         String key = CacheConstants.SAAS_USER_ROLES_PREFIX + userId;
-        return redisHelper.get(key, List.class);
+        return redisHelper.get(key, new TypeReference<List<RoleDTO>>() {});
     }
 
     /**

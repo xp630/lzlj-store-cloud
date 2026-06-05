@@ -1,9 +1,6 @@
 package com.lzlj.account.biz.controller;
 
-import com.lzlj.account.common.core.enums.ModuleEnum;
-import com.lzlj.account.common.core.enums.PaymentMethodEnum;
-import com.lzlj.account.common.core.enums.BusinessTypeEnum;
-import com.lzlj.account.common.core.enums.ParamTypeEnum;
+import com.lzlj.account.common.core.enums.*;
 import com.lzlj.account.common.core.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,6 +61,14 @@ public class SaasEnumController {
                 break;
             case "ParamType":
                 for (ParamTypeEnum e : ParamTypeEnum.values()) {
+                    Map<String, String> map = new LinkedHashMap<>();
+                    map.put("code", e.getCode());
+                    map.put("name", e.getName());
+                    list.add(map);
+                }
+                break;
+            case "PaymentChannel":
+                for (PaymentChannelEnum e : PaymentChannelEnum.values()) {
                     Map<String, String> map = new LinkedHashMap<>();
                     map.put("code", e.getCode());
                     map.put("name", e.getName());

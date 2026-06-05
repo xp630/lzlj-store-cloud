@@ -1,5 +1,6 @@
 package com.lzlj.account.common.core.annotation;
 
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import java.lang.annotation.*;
 
 /**
@@ -14,7 +15,7 @@ public @interface OperationLog {
     /**
      * 模块名称
      */
-    String module();
+    ModuleEnum module();
 
     /**
      * 操作类型：CREATE, UPDATE, DELETE, QUERY, etc.

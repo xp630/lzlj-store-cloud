@@ -6,6 +6,7 @@ import com.lzlj.account.biz.paychannel.dto.PaymentChannelQueryDTO;
 import com.lzlj.account.biz.paychannel.dto.UpdatePaymentChannelDTO;
 import com.lzlj.account.biz.paychannel.service.SaasPaymentChannelService;
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -29,14 +30,14 @@ public class SaasPaymentChannelController {
     private final SaasPaymentChannelService paymentChannelService;
 
     @Operation(summary = "创建支付通道")
-    @OperationLog(module = "channel", operation = "CREATE", content = "创建支付通道")
+    @OperationLog(module = ModuleEnum.CHANNEL, operation = "CREATE", content = "创建支付通道")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreatePaymentChannelDTO dto) {
         return Result.success(paymentChannelService.create(dto));
     }
 
     @Operation(summary = "更新支付通道")
-    @OperationLog(module = "channel", operation = "UPDATE", content = "更新支付通道")
+    @OperationLog(module = ModuleEnum.CHANNEL, operation = "UPDATE", content = "更新支付通道")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdatePaymentChannelDTO dto) {
         paymentChannelService.update(id, dto);
@@ -44,7 +45,7 @@ public class SaasPaymentChannelController {
     }
 
     @Operation(summary = "删除支付通道")
-    @OperationLog(module = "channel", operation = "DELETE", content = "删除支付通道")
+    @OperationLog(module = ModuleEnum.CHANNEL, operation = "DELETE", content = "删除支付通道")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         paymentChannelService.delete(id);

@@ -1,6 +1,7 @@
 package com.lzlj.account.biz.datadictionary.controller;
 
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
@@ -31,14 +32,14 @@ public class SaasDataDictionaryController {
     private final SaasDataDictionaryService dataDictionaryService;
 
     @Operation(summary = "创建数据字典")
-    @OperationLog(module = "dictionary", operation = "CREATE", content = "创建数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "CREATE", content = "创建数据字典")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateDataDictionaryDTO dto) {
         return Result.success(dataDictionaryService.create(dto));
     }
 
     @Operation(summary = "批量保存数据字典（创建/更新）")
-    @OperationLog(module = "dictionary", operation = "SAVE", content = "批量保存数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "SAVE", content = "批量保存数据字典")
     @PostMapping("/batch")
     public Result<Void> saveBatch(@Valid @RequestBody List<SaveDataDictionaryDTO> dtos) {
         dataDictionaryService.saveBatch(dtos);
@@ -46,7 +47,7 @@ public class SaasDataDictionaryController {
     }
 
     @Operation(summary = "更新数据字典")
-    @OperationLog(module = "dictionary", operation = "UPDATE", content = "更新数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "UPDATE", content = "更新数据字典")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateDataDictionaryDTO dto) {
         dataDictionaryService.update(id, dto);
@@ -54,7 +55,7 @@ public class SaasDataDictionaryController {
     }
 
     @Operation(summary = "删除数据字典")
-    @OperationLog(module = "dictionary", operation = "DELETE", content = "删除数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "DELETE", content = "删除数据字典")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         dataDictionaryService.delete(id);

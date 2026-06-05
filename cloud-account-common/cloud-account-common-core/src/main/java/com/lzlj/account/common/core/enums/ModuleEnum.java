@@ -15,7 +15,10 @@ public enum ModuleEnum {
     MENU("菜单管理", "MENU"),
     TENANT("租户管理", "TENANT"),
     APIKEY("API密钥", "APIKEY"),
-    SYSTEM("系统管理", "SYSTEM");
+    SYSTEM("系统管理", "SYSTEM"),
+    DICTIONARY("数据字典", "DICTIONARY"),
+    PARAMETER("系统参数", "PARAMETER"),
+    CHANNEL("支付通道", "CHANNEL");
 
     private final String description;
     private final String permission;

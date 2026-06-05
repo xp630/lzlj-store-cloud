@@ -2,6 +2,7 @@ package com.lzlj.account.menu.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.result.Result;
 import com.lzlj.account.menu.dto.LzljCreateMenuDTO;
 import com.lzlj.account.menu.dto.LzljMenuDTO;
@@ -34,7 +35,7 @@ public class LzljMenuController {
 
     @SaCheckPermission("lzlj:menu:create")
     @Operation(summary = "创建菜单", description = "需要权限: lzlj:menu:create")
-    @OperationLog(module = "menu", operation = "CREATE", content = "创建菜单")
+    @OperationLog(module = ModuleEnum.MENU, operation = "CREATE", content = "创建菜单")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody LzljCreateMenuDTO dto) {
         return Result.success(menuService.create(dto));
@@ -42,7 +43,7 @@ public class LzljMenuController {
 
     @SaCheckPermission("lzlj:menu:update")
     @Operation(summary = "更新菜单", description = "需要权限: lzlj:menu:update")
-    @OperationLog(module = "menu", operation = "UPDATE", content = "更新菜单")
+    @OperationLog(module = ModuleEnum.MENU, operation = "UPDATE", content = "更新菜单")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody LzljUpdateMenuDTO dto) {
         menuService.update(id, dto);
@@ -51,7 +52,7 @@ public class LzljMenuController {
 
     @SaCheckPermission("lzlj:menu:delete")
     @Operation(summary = "删除菜单", description = "需要权限: lzlj:menu:delete")
-    @OperationLog(module = "menu", operation = "DELETE", content = "删除菜单")
+    @OperationLog(module = ModuleEnum.MENU, operation = "DELETE", content = "删除菜单")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         menuService.delete(id);

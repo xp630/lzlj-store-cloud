@@ -1,6 +1,7 @@
 package com.lzlj.account.biz.systemparameter.controller;
 
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.result.Result;
@@ -29,14 +30,14 @@ public class SystemParameterController {
     private final SystemParameterService systemParameterService;
 
     @Operation(summary = "创建系统参数")
-    @OperationLog(module = "parameter", operation = "CREATE", content = "创建系统参数")
+    @OperationLog(module = ModuleEnum.PARAMETER, operation = "CREATE", content = "创建系统参数")
     @PostMapping
     public Result<Long> create(@Valid @RequestBody CreateSystemParameterDTO dto) {
         return Result.success(systemParameterService.create(dto));
     }
 
     @Operation(summary = "更新系统参数")
-    @OperationLog(module = "parameter", operation = "UPDATE", content = "更新系统参数")
+    @OperationLog(module = ModuleEnum.PARAMETER, operation = "UPDATE", content = "更新系统参数")
     @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody UpdateSystemParameterDTO dto) {
         systemParameterService.update(id, dto);
@@ -44,7 +45,7 @@ public class SystemParameterController {
     }
 
     @Operation(summary = "删除系统参数")
-    @OperationLog(module = "parameter", operation = "DELETE", content = "删除系统参数")
+    @OperationLog(module = ModuleEnum.PARAMETER, operation = "DELETE", content = "删除系统参数")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         systemParameterService.delete(id);

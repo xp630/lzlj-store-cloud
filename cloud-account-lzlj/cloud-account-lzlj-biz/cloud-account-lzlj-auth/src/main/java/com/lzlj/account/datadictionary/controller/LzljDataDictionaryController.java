@@ -1,6 +1,7 @@
 package com.lzlj.account.datadictionary.controller;
 
 import com.lzlj.account.common.core.annotation.OperationLog;
+import com.lzlj.account.common.core.enums.ModuleEnum;
 import com.lzlj.account.common.core.domain.PageRequest;
 import com.lzlj.account.common.core.domain.PageResult;
 import com.lzlj.account.common.core.domain.datadictionary.DataDictionaryDTO;
@@ -26,14 +27,14 @@ public class LzljDataDictionaryController {
     private final LzljDataDictionaryService lzljDataDictionaryService;
 
     @Operation(summary = "批量保存数据字典（创建/更新）")
-    @OperationLog(module = "dictionary", operation = "SAVE", content = "批量保存数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "SAVE", content = "批量保存数据字典")
     @PostMapping("/batch")
     public Result<Void> saveBatch(@Valid @RequestBody List<SaveDataDictionaryDTO> dtos) {
         lzljDataDictionaryService.saveBatch(dtos);
         return Result.success();
     }
     @Operation(summary = "删除数据字典")
-    @OperationLog(module = "dictionary", operation = "DELETE", content = "删除数据字典")
+    @OperationLog(module = ModuleEnum.DICTIONARY, operation = "DELETE", content = "删除数据字典")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         lzljDataDictionaryService.delete(id);
