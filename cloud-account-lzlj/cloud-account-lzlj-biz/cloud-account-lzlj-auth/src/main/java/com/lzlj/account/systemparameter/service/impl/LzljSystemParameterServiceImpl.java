@@ -92,9 +92,11 @@ public class LzljSystemParameterServiceImpl implements LzljSystemParameterServic
         LzljSystemParameterQueryDTO query = pageRequest.getCondition();
         Page<LzljSystemParameter> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljSystemParameter> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getParamName()), LzljSystemParameter::getParamName, query.getParamName())
-               .eq(query.getStatus() != null, LzljSystemParameter::getStatus, query.getStatus())
-               .orderByDesc(LzljSystemParameter::getCreateTime);
+        wrapper.orderByDesc(LzljSystemParameter::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getParamName()), LzljSystemParameter::getParamName, query.getParamName())
+                   .eq(query.getStatus() != null, LzljSystemParameter::getStatus, query.getStatus());
+        }
         IPage<LzljSystemParameter> resultPage = lzljSystemParameterDao.selectPage(page, wrapper);
         return new PageResult<>(
                 resultPage.getRecords().stream().map(this::convertToDTO).collect(Collectors.toList()),

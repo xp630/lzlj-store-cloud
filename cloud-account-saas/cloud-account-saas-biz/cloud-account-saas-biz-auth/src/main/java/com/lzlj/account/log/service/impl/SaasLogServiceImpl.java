@@ -62,17 +62,19 @@ public class SaasLogServiceImpl implements SaasLogService {
         OperationLogQueryDTO query = pageRequest.getCondition();
         Page<SaasOperationLog> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasOperationLog> wrapper = new LambdaQueryWrapper<>();
-        String username = query.getUsername();
-        String module = query.getModule();
-        String operation = query.getOperation();
-        String startTime = query.getStartTime();
-        String endTime = query.getEndTime();
-        wrapper.like(StringUtils.hasText(username), SaasOperationLog::getUsername, username)
-               .like(StringUtils.hasText(module), SaasOperationLog::getModule, module)
-               .eq(StringUtils.hasText(operation), SaasOperationLog::getOperation, operation)
-               .ge(StringUtils.hasText(startTime), SaasOperationLog::getCreateTime, startTime)
-               .le(StringUtils.hasText(endTime), SaasOperationLog::getCreateTime, endTime)
-               .orderByDesc(SaasOperationLog::getCreateTime);
+        wrapper.orderByDesc(SaasOperationLog::getCreateTime);
+        if (query != null) {
+            String username = query.getUsername();
+            String module = query.getModule();
+            String operation = query.getOperation();
+            String startTime = query.getStartTime();
+            String endTime = query.getEndTime();
+            wrapper.like(StringUtils.hasText(username), SaasOperationLog::getUsername, username)
+                   .like(StringUtils.hasText(module), SaasOperationLog::getModule, module)
+                   .eq(StringUtils.hasText(operation), SaasOperationLog::getOperation, operation)
+                   .ge(StringUtils.hasText(startTime), SaasOperationLog::getCreateTime, startTime)
+                   .le(StringUtils.hasText(endTime), SaasOperationLog::getCreateTime, endTime);
+        }
 
         IPage<SaasOperationLog> resultPage = operationLogDao.selectPage(page, wrapper);
 

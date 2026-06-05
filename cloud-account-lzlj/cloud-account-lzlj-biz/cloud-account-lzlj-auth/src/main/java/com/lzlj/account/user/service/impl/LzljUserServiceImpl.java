@@ -220,11 +220,13 @@ public class LzljUserServiceImpl implements LzljUserService {
         LzljUserQueryDTO query = pageRequest.getCondition();
         Page<LzljUser> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getOrgId() != null, LzljUser::getOrgId, query.getOrgId())
-               .like(query.getKeyword() != null, LzljUser::getUsername, query.getKeyword())
-               .eq(query.getStatus() != null, LzljUser::getStatus, query.getStatus())
-               .eq(LzljUser::getDeleted, 0)
+        wrapper.eq(LzljUser::getDeleted, 0)
                .orderByDesc(LzljUser::getCreateTime);
+        if (query != null) {
+            wrapper.eq(query.getOrgId() != null, LzljUser::getOrgId, query.getOrgId())
+                   .like(query.getKeyword() != null, LzljUser::getUsername, query.getKeyword())
+                   .eq(query.getStatus() != null, LzljUser::getStatus, query.getStatus());
+        }
 
         IPage<LzljUser> resultPage = userDao.selectPage(page, wrapper);
 

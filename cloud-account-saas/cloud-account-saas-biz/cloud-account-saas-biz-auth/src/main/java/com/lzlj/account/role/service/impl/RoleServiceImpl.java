@@ -68,8 +68,8 @@ public class RoleServiceImpl implements RoleService {
 
         LambdaQueryWrapper<SaasMenu> menuWrapper = new LambdaQueryWrapper<>();
         menuWrapper.in(SaasMenu::getId, menuIds)
-                  .eq(SaasMenu::getStatus, 1)
-                  .orderByAsc(SaasMenu::getSort);
+                .eq(SaasMenu::getStatus, 1)
+                .orderByAsc(SaasMenu::getSort);
         List<SaasMenu> menus = menuDao.selectList(menuWrapper);
 
         return buildMenuTree(menus, 0L);
@@ -141,10 +141,13 @@ public class RoleServiceImpl implements RoleService {
     public PageResult<RoleDTO> page(PageRequest<RoleQueryDTO> pageRequest) {
         RoleQueryDTO query = pageRequest.getCondition();
         Page<SaasRole> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
+
         LambdaQueryWrapper<SaasRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getKeyword()), SaasRole::getRoleName, query.getKeyword())
-               .eq(query.getStatus() != null, SaasRole::getStatus, query.getStatus())
-               .orderByDesc(SaasRole::getCreateTime);
+        wrapper.orderByDesc(SaasRole::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getKeyword()), SaasRole::getRoleName, query.getKeyword())
+                    .eq(query.getStatus() != null, SaasRole::getStatus, query.getStatus());
+        }
 
         IPage<SaasRole> resultPage = roleDao.selectPage(page, wrapper);
 

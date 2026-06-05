@@ -111,10 +111,12 @@ public class SaasApiKeyServiceImpl implements SaasApiKeyService {
         ApiKeyQueryDTO query = pageRequest.getCondition();
         Page<SaasApiKey> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasApiKey> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getTenantId() != null, SaasApiKey::getTenantId, query.getTenantId())
-               .like(StringUtils.hasText(query.getKeyword()), SaasApiKey::getName, query.getKeyword())
-               .eq(query.getStatus() != null, SaasApiKey::getStatus, query.getStatus())
-               .orderByDesc(SaasApiKey::getCreateTime);
+        wrapper.orderByDesc(SaasApiKey::getCreateTime);
+        if (query != null) {
+            wrapper.eq(query.getTenantId() != null, SaasApiKey::getTenantId, query.getTenantId())
+                   .like(StringUtils.hasText(query.getKeyword()), SaasApiKey::getName, query.getKeyword())
+                   .eq(query.getStatus() != null, SaasApiKey::getStatus, query.getStatus());
+        }
 
         IPage<SaasApiKey> resultPage = apiKeyDao.selectPage(page, wrapper);
 

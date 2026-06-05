@@ -101,9 +101,11 @@ public class LzljRoleServiceImpl implements LzljRoleService {
         LzljRoleQueryDTO query = pageRequest.getCondition();
         Page<LzljRole> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<LzljRole> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getKeyword()), LzljRole::getRoleName, query.getKeyword())
-               .eq(query.getStatus() != null, LzljRole::getStatus, query.getStatus())
-               .orderByDesc(LzljRole::getCreateTime);
+        wrapper.orderByDesc(LzljRole::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getKeyword()), LzljRole::getRoleName, query.getKeyword())
+                   .eq(query.getStatus() != null, LzljRole::getStatus, query.getStatus());
+        }
 
         IPage<LzljRole> resultPage = roleDao.selectPage(page, wrapper);
 

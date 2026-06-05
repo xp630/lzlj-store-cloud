@@ -363,20 +363,22 @@ public class LzljMerchantServiceImpl implements LzljMerchantService {
     public PageResult<MerchantDTO> page(PageRequest<MerchantQueryDTO> pageRequest) {
         MerchantQueryDTO query = pageRequest.getCondition();
         LambdaQueryWrapper<LzljMerchant> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(query.getMerchantName())) {
-            wrapper.like(LzljMerchant::getMerchantName, query.getMerchantName());
-        }
-        if (StringUtils.hasText(query.getMerchantCode())) {
-            wrapper.eq(LzljMerchant::getMerchantCode, query.getMerchantCode());
-        }
-        if (StringUtils.hasText(query.getContact())) {
-            wrapper.like(LzljMerchant::getContact, query.getContact());
-        }
-        if (query.getStatus() != null) {
-            wrapper.eq(LzljMerchant::getStatus, query.getStatus());
-        }
         wrapper.eq(LzljMerchant::getDeleted, 0)
                .orderByDesc(LzljMerchant::getCreateTime);
+        if (query != null) {
+            if (StringUtils.hasText(query.getMerchantName())) {
+                wrapper.like(LzljMerchant::getMerchantName, query.getMerchantName());
+            }
+            if (StringUtils.hasText(query.getMerchantCode())) {
+                wrapper.eq(LzljMerchant::getMerchantCode, query.getMerchantCode());
+            }
+            if (StringUtils.hasText(query.getContact())) {
+                wrapper.like(LzljMerchant::getContact, query.getContact());
+            }
+            if (query.getStatus() != null) {
+                wrapper.eq(LzljMerchant::getStatus, query.getStatus());
+            }
+        }
 
         IPage<LzljMerchant> page = merchantDao.selectPage(
                 new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize()),

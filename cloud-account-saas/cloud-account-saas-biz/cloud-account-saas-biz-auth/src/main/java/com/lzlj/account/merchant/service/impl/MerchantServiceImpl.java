@@ -161,10 +161,12 @@ public class MerchantServiceImpl implements MerchantService {
         MerchantQueryDTO query = pageRequest.getCondition();
         Page<Merchant> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<Merchant> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(StringUtils.hasText(query.getKeyword()), Merchant::getMerchantName, query.getKeyword())
-               .eq(query.getStatus() != null, Merchant::getStatus, query.getStatus())
-               .eq(Merchant::getDeleted, 0)
+        wrapper.eq(Merchant::getDeleted, 0)
                .orderByDesc(Merchant::getCreateTime);
+        if (query != null) {
+            wrapper.like(StringUtils.hasText(query.getKeyword()), Merchant::getMerchantName, query.getKeyword())
+                   .eq(query.getStatus() != null, Merchant::getStatus, query.getStatus());
+        }
 
         IPage<Merchant> resultPage = merchantDao.selectPage(page, wrapper);
 

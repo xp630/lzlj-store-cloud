@@ -205,16 +205,18 @@ public class SaasUserServiceImpl implements SaasUserService {
         UserQueryDTO query = pageRequest.getCondition();
         Page<SaasUser> page = new Page<>(pageRequest.getPageNum(), pageRequest.getPageSize());
         LambdaQueryWrapper<SaasUser> wrapper = new LambdaQueryWrapper<>();
-        String key = query.getKeyWord();
-        String phone = query.getPhone();
-        // 用户名同时模糊匹配 username 和 realName
-        if (StringUtils.hasText(key)) {
-            wrapper.and(w -> w.like(SaasUser::getUsername, key).or().like(SaasUser::getRealName, key));
-        }
-        wrapper.like(StringUtils.hasText(phone), SaasUser::getPhone, phone)
-               .eq(query.getStatus() != null, SaasUser::getStatus, query.getStatus())
-               .eq(SaasUser::getDeleted, 0)
+        wrapper.eq(SaasUser::getDeleted, 0)
                .orderByDesc(SaasUser::getCreateTime);
+        if (query != null) {
+            String key = query.getKeyWord();
+            String phone = query.getPhone();
+            // 用户名同时模糊匹配 username 和 realName
+            if (StringUtils.hasText(key)) {
+                wrapper.and(w -> w.like(SaasUser::getUsername, key).or().like(SaasUser::getRealName, key));
+            }
+            wrapper.like(StringUtils.hasText(phone), SaasUser::getPhone, phone)
+                   .eq(query.getStatus() != null, SaasUser::getStatus, query.getStatus());
+        }
 
         IPage<SaasUser> resultPage = userDao.selectPage(page, wrapper);
 
